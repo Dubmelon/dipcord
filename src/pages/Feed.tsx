@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -5,7 +6,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { CreatePost } from "@/components/feed/CreatePost";
 import { PostCard } from "@/components/feed/PostCard";
-import { motion } from "framer-motion";
+import { motion, LazyMotion, domAnimation } from "framer-motion";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const Feed = () => {
@@ -142,13 +143,15 @@ const Feed = () => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3 }}
-        >
-          Loading...
-        </motion.div>
+        <LazyMotion features={domAnimation}>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            Loading...
+          </motion.div>
+        </LazyMotion>
       </div>
     );
   }
@@ -164,28 +167,47 @@ const Feed = () => {
           isSubmitting={createPostMutation.isPending}
         />
 
-        <motion.div
-          className="space-y-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3 }}
-        >
-          {posts?.map((post: any) => (
-            <PostCard
-              key={post.id}
-              post={post}
-              currentUser={currentUser}
-              onLike={() => likePostMutation.mutate(post.id)}
-              onUnlike={() => unlikePostMutation.mutate(post.id)}
-              onShare={() => {
-                navigator.clipboard.writeText(
-                  `${window.location.origin}/posts/${post.id}`
-                );
-                toast.success("Link copied to clipboard!");
-              }}
-            />
-          ))}
-        </motion.div>
+        <LazyMotion features={domAnimation}>
+          <motion.div
+            className="space-y-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ 
+              duration: 0.3,
+              staggerChildren: 0.1 
+            }}
+          >
+            {posts?.map((post: any, index: number) => (
+              <motion.div
+                key={post.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  duration: 0.3,
+                  delay: index * 0.1,
+                  ease: "easeOut"
+                }}
+                style={{ 
+                  willChange: 'transform, opacity',
+                  transform: 'translateZ(0)'  // Hardware acceleration
+                }}
+              >
+                <PostCard
+                  post={post}
+                  currentUser={currentUser}
+                  onLike={() => likePostMutation.mutate(post.id)}
+                  onUnlike={() => unlikePostMutation.mutate(post.id)}
+                  onShare={() => {
+                    navigator.clipboard.writeText(
+                      `${window.location.origin}/posts/${post.id}`
+                    );
+                    toast.success("Link copied to clipboard!");
+                  }}
+                />
+              </motion.div>
+            ))}
+          </motion.div>
+        </LazyMotion>
       </div>
     </div>
   );
