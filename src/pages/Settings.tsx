@@ -16,22 +16,22 @@ const Settings = () => {
   const { data: profile, isLoading, error } = useQuery({
     queryKey: ["profile"],
     queryFn: async () => {
-      console.log("Fetching profile data...");
+      console.log("Starting profile fetch...");
       
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       
       if (authError) {
         console.error("Auth error:", authError);
-        throw authError;
+        throw new Error(`Authentication error: ${authError.message}`);
       }
       
       if (!user) {
-        console.log("No authenticated user found");
+        console.log("No authenticated user found, redirecting to home");
         navigate("/");
         return null;
       }
 
-      console.log("User authenticated, fetching profile...");
+      console.log("User authenticated:", user.id);
 
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
@@ -41,12 +41,13 @@ const Settings = () => {
       
       if (profileError) {
         console.error("Profile fetch error:", profileError);
-        throw profileError;
+        throw new Error(`Failed to fetch profile: ${profileError.message}`);
       }
+
+      console.log("Profile data:", profile);
 
       if (!profile) {
         console.log("No profile found, creating one...");
-        // If no profile exists, create one
         const { data: newProfile, error: createError } = await supabase
           .from("profiles")
           .insert([{ 
@@ -59,27 +60,24 @@ const Settings = () => {
 
         if (createError) {
           console.error("Profile creation error:", createError);
-          throw createError;
+          throw new Error(`Failed to create profile: ${createError.message}`);
         }
 
+        console.log("New profile created:", newProfile);
         return newProfile;
       }
       
-      console.log("Profile fetched successfully:", profile);
       return profile;
     },
-    retry: 1,
+    retry: 2,
     refetchOnWindowFocus: false,
     meta: {
-      onError: (error: Error) => {
-        console.error("Settings page error:", error);
-        toast.error("Failed to load profile: " + error.message);
-        navigate("/");
-      }
+      errorMessage: "Failed to load profile"
     }
   });
 
   if (error) {
+    console.error("Settings page error:", error);
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center space-y-4">
