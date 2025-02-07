@@ -521,6 +521,7 @@ export type Database = {
           description: string | null
           id: string
           is_private: boolean | null
+          member_count: number | null
           name: string
           owner_id: string | null
           updated_at: string
@@ -531,6 +532,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_private?: boolean | null
+          member_count?: number | null
           name: string
           owner_id?: string | null
           updated_at?: string
@@ -541,6 +543,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_private?: boolean | null
+          member_count?: number | null
           name?: string
           owner_id?: string | null
           updated_at?: string
