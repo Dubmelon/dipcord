@@ -66,6 +66,38 @@
     --input: 220 20% 15%;
     --ring: 24 90% 65%;
   }
+
+  .froggy {
+    --background: 160 51% 60%; /* Mint turquoise */
+    --foreground: 0 0% 10%;
+    
+    --card: 120 30% 85%;
+    --card-foreground: 0 0% 10%;
+    
+    --popover: 120 30% 85%;
+    --popover-foreground: 0 0% 10%;
+    
+    --primary: 120 35% 70%; /* Light green */
+    --primary-foreground: 0 0% 10%;
+    
+    --secondary: 120 25% 55%; /* Lily pad green */
+    --secondary-foreground: 0 0% 98%;
+    
+    --muted: 120 15% 85%;
+    --muted-foreground: 0 0% 40%;
+    
+    --accent: 39 100% 85%; /* Yellow-gold */
+    --accent-foreground: 0 0% 10%;
+    
+    --destructive: 0 85% 60%;
+    --destructive-foreground: 0 0% 98%;
+    
+    --border: 120 25% 75%;
+    --input: 120 25% 75%;
+    --ring: 120 35% 70%;
+    
+    --radius: 0.75rem;
+  }
 }
 
 @layer base {
