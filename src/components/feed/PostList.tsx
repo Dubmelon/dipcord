@@ -2,6 +2,7 @@
 import { motion, LazyMotion, domAnimation } from "framer-motion";
 import { PostCard } from "./PostCard";
 import { PostSkeleton } from "./PostSkeleton";
+import { toast } from "sonner";
 
 interface PostListProps {
   posts: any[];
