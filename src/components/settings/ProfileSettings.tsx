@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -123,6 +124,8 @@ export const ProfileSettings = ({ profile, isLoading }: ProfileSettingsProps) =>
                 accept="image/*"
                 onChange={handleAvatarChange}
                 className="max-w-xs"
+                id="avatar-upload"
+                name="avatar-upload"
               />
             </div>
           </div>
@@ -130,6 +133,7 @@ export const ProfileSettings = ({ profile, isLoading }: ProfileSettingsProps) =>
             <Label htmlFor="username">Username</Label>
             <Input
               id="username"
+              name="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Enter your username"
@@ -139,6 +143,7 @@ export const ProfileSettings = ({ profile, isLoading }: ProfileSettingsProps) =>
             <Label htmlFor="fullName">Full Name</Label>
             <Input
               id="fullName"
+              name="fullName"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               placeholder="Enter your full name"
@@ -148,6 +153,7 @@ export const ProfileSettings = ({ profile, isLoading }: ProfileSettingsProps) =>
             <Label htmlFor="bio">Bio</Label>
             <Textarea
               id="bio"
+              name="bio"
               value={bio}
               onChange={(e) => setBio(e.target.value)}
               placeholder="Tell us about yourself"

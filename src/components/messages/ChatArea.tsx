@@ -1,3 +1,4 @@
+
 import { Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -71,6 +72,8 @@ export const ChatArea = ({
         <div className="flex space-x-2">
           <input
             type="text"
+            id="message-input"
+            name="message-input"
             value={messageText}
             onChange={(e) => onMessageChange(e.target.value)}
             placeholder="Type a message..."
