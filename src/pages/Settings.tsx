@@ -1,3 +1,4 @@
+
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,30 +7,63 @@ import { ProfileSettings } from "@/components/settings/ProfileSettings";
 import { PrivacySettings } from "@/components/settings/PrivacySettings";
 import { NotificationSettings } from "@/components/settings/NotificationSettings";
 import { AppearanceSettings } from "@/components/settings/AppearanceSettings";
+import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 const Settings = () => {
   const navigate = useNavigate();
 
-  const { data: profile, isLoading } = useQuery({
+  const { data: profile, isLoading, error } = useQuery({
     queryKey: ["profile"],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError) {
+        throw authError;
+      }
+      
       if (!user) {
         navigate("/");
         return null;
       }
-      const { data: profile } = await supabase
+
+      const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", user.id)
         .single();
       
+      if (profileError) {
+        throw profileError;
+      }
+      
       return profile;
     },
+    retry: 1,
+    onError: (error) => {
+      toast.error("Failed to load profile: " + error.message);
+      navigate("/");
+    }
   });
 
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        Error loading profile. Please try again.
+      </div>
+    );
+  }
+
   if (isLoading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-6 w-6 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return null;
   }
 
   return (
