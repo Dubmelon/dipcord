@@ -753,48 +753,16 @@ export type Database = {
       }
     }
     Views: {
-      server_members_no_rls: {
-        Row: {
-          id: string | null
-          joined_at: string | null
-          role: string | null
-          server_id: string | null
-          user_id: string | null
-        }
-        Insert: {
-          id?: string | null
-          joined_at?: string | null
-          role?: string | null
-          server_id?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          id?: string | null
-          joined_at?: string | null
-          role?: string | null
-          server_id?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "server_members_server_id_fkey"
-            columns: ["server_id"]
-            isOneToOne: false
-            referencedRelation: "servers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "server_members_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+      [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_server_member_access: {
+        Args: {
+          server_id: string
+          user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
