@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -31,7 +30,6 @@ const queryClient = new QueryClient({
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     console.log('[App] Initializing authentication state');
@@ -41,7 +39,6 @@ const App = () => {
       console.log(`[Auth] Event: ${event}`, session?.user?.id);
       const isAuthed = !!session;
       setIsAuthenticated(isAuthed);
-      setIsLoading(false);
 
       // Update online status based on auth state
       if (session?.user) {
@@ -73,7 +70,6 @@ const App = () => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       console.log('[App] Initial session check:', session?.user?.id);
       setIsAuthenticated(!!session);
-      setIsLoading(false);
       if (session?.user) {
         try {
           await supabase
@@ -119,13 +115,10 @@ const App = () => {
     };
   }, []);
 
-  // Show loading state while checking authentication
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    );
+  // Show nothing while checking authentication
+  if (isAuthenticated === null) {
+    console.log('[App] Authentication state still loading');
+    return null;
   }
 
   console.log('[App] Rendering with auth state:', isAuthenticated);
