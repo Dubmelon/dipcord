@@ -1,4 +1,5 @@
-import { useEffect, useRef } from "react";
+
+import { useEffect, useRef, useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -27,9 +28,12 @@ interface MessageListProps {
   channelId: string;
 }
 
+const PAGE_SIZE = 50;
+
 export const MessageList = ({ channelId }: MessageListProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const { data: messages, isLoading } = useQuery({
     queryKey: ['messages', channelId],
@@ -43,21 +47,28 @@ export const MessageList = ({ channelId }: MessageListProps) => {
         .eq('follower_id', user.id);
 
       const followedIds = follows?.map(f => f.following_id) || [];
-      followedIds.push(user.id); // Include user's own messages
+      followedIds.push(user.id);
 
       const { data, error } = await supabase
         .from('messages')
         .select(`
-          *,
+          id,
+          content,
+          created_at,
+          media_urls,
+          is_read,
+          is_delivered,
           sender:profiles(id, username, avatar_url, is_online)
         `)
         .eq('channel_id', channelId)
         .in('sender_id', followedIds)
-        .order('created_at', { ascending: true });
+        .order('created_at', { ascending: false })
+        .limit(PAGE_SIZE);
 
       if (error) throw error;
-      return data as Message[];
+      return (data as Message[]).reverse();
     },
+    staleTime: 30000, // Cache data for 30 seconds
   });
 
   useEffect(() => {
@@ -83,13 +94,14 @@ export const MessageList = ({ channelId }: MessageListProps) => {
   }, [channelId, queryClient]);
 
   useEffect(() => {
-    if (scrollRef.current) {
+    if (scrollRef.current && messages && isInitialLoad) {
       const scrollElement = scrollRef.current.querySelector('[data-radix-scroll-area-viewport]');
       if (scrollElement) {
         scrollElement.scrollTop = scrollElement.scrollHeight;
+        setIsInitialLoad(false);
       }
     }
-  }, [messages]);
+  }, [messages, isInitialLoad]);
 
   if (isLoading) {
     return (
@@ -102,7 +114,7 @@ export const MessageList = ({ channelId }: MessageListProps) => {
   return (
     <div className="flex-1 h-[calc(100vh-10rem)] overflow-hidden">
       <ScrollArea ref={scrollRef} className="h-full">
-        <div>
+        <div className="space-y-2 p-4">
           {messages?.map((message) => (
             <MessageItem
               key={message.id}
