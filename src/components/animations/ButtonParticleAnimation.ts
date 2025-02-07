@@ -1,3 +1,4 @@
+
 import { BaseAnimation } from './BaseAnimation';
 
 interface Particle {
@@ -25,16 +26,19 @@ export class ButtonParticleAnimation extends BaseAnimation {
 
   private initializeParticles(x: number, y: number): void {
     for (let i = 0; i < this.particleCount; i++) {
+      // Create a more even circular distribution
       const angle = (Math.PI * 2 * i) / this.particleCount;
-      const speed = 5 + Math.random() * 10;
+      // Randomize the initial speed for variety
+      const speed = 2 + Math.random() * 4;
       const shape = Math.random() < 0.33 ? "circle" : Math.random() < 0.66 ? "star" : "triangle";
       
       this.particles.push({
         x,
         y,
+        // Use cosine and sine for circular movement
         vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed - 2,
-        size: 3 + Math.random() * 5,
+        vy: Math.sin(angle) * speed,
+        size: 2 + Math.random() * 4,
         color: this.colors[Math.floor(Math.random() * this.colors.length)],
         rotation: Math.random() * Math.PI * 2,
         rotationSpeed: (Math.random() - 0.5) * 0.2,
@@ -87,11 +91,14 @@ export class ButtonParticleAnimation extends BaseAnimation {
     this.particles = this.particles.filter(particle => particle.opacity > 0);
 
     this.particles.forEach(particle => {
-      particle.vy += 0.2;
+      // Add slight deceleration for more natural movement
+      particle.vx *= 0.98;
+      particle.vy *= 0.98;
       particle.x += particle.vx;
       particle.y += particle.vy;
       particle.rotation += particle.rotationSpeed;
-      particle.opacity -= 0.02;
+      // Slow down the fade out for longer visible effect
+      particle.opacity -= 0.01;
       this.drawParticle(particle);
     });
 
