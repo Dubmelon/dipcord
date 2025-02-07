@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -117,66 +116,68 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="light" storageKey="app-theme">
         <TooltipProvider>
-          <div className="relative min-h-screen font-sans bg-background">
-            <div className="relative z-10">
+          <div className="flex flex-col min-h-screen font-sans bg-background">
+            <div className="sticky top-0 z-50">
+              <BrowserRouter>
+                <Navigation />
+              </BrowserRouter>
+            </div>
+            <div className="flex-1 relative">
               <Toaster />
               <Sonner />
               <BrowserRouter>
-                <Navigation />
-                <main className="pt-16">
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route 
-                      path="/dashboard" 
-                      element={
-                        <ProtectedRoute>
-                          <Dashboard />
-                        </ProtectedRoute>
-                      } 
-                    />
-                    <Route 
-                      path="/feed" 
-                      element={
-                        <ProtectedRoute>
-                          <Feed />
-                        </ProtectedRoute>
-                      } 
-                    />
-                    <Route 
-                      path="/servers" 
-                      element={
-                        <ProtectedRoute>
-                          <Servers />
-                        </ProtectedRoute>
-                      } 
-                    />
-                    <Route 
-                      path="/servers/:serverId" 
-                      element={
-                        <ProtectedRoute>
-                          <ServerView />
-                        </ProtectedRoute>
-                      } 
-                    />
-                    <Route 
-                      path="/messages" 
-                      element={
-                        <ProtectedRoute>
-                          <Messages />
-                        </ProtectedRoute>
-                      } 
-                    />
-                    <Route 
-                      path="/settings" 
-                      element={
-                        <ProtectedRoute>
-                          <Settings />
-                        </ProtectedRoute>
-                      } 
-                    />
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </main>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route 
+                    path="/dashboard" 
+                    element={
+                      <ProtectedRoute>
+                        <Dashboard />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/feed" 
+                    element={
+                      <ProtectedRoute>
+                        <Feed />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/servers" 
+                    element={
+                      <ProtectedRoute>
+                        <Servers />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/servers/:serverId" 
+                    element={
+                      <ProtectedRoute>
+                        <ServerView />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/messages" 
+                    element={
+                      <ProtectedRoute>
+                        <Messages />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/settings" 
+                    element={
+                      <ProtectedRoute>
+                        <Settings />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
               </BrowserRouter>
             </div>
           </div>
