@@ -52,37 +52,37 @@ export const ServerGrid = () => {
   const { data: servers, isLoading, error } = useQuery({
     queryKey: ['user-servers'],
     queryFn: async () => {
-      console.log("Starting server fetch process...");
+      console.log("[ServerGrid] Starting server fetch process...");
       
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       
       if (authError) {
-        console.error("Authentication error:", authError);
+        console.error("[ServerGrid] Authentication error:", authError);
         throw new Error(`Authentication failed: ${authError.message}`);
       }
       
       if (!user) {
-        console.log("No authenticated user found");
+        console.log("[ServerGrid] No authenticated user found");
         navigate("/");
         throw new Error("Not authenticated");
       }
 
-      console.log("Authenticated user ID:", user.id);
+      console.log("[ServerGrid] Authenticated user ID:", user.id);
 
       // First check if user has a profile
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('id')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
       if (profileError) {
-        console.error("Profile fetch error:", profileError);
+        console.error("[ServerGrid] Profile fetch error:", profileError);
         throw new Error(`Failed to fetch profile: ${profileError.message}`);
       }
 
       if (!profile) {
-        console.log("Creating profile for user...");
+        console.log("[ServerGrid] Creating profile for user...");
         const { error: createProfileError } = await supabase
           .from('profiles')
           .insert([{ 
@@ -92,12 +92,12 @@ export const ServerGrid = () => {
           }]);
 
         if (createProfileError) {
-          console.error("Profile creation error:", createProfileError);
+          console.error("[ServerGrid] Profile creation error:", createProfileError);
           throw new Error(`Failed to create profile: ${createProfileError.message}`);
         }
       }
 
-      console.log("Fetching server memberships...");
+      console.log("[ServerGrid] Fetching server memberships...");
       const { data: memberships, error: membershipError } = await supabase
         .from('server_members')
         .select(`
@@ -111,12 +111,19 @@ export const ServerGrid = () => {
         .eq('user_id', user.id);
 
       if (membershipError) {
-        console.error("Server membership fetch error:", membershipError);
+        console.error("[ServerGrid] Server membership fetch error:", membershipError);
         throw new Error(`Failed to fetch server memberships: ${membershipError.message}`);
       }
 
-      console.log("Server memberships fetched:", memberships);
-      return memberships.map(item => item.server) as Server[];
+      console.log("[ServerGrid] Server memberships fetched:", memberships);
+      
+      // Additional validation of the returned data
+      const validServers = memberships
+        .filter(item => item.server)
+        .map(item => item.server as Server);
+      
+      console.log("[ServerGrid] Processed valid servers:", validServers);
+      return validServers;
     },
     retry: 1,
     refetchOnWindowFocus: false,
@@ -126,7 +133,7 @@ export const ServerGrid = () => {
   });
 
   if (error) {
-    console.error("Server grid error:", error);
+    console.error("[ServerGrid] Rendering error state:", error);
     toast.error("Failed to load servers. Please try again.");
     
     return (
@@ -142,6 +149,7 @@ export const ServerGrid = () => {
   }
 
   const handleServerClick = (serverId: string) => {
+    console.log("[ServerGrid] Navigating to server:", serverId);
     navigate(`/servers/${serverId}`);
   };
 
