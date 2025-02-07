@@ -1,5 +1,5 @@
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -68,10 +68,10 @@ export const MessageList = ({ channelId }: MessageListProps) => {
       if (error) throw error;
       return (data as Message[]).reverse();
     },
-    staleTime: 30000, // Cache data for 30 seconds
+    staleTime: 30000,
   });
 
-  useEffect(() => {
+  const setupRealtimeSubscription = useCallback(() => {
     const channel = supabase
       .channel('messages')
       .on(
@@ -94,6 +94,13 @@ export const MessageList = ({ channelId }: MessageListProps) => {
   }, [channelId, queryClient]);
 
   useEffect(() => {
+    const cleanup = setupRealtimeSubscription();
+    return () => {
+      cleanup();
+    };
+  }, [setupRealtimeSubscription]);
+
+  const scrollToBottom = useCallback(() => {
     if (scrollRef.current && messages && isInitialLoad) {
       const scrollElement = scrollRef.current.querySelector('[data-radix-scroll-area-viewport]');
       if (scrollElement) {
@@ -102,6 +109,10 @@ export const MessageList = ({ channelId }: MessageListProps) => {
       }
     }
   }, [messages, isInitialLoad]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [scrollToBottom]);
 
   if (isLoading) {
     return (

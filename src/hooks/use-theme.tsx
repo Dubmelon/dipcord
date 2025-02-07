@@ -1,5 +1,5 @@
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useCallback } from "react";
 
 type Theme = "dark" | "light" | "froggy";
 
@@ -31,17 +31,21 @@ export function ThemeProvider({
     () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
   );
 
-  useEffect(() => {
+  const updateTheme = useCallback((newTheme: Theme) => {
     const root = window.document.documentElement;
     root.classList.remove("light", "dark", "froggy");
-    root.classList.add(theme);
-    localStorage.setItem(storageKey, theme);
-  }, [theme, storageKey]);
+    root.classList.add(newTheme);
+    localStorage.setItem(storageKey, newTheme);
+  }, [storageKey]);
+
+  useEffect(() => {
+    updateTheme(theme);
+  }, [theme, updateTheme]);
 
   const value = {
     theme,
-    setTheme: (theme: Theme) => {
-      setTheme(theme);
+    setTheme: (newTheme: Theme) => {
+      setTheme(newTheme);
     },
   };
 
