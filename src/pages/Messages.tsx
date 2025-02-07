@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -40,7 +41,10 @@ const Messages = () => {
       const { data: { user } } = await supabase.auth.getUser();
       const { data, error } = await supabase
         .from("direct_messages")
-        .select("*")
+        .select(`
+          *,
+          sender:profiles!direct_messages_sender_id_fkey(*)
+        `)
         .or(`and(sender_id.eq.${user?.id},receiver_id.eq.${selectedUser}),and(sender_id.eq.${selectedUser},receiver_id.eq.${user?.id})`)
         .order("created_at", { ascending: true });
 
@@ -110,7 +114,7 @@ const Messages = () => {
             animate={{ x: 0 }}
             exit={{ x: -300 }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="w-full md:w-80 border-r bg-card"
+            className="w-full md:w-80 border-r bg-card z-20"
           >
             <div className="p-4 space-y-4">
               <h2 className="text-xl font-bold text-card-foreground">Messages</h2>

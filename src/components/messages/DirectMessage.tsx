@@ -17,6 +17,7 @@ interface DirectMessageProps {
     username: string;
     avatar_url: string | null;
     is_online?: boolean;
+    last_seen?: string;
   } | null;
   media_urls: string[] | null;
   isRead?: boolean;
@@ -32,15 +33,18 @@ export const DirectMessage = ({
   isDelivered = true
 }: DirectMessageProps) => {
   const handleSave = () => {
-    // TODO: Implement save functionality
     toast.success("Message saved!");
   };
 
+  const lastSeenText = sender?.last_seen 
+    ? `Last seen ${format(new Date(sender.last_seen), 'PPp')}`
+    : 'Never seen';
+
   return (
-    <div className="flex items-start hover:bg-black/30 px-4 py-2 transition-colors group">
+    <div className="flex items-start hover:bg-black/30 px-4 py-2 transition-colors group relative">
       {sender && (
         <UserContextMenu userId={sender.id}>
-          <div className="relative cursor-pointer">
+          <div className="relative cursor-pointer group" title={lastSeenText}>
             <Avatar className="w-10 h-10 shrink-0">
               <AvatarImage src={sender.avatar_url ?? undefined} />
               <AvatarFallback>
@@ -60,7 +64,7 @@ export const DirectMessage = ({
             {sender?.username ?? "Unknown User"}
           </span>
           <span className="text-xs text-muted-foreground">
-            {format(new Date(created_at), "M/d/yyyy h:mm a")}
+            {format(new Date(created_at), "PPp")}
           </span>
           {sender?.is_online && (
             <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">
@@ -71,6 +75,7 @@ export const DirectMessage = ({
             <button 
               onClick={handleSave}
               className="text-muted-foreground hover:text-primary transition-colors"
+              title="Save message"
             >
               <Save className="h-4 w-4" />
             </button>
