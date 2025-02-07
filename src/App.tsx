@@ -89,10 +89,10 @@ const App = () => {
               <BrowserRouter>
                 <div className="pb-16">
                   <Routes>
-                    <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                    <Route path="/" element={<Index />} />
                     <Route 
                       path="/dashboard" 
-                      element={isAuthenticated ? <Dashboard /> : <Index />} 
+                      element={isAuthenticated ? <Dashboard /> : <Navigate to="/" replace />} 
                     />
                     <Route 
                       path="/feed" 
