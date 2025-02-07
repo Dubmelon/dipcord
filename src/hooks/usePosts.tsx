@@ -12,30 +12,29 @@ export const usePosts = () => {
       console.log("[Feed] Fetching posts");
       const startTime = performance.now();
 
+      // Using a single query with nested selects for better performance
       const { data, error } = await supabase
         .from('posts')
         .select(`
-          *,
+          id,
+          content,
+          created_at,
+          media_urls,
+          embedded_media,
+          is_edited,
+          likes_count,
+          comments_count,
           user:profiles!posts_user_id_fkey (
+            id,
             username,
             avatar_url
           ),
-          comments:comments (
-            id,
-            content,
-            created_at,
-            user:profiles!comments_user_id_fkey (
-              id,
-              username,
-              avatar_url
-            )
-          ),
-          likes:likes (
-            id,
+          likes!left (
             user_id
           )
         `)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(20); // Pagination for better performance
 
       const endTime = performance.now();
       console.log(`[Feed] Posts fetched in ${(endTime - startTime).toFixed(2)}ms`);
@@ -48,7 +47,7 @@ export const usePosts = () => {
       console.log("[Feed] Fetched posts count:", data?.length);
       return data || [];
     },
-    staleTime: 30000,
+    staleTime: 30000, //Cache data for 30 seconds
     refetchOnWindowFocus: false,
   });
 
@@ -69,14 +68,16 @@ export const usePosts = () => {
               url.includes('medal.tv') ? 'medal' : 'link'
       }));
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('posts')
         .insert([{ 
           content, 
           user_id: userId,
           media_urls: mediaUrls.length > 0 ? mediaUrls : null,
           embedded_media: embeddedMedia.length > 0 ? embeddedMedia : null
-        }]);
+        }])
+        .select()
+        .single();
 
       const endTime = performance.now();
       console.log(`[Feed] Post created in ${(endTime - startTime).toFixed(2)}ms`);
@@ -85,10 +86,13 @@ export const usePosts = () => {
         console.error("[Feed] Post creation error:", error);
         throw error;
       }
+
+      return data;
     },
-    onSuccess: () => {
+    onSuccess: (newPost) => {
       console.log("[Feed] Post creation successful");
-      queryClient.invalidateQueries({ queryKey: ['posts'] });
+      // Optimistically update the cache
+      queryClient.setQueryData(['posts'], (oldPosts: any[] = []) => [newPost, ...oldPosts]);
       toast.success("Post created successfully!");
     },
     onError: (error) => {
@@ -99,10 +103,7 @@ export const usePosts = () => {
 
   const likePostMutation = useMutation({
     mutationFn: async ({ postId, userId }: { postId: string; userId: string }) => {
-      if (!userId) {
-        console.error("[Feed] No user ID available for liking post");
-        throw new Error("User not authenticated");
-      }
+      if (!userId) throw new Error("User not authenticated");
 
       console.log("[Feed] Liking post:", postId);
       const { error } = await supabase
@@ -111,7 +112,6 @@ export const usePosts = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      console.log("[Feed] Post like successful");
       queryClient.invalidateQueries({ queryKey: ['posts'] });
     },
     onError: (error) => {
@@ -122,10 +122,7 @@ export const usePosts = () => {
 
   const unlikePostMutation = useMutation({
     mutationFn: async ({ postId, userId }: { postId: string; userId: string }) => {
-      if (!userId) {
-        console.error("[Feed] No user ID available for unliking post");
-        throw new Error("User not authenticated");
-      }
+      if (!userId) throw new Error("User not authenticated");
 
       console.log("[Feed] Unliking post:", postId);
       const { error } = await supabase
@@ -136,7 +133,6 @@ export const usePosts = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      console.log("[Feed] Post unlike successful");
       queryClient.invalidateQueries({ queryKey: ['posts'] });
     },
     onError: (error) => {

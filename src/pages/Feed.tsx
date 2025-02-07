@@ -13,9 +13,11 @@ const Feed = () => {
   const { currentUser } = useAuth();
   const { posts, isLoading, createPostMutation, likePostMutation, unlikePostMutation } = usePosts();
 
-  // Set up realtime subscription
+  // Set up realtime subscription with debounced invalidation
   useEffect(() => {
     console.log("[Feed] Setting up realtime subscription");
+    let invalidationTimeout: NodeJS.Timeout;
+
     const channel = supabase
       .channel('public:posts')
       .on(
@@ -23,7 +25,11 @@ const Feed = () => {
         { event: '*', schema: 'public', table: 'posts' },
         (payload) => {
           console.log("[Feed] Realtime update received:", payload);
-          queryClient.invalidateQueries({ queryKey: ['posts'] });
+          // Debounce invalidation to prevent multiple rapid refreshes
+          clearTimeout(invalidationTimeout);
+          invalidationTimeout = setTimeout(() => {
+            queryClient.invalidateQueries({ queryKey: ['posts'] });
+          }, 1000);
         }
       )
       .subscribe((status) => {
@@ -32,6 +38,7 @@ const Feed = () => {
 
     return () => {
       console.log("[Feed] Cleaning up realtime subscription");
+      clearTimeout(invalidationTimeout);
       supabase.removeChannel(channel);
     };
   }, [queryClient]);
