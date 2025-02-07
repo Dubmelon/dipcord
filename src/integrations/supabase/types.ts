@@ -190,36 +190,6 @@ export type Database = {
           },
         ]
       }
-      ice_servers: {
-        Row: {
-          created_at: string
-          credential: string | null
-          id: string
-          is_active: boolean | null
-          updated_at: string
-          urls: string
-          username: string | null
-        }
-        Insert: {
-          created_at?: string
-          credential?: string | null
-          id?: string
-          is_active?: boolean | null
-          updated_at?: string
-          urls: string
-          username?: string | null
-        }
-        Update: {
-          created_at?: string
-          credential?: string | null
-          id?: string
-          is_active?: boolean | null
-          updated_at?: string
-          urls?: string
-          username?: string | null
-        }
-        Relationships: []
-      }
       likes: {
         Row: {
           created_at: string
@@ -377,36 +347,6 @@ export type Database = {
           last_seen?: string | null
           updated_at?: string
           username?: string
-        }
-        Relationships: []
-      }
-      turn_servers: {
-        Row: {
-          created_at: string | null
-          credential: string | null
-          id: string
-          is_active: boolean | null
-          updated_at: string | null
-          url: string
-          username: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          credential?: string | null
-          id?: string
-          is_active?: boolean | null
-          updated_at?: string | null
-          url: string
-          username?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          credential?: string | null
-          id?: string
-          is_active?: boolean | null
-          updated_at?: string | null
-          url?: string
-          username?: string | null
         }
         Relationships: []
       }

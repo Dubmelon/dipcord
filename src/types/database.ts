@@ -1,3 +1,4 @@
+
 export interface TurnServer {
   id: string;
   url: string;
@@ -18,18 +19,6 @@ export interface VoipSession {
   last_heartbeat: string;
   created_at: string;
   updated_at: string;
-}
-
-export interface VoiceSignal {
-  id: string;
-  channel_id: string;
-  sender_id: string;
-  receiver_id?: string | null;
-  type: string;
-  payload: any;
-  created_at: string;
-  ice_candidate?: any;
-  sdp?: any;
 }
 
 export interface VoiceParticipant {
