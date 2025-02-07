@@ -39,11 +39,11 @@ export const useServers = () => {
           is_private,
           member_count,
           owner_id,
-          server_members!inner (
+          server_members (
             user_id
           )
         `)
-        .or(`is_private.eq.false,server_members.user_id.eq.${user.id},owner_id.eq.${user.id}`);
+        .or(`is_private.eq.false,owner_id.eq.${user.id}`);
 
       if (serverError) {
         console.error("[ServerGrid] Server fetch error:", serverError);
@@ -59,7 +59,7 @@ export const useServers = () => {
         is_private: server.is_private,
         member_count: server.member_count,
         owner_id: server.owner_id,
-        is_member: server.server_members.some(member => member.user_id === user.id)
+        is_member: server.server_members?.some(member => member.user_id === user.id) || false
       })) as Server[];
 
       console.log("[ServerGrid] Servers fetched:", processedServers);
