@@ -18,6 +18,7 @@ export class ButtonParticleAnimation extends BaseAnimation {
   private particles: Particle[] = [];
   private colors = ["#FFD700", "#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4"];
   private readonly particleCount = 50;
+  private readonly gravity = 0.15; // Add gravity for descent
 
   constructor(canvas: HTMLCanvasElement, x: number, y: number) {
     super(canvas);
@@ -26,16 +27,19 @@ export class ButtonParticleAnimation extends BaseAnimation {
 
   private initializeParticles(x: number, y: number): void {
     for (let i = 0; i < this.particleCount; i++) {
-      // Create an even circular distribution
+      // Create wider angle distribution for better spread
       const baseAngle = (Math.PI * 2 * i) / this.particleCount;
-      // Add significant random variation to the angle for natural spread
-      const angleVariation = (Math.random() - 0.5) * Math.PI / 4;
+      // Add more variation to create natural spread
+      const angleVariation = (Math.random() - 0.5) * Math.PI / 2;
       const finalAngle = baseAngle + angleVariation;
       
-      // Randomize speed with a higher base value
-      const minSpeed = 10;
-      const maxSpeed = 15;
+      // Higher initial speeds with more variation
+      const minSpeed = 15;
+      const maxSpeed = 25;
       const speed = minSpeed + Math.random() * (maxSpeed - minSpeed);
+      
+      // Add upward bias to initial velocity
+      const upwardBias = -Math.abs(Math.random() * 5); // Negative because y-axis is inverted in canvas
       
       const shape = Math.random() < 0.33 ? "circle" : Math.random() < 0.66 ? "star" : "triangle";
       
@@ -43,8 +47,8 @@ export class ButtonParticleAnimation extends BaseAnimation {
         x,
         y,
         vx: Math.cos(finalAngle) * speed,
-        vy: Math.sin(finalAngle) * speed,
-        size: 3 + Math.random() * 4, // Slightly larger particles
+        vy: Math.sin(finalAngle) * speed + upwardBias, // Add upward bias
+        size: 2 + Math.random() * 5, // More size variation
         color: this.colors[Math.floor(Math.random() * this.colors.length)],
         rotation: Math.random() * Math.PI * 2,
         rotationSpeed: (Math.random() - 0.5) * 0.2,
@@ -97,14 +101,19 @@ export class ButtonParticleAnimation extends BaseAnimation {
     this.particles = this.particles.filter(particle => particle.opacity > 0);
 
     this.particles.forEach(particle => {
-      // Very minimal deceleration for more explosive effect
-      particle.vx *= 0.995;
-      particle.vy *= 0.995;
+      // Add gravity effect
+      particle.vy += this.gravity;
+      
+      // Minimal horizontal deceleration
+      particle.vx *= 0.99;
+      
       particle.x += particle.vx;
       particle.y += particle.vy;
       particle.rotation += particle.rotationSpeed;
-      // Faster fade out
-      particle.opacity -= 0.025;
+      
+      // Slower fade out for longer-lasting effect
+      particle.opacity -= 0.015;
+      
       this.drawParticle(particle);
     });
 
