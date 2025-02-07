@@ -16,32 +16,63 @@ const Settings = () => {
   const { data: profile, isLoading, error } = useQuery({
     queryKey: ["profile"],
     queryFn: async () => {
+      console.log("Fetching profile data...");
+      
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       
       if (authError) {
+        console.error("Auth error:", authError);
         throw authError;
       }
       
       if (!user) {
+        console.log("No authenticated user found");
         navigate("/");
         return null;
       }
+
+      console.log("User authenticated, fetching profile...");
 
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
       
       if (profileError) {
+        console.error("Profile fetch error:", profileError);
         throw profileError;
       }
+
+      if (!profile) {
+        console.log("No profile found, creating one...");
+        // If no profile exists, create one
+        const { data: newProfile, error: createError } = await supabase
+          .from("profiles")
+          .insert([{ 
+            id: user.id,
+            username: user.email?.split('@')[0] || 'user',
+            is_online: true
+          }])
+          .select()
+          .single();
+
+        if (createError) {
+          console.error("Profile creation error:", createError);
+          throw createError;
+        }
+
+        return newProfile;
+      }
       
+      console.log("Profile fetched successfully:", profile);
       return profile;
     },
     retry: 1,
+    refetchOnWindowFocus: false,
     meta: {
       onError: (error: Error) => {
+        console.error("Settings page error:", error);
         toast.error("Failed to load profile: " + error.message);
         navigate("/");
       }
@@ -51,7 +82,15 @@ const Settings = () => {
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        Error loading profile. Please try again.
+        <div className="text-center space-y-4">
+          <p className="text-red-500">Error loading profile: {error.message}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
+          >
+            Retry
+          </button>
+        </div>
       </div>
     );
   }
@@ -59,7 +98,10 @@ const Settings = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-6 w-6 animate-spin" />
+        <div className="text-center space-y-2">
+          <Loader2 className="h-6 w-6 animate-spin mx-auto" />
+          <p className="text-muted-foreground">Loading your profile...</p>
+        </div>
       </div>
     );
   }

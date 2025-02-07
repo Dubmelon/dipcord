@@ -47,11 +47,24 @@ export const ServerGrid = () => {
   const [isExpanded, setIsExpanded] = useState(true);
   const navigate = useNavigate();
 
-  const { data: servers, isLoading } = useQuery({
+  const { data: servers, isLoading, error } = useQuery({
     queryKey: ['user-servers'],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      console.log("Fetching user servers...");
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError) {
+        console.error("Auth error:", authError);
+        throw authError;
+      }
+      
+      if (!user) {
+        console.log("No authenticated user found");
+        navigate("/");
+        throw new Error("Not authenticated");
+      }
+
+      console.log("User authenticated, fetching servers...");
 
       const { data, error } = await supabase
         .from('server_members')
@@ -65,10 +78,30 @@ export const ServerGrid = () => {
         `)
         .eq('user_id', user.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Server fetch error:", error);
+        throw error;
+      }
+
+      console.log("Servers fetched successfully:", data);
       return data.map(item => item.server) as Server[];
     },
+    retry: 1,
+    refetchOnWindowFocus: false,
   });
+
+  if (error) {
+    return (
+      <Card className="w-full max-w-5xl mx-auto">
+        <div className="p-8 text-center space-y-4">
+          <p className="text-red-500">Failed to load servers: {error.message}</p>
+          <Button onClick={() => window.location.reload()}>
+            Retry
+          </Button>
+        </div>
+      </Card>
+    );
+  }
 
   const handleServerClick = (serverId: string) => {
     navigate(`/servers/${serverId}`);
