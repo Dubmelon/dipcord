@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,6 +10,7 @@ import { VoiceChannel } from "@/components/voice/VoiceChannel";
 import { Loader2, Menu } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 interface Channel {
   id: string;
@@ -42,24 +44,42 @@ const ServerView = () => {
   const queryClient = useQueryClient();
   const isMobile = window.innerWidth <= 768;
 
+  // Memoized server query
   const { data: server, isLoading: loadingServer } = useQuery({
     queryKey: ['server', serverId],
     queryFn: async () => {
+      console.log(`[ServerView] Fetching server details for ID: ${serverId}`);
+      const startTime = performance.now();
+
       const { data, error } = await supabase
         .from('servers')
         .select('*, owner:profiles(username)')
         .eq('id', serverId)
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('[ServerView] Server fetch error:', error);
+        throw error;
+      }
+
+      const endTime = performance.now();
+      console.log(`[ServerView] Server fetch completed in ${(endTime - startTime).toFixed(2)}ms:`, data);
       return data;
     },
-    enabled: !!serverId
+    enabled: !!serverId,
+    staleTime: 30000, // Cache for 30 seconds
+    meta: {
+      errorMessage: "Failed to load server details"
+    }
   });
 
+  // Memoized channels query
   const { data: channels, isLoading: loadingChannels } = useQuery({
     queryKey: ['channels', serverId],
     queryFn: async () => {
+      console.log(`[ServerView] Fetching channels for server: ${serverId}`);
+      const startTime = performance.now();
+
       const { data, error } = await supabase
         .from('channels')
         .select('*')
@@ -67,37 +87,65 @@ const ServerView = () => {
         .order('type', { ascending: false })
         .order('name', { ascending: true });
       
-      if (error) throw error;
+      if (error) {
+        console.error('[ServerView] Channels fetch error:', error);
+        throw error;
+      }
+
+      const endTime = performance.now();
+      console.log(`[ServerView] Channels fetch completed in ${(endTime - startTime).toFixed(2)}ms. Found ${data?.length} channels`);
       
       return data?.map(channel => ({
         ...channel,
         type: channel.type === 'voice' ? 'voice' : 'text'
       } as Channel)) || [];
     },
-    enabled: !!serverId
+    enabled: !!serverId,
+    staleTime: 30000,
+    meta: {
+      errorMessage: "Failed to load channels"
+    }
   });
 
+  // Memoized messages query
   const { data: messages, isLoading: loadingMessages } = useQuery({
     queryKey: ['messages', selectedChannel],
     queryFn: async () => {
       if (!selectedChannel) return [];
+      
+      console.log(`[ServerView] Fetching messages for channel: ${selectedChannel}`);
+      const startTime = performance.now();
+
       const { data, error } = await supabase
         .from('messages')
         .select('*, sender:profiles(id, username, avatar_url, is_online)')
         .eq('channel_id', selectedChannel)
         .order('created_at', { ascending: true });
       
-      if (error) throw error;
+      if (error) {
+        console.error('[ServerView] Messages fetch error:', error);
+        throw error;
+      }
+
+      const endTime = performance.now();
+      console.log(`[ServerView] Messages fetch completed in ${(endTime - startTime).toFixed(2)}ms. Found ${data?.length} messages`);
+      
       return data as Message[];
     },
-    enabled: !!selectedChannel
+    enabled: !!selectedChannel,
+    staleTime: 5000, // More frequent updates for messages
+    meta: {
+      errorMessage: "Failed to load messages"
+    }
   });
 
-  useEffect(() => {
+  // Memoized realtime subscription setup
+  const setupRealtimeSubscription = useCallback(() => {
     if (!serverId) return;
 
+    console.log('[ServerView] Setting up realtime subscription for channels');
     const channel = supabase
-      .channel('channels')
+      .channel(`channels-${serverId}`)
       .on(
         'postgres_changes',
         {
@@ -106,31 +154,58 @@ const ServerView = () => {
           table: 'channels',
           filter: `server_id=eq.${serverId}`,
         },
-        () => {
+        (payload) => {
+          console.log('[ServerView] Realtime channel update received:', payload);
           queryClient.invalidateQueries({ queryKey: ['channels', serverId] });
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log(`[ServerView] Channel subscription status: ${status}`);
+      });
 
     return () => {
+      console.log('[ServerView] Cleaning up realtime subscription');
       supabase.removeChannel(channel);
     };
   }, [serverId, queryClient]);
 
-  const handleChannelSelect = (channelId: string) => {
+  useEffect(() => {
+    const cleanup = setupRealtimeSubscription();
+    return () => {
+      if (cleanup) cleanup();
+    };
+  }, [setupRealtimeSubscription]);
+
+  // Memoized handlers
+  const handleChannelSelect = useCallback((channelId: string) => {
+    console.log(`[ServerView] Selecting channel: ${channelId}`);
     setSelectedChannel(channelId);
     if (isMobile) {
       setSidebarOpen(false);
     }
-  };
+  }, [isMobile]);
 
-  const handleMessageAreaClick = () => {
+  const handleMessageAreaClick = useCallback(() => {
     if (isMobile) {
       setSidebarOpen(false);
     }
-  };
+  }, [isMobile]);
 
-  const selectedChannelType = channels?.find(c => c.id === selectedChannel)?.type;
+  // Memoized values
+  const selectedChannelType = useMemo(() => 
+    channels?.find(c => c.id === selectedChannel)?.type,
+    [channels, selectedChannel]
+  );
+
+  // Error handling for queries
+  if (loadingServer || loadingChannels) {
+    console.log('[ServerView] Loading server data...');
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-[calc(100vh-4rem)] overflow-hidden bg-background/80 backdrop-blur-sm">
