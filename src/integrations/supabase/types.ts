@@ -51,44 +51,6 @@ export type Database = {
           },
         ]
       }
-      channels: {
-        Row: {
-          created_at: string
-          description: string | null
-          id: string
-          name: string
-          server_id: string | null
-          type: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          name: string
-          server_id?: string | null
-          type: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          name?: string
-          server_id?: string | null
-          type?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "channels_server_id_fkey"
-            columns: ["server_id"]
-            isOneToOne: false
-            referencedRelation: "servers"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       comments: {
         Row: {
           content: string
@@ -294,63 +256,6 @@ export type Database = {
           },
         ]
       }
-      messages: {
-        Row: {
-          channel_id: string | null
-          content: string
-          created_at: string
-          embedded_media: Json[] | null
-          id: string
-          is_delivered: boolean | null
-          is_edited: boolean | null
-          is_read: boolean | null
-          media_urls: string[] | null
-          sender_id: string | null
-          updated_at: string
-        }
-        Insert: {
-          channel_id?: string | null
-          content: string
-          created_at?: string
-          embedded_media?: Json[] | null
-          id?: string
-          is_delivered?: boolean | null
-          is_edited?: boolean | null
-          is_read?: boolean | null
-          media_urls?: string[] | null
-          sender_id?: string | null
-          updated_at?: string
-        }
-        Update: {
-          channel_id?: string | null
-          content?: string
-          created_at?: string
-          embedded_media?: Json[] | null
-          id?: string
-          is_delivered?: boolean | null
-          is_edited?: boolean | null
-          is_read?: boolean | null
-          media_urls?: string[] | null
-          sender_id?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "messages_channel_id_fkey"
-            columns: ["channel_id"]
-            isOneToOne: false
-            referencedRelation: "channels"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "messages_sender_id_fkey"
-            columns: ["sender_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       notifications: {
         Row: {
           content: string
@@ -475,89 +380,6 @@ export type Database = {
         }
         Relationships: []
       }
-      server_members: {
-        Row: {
-          id: string
-          joined_at: string
-          role: string | null
-          server_id: string | null
-          user_id: string | null
-        }
-        Insert: {
-          id?: string
-          joined_at?: string
-          role?: string | null
-          server_id?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          id?: string
-          joined_at?: string
-          role?: string | null
-          server_id?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "server_members_server_id_fkey"
-            columns: ["server_id"]
-            isOneToOne: false
-            referencedRelation: "servers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "server_members_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      servers: {
-        Row: {
-          avatar_url: string | null
-          created_at: string
-          description: string | null
-          id: string
-          is_private: boolean | null
-          member_count: number | null
-          name: string
-          owner_id: string | null
-          updated_at: string
-        }
-        Insert: {
-          avatar_url?: string | null
-          created_at?: string
-          description?: string | null
-          id?: string
-          is_private?: boolean | null
-          member_count?: number | null
-          name: string
-          owner_id?: string | null
-          updated_at?: string
-        }
-        Update: {
-          avatar_url?: string | null
-          created_at?: string
-          description?: string | null
-          id?: string
-          is_private?: boolean | null
-          member_count?: number | null
-          name?: string
-          owner_id?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "servers_owner_id_fkey"
-            columns: ["owner_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       turn_servers: {
         Row: {
           created_at: string | null
@@ -587,118 +409,6 @@ export type Database = {
           username?: string | null
         }
         Relationships: []
-      }
-      voice_channel_participants: {
-        Row: {
-          channel_id: string | null
-          connection_state: string | null
-          ice_connection_state: string | null
-          id: string
-          is_deafened: boolean | null
-          is_muted: boolean | null
-          joined_at: string
-          last_heartbeat: string | null
-          signaling_state: string | null
-          user_id: string | null
-        }
-        Insert: {
-          channel_id?: string | null
-          connection_state?: string | null
-          ice_connection_state?: string | null
-          id?: string
-          is_deafened?: boolean | null
-          is_muted?: boolean | null
-          joined_at?: string
-          last_heartbeat?: string | null
-          signaling_state?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          channel_id?: string | null
-          connection_state?: string | null
-          ice_connection_state?: string | null
-          id?: string
-          is_deafened?: boolean | null
-          is_muted?: boolean | null
-          joined_at?: string
-          last_heartbeat?: string | null
-          signaling_state?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "voice_channel_participants_channel_id_fkey"
-            columns: ["channel_id"]
-            isOneToOne: false
-            referencedRelation: "channels"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "voice_channel_participants_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      voice_signaling: {
-        Row: {
-          channel_id: string
-          created_at: string
-          ice_candidate: Json | null
-          id: string
-          payload: Json
-          receiver_id: string | null
-          sdp: Json | null
-          sender_id: string
-          type: string
-        }
-        Insert: {
-          channel_id: string
-          created_at?: string
-          ice_candidate?: Json | null
-          id?: string
-          payload: Json
-          receiver_id?: string | null
-          sdp?: Json | null
-          sender_id: string
-          type: string
-        }
-        Update: {
-          channel_id?: string
-          created_at?: string
-          ice_candidate?: Json | null
-          id?: string
-          payload?: Json
-          receiver_id?: string | null
-          sdp?: Json | null
-          sender_id?: string
-          type?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "voice_signaling_channel_id_fkey"
-            columns: ["channel_id"]
-            isOneToOne: false
-            referencedRelation: "channels"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "voice_signaling_receiver_id_fkey"
-            columns: ["receiver_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "voice_signaling_sender_id_fkey"
-            columns: ["sender_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       voip_sessions: {
         Row: {
@@ -735,13 +445,6 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "voip_sessions_channel_id_fkey"
-            columns: ["channel_id"]
-            isOneToOne: false
-            referencedRelation: "channels"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "voip_sessions_user_id_fkey"
             columns: ["user_id"]
