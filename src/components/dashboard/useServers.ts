@@ -60,39 +60,38 @@ export const useServers = () => {
       const profileEnd = performance.now();
       console.log(`[ServerGrid] Profile operation took ${profileEnd - profileStart}ms`);
 
-      // Server memberships fetch with timing
-      const membershipStart = performance.now();
-      console.log("[ServerGrid] Fetching server memberships...");
-      const { data: memberships, error: membershipError } = await supabase
-        .from('server_members')
+      // Optimized server query that avoids recursion
+      const serverStart = performance.now();
+      console.log("[ServerGrid] Fetching servers...");
+      
+      const { data: servers, error: serverError } = await supabase
+        .from('servers')
         .select(`
-          server:servers (
-            id,
-            name,
-            description,
-            avatar_url
-          )
+          id,
+          name,
+          description,
+          avatar_url
         `)
-        .eq('user_id', user.id);
+        .in('id', (
+          supabase
+            .from('server_members')
+            .select('server_id')
+            .eq('user_id', user.id)
+        ));
 
-      if (membershipError) {
-        console.error("[ServerGrid] Server membership fetch error:", membershipError);
-        throw new Error(`Failed to fetch server memberships: ${membershipError.message}`);
+      if (serverError) {
+        console.error("[ServerGrid] Server fetch error:", serverError);
+        throw new Error(`Failed to fetch servers: ${serverError.message}`);
       }
 
-      const membershipEnd = performance.now();
-      console.log(`[ServerGrid] Server memberships fetch took ${membershipEnd - membershipStart}ms`);
-      console.log("[ServerGrid] Server memberships fetched:", memberships);
-      
-      const validServers = memberships
-        .filter(item => item.server)
-        .map(item => item.server as Server);
+      const serverEnd = performance.now();
+      console.log(`[ServerGrid] Server fetch took ${serverEnd - serverStart}ms`);
+      console.log("[ServerGrid] Servers fetched:", servers);
       
       const endTime = performance.now();
       console.log(`[ServerGrid] Total operation took ${endTime - startTime}ms`);
-      console.log("[ServerGrid] Processed valid servers:", validServers);
       
-      return validServers;
+      return servers || [];
     },
     retry: 1,
     refetchOnWindowFocus: false,
