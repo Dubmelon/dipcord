@@ -1,3 +1,4 @@
+
 import { memo } from "react";
 import { motion } from "framer-motion";
 import { ServerGrid } from "@/components/dashboard/ServerGrid";
@@ -18,6 +19,9 @@ const item = {
 };
 
 const DashboardPage = () => {
+  // Add console log for debugging
+  console.log("Dashboard page rendering");
+  
   return (
     <motion.div 
       initial="hidden"
