@@ -1,3 +1,4 @@
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 @tailwind base;
@@ -6,28 +7,28 @@
 
 @layer base {
   :root {
-    --background: 220 25% 15%; /* Dark blue-gray for night sky */
-    --foreground: 32 100% 95%; /* Warm off-white for text */
+    --background: 220 25% 15%;
+    --foreground: 32 100% 95%;
     
-    --card: 220 30% 10%; /* Darker blue-gray for cards */
+    --card: 220 30% 10%;
     --card-foreground: 32 100% 95%;
     
     --popover: 220 30% 10%;
     --popover-foreground: 32 100% 95%;
     
-    --primary: 24 100% 50%; /* Bright pumpkin orange */
+    --primary: 24 100% 50%;
     --primary-foreground: 220 25% 15%;
     
-    --secondary: 220 15% 25%; /* Muted blue-gray for trees */
+    --secondary: 220 15% 25%;
     --secondary-foreground: 32 100% 95%;
     
     --muted: 220 20% 20%;
     --muted-foreground: 32 70% 85%;
     
-    --accent: 24 90% 65%; /* Softer orange glow */
+    --accent: 24 90% 65%;
     --accent-foreground: 220 25% 15%;
     
-    --destructive: 12 100% 45%; /* Dark red */
+    --destructive: 12 100% 45%;
     --destructive-foreground: 32 100% 95%;
     
     --border: 220 20% 20%;
@@ -68,7 +69,7 @@
   }
 
   .froggy {
-    --background: 160 51% 60%; /* Mint turquoise */
+    --background: 160 51% 60%;
     --foreground: 0 0% 10%;
     
     --card: 120 30% 85%;
@@ -77,16 +78,16 @@
     --popover: 120 30% 85%;
     --popover-foreground: 0 0% 10%;
     
-    --primary: 120 35% 70%; /* Light green */
+    --primary: 120 35% 70%;
     --primary-foreground: 0 0% 10%;
     
-    --secondary: 120 25% 55%; /* Lily pad green */
+    --secondary: 120 25% 55%;
     --secondary-foreground: 0 0% 98%;
     
     --muted: 120 15% 85%;
     --muted-foreground: 0 0% 40%;
     
-    --accent: 39 100% 85%; /* Yellow-gold */
+    --accent: 39 100% 85%;
     --accent-foreground: 0 0% 10%;
     
     --destructive: 0 85% 60%;

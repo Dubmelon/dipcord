@@ -1,7 +1,8 @@
 
-import { memo } from "react";
+import { memo, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ServerGrid } from "@/components/dashboard/ServerGrid";
+import { toast } from "sonner";
 
 const container = {
   hidden: { opacity: 0 },
@@ -19,8 +20,25 @@ const item = {
 };
 
 const DashboardPage = () => {
-  // Add console log for debugging
-  console.log("Dashboard page rendering");
+  // Add enhanced error handling and logging
+  useEffect(() => {
+    const handleError = (event: ErrorEvent) => {
+      console.error("Dashboard Error:", event.error);
+      
+      // Check if error is related to image loading
+      if (event.error instanceof TypeError && event.error.message.includes('Failed to fetch')) {
+        console.warn("Image loading error detected");
+        toast.error("Failed to load some resources. Please try refreshing the page.");
+      }
+    };
+
+    window.addEventListener('error', handleError);
+    
+    // Cleanup
+    return () => window.removeEventListener('error', handleError);
+  }, []);
+
+  console.log("Dashboard page rendering:", new Date().toISOString());
   
   return (
     <motion.div 
