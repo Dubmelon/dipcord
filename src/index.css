@@ -98,9 +98,7 @@
     
     --radius: 0.75rem;
   }
-}
 
-@layer base {
   * {
     @apply border-border selection:bg-primary/10 selection:text-primary;
   }
@@ -108,7 +106,7 @@
   body {
     @apply bg-background text-foreground antialiased overflow-x-hidden min-h-screen font-sans;
     font-feature-settings: "ss01", "ss02", "cv01", "cv02", "cv03";
-    background-image: url('/lovable-uploads/1324cb10-7a68-4ff6-9d64-28617a01caac.png');
+    background: var(--background);
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
