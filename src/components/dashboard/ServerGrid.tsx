@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -12,6 +13,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { NotificationPopover } from "@/components/notifications/NotificationPopover";
+import { toast } from "sonner";
 
 interface Server {
   id: string;
@@ -50,12 +52,13 @@ export const ServerGrid = () => {
   const { data: servers, isLoading, error } = useQuery({
     queryKey: ['user-servers'],
     queryFn: async () => {
-      console.log("Fetching user servers...");
+      console.log("Starting server fetch process...");
+      
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       
       if (authError) {
-        console.error("Auth error:", authError);
-        throw authError;
+        console.error("Authentication error:", authError);
+        throw new Error(`Authentication failed: ${authError.message}`);
       }
       
       if (!user) {
@@ -64,9 +67,38 @@ export const ServerGrid = () => {
         throw new Error("Not authenticated");
       }
 
-      console.log("User authenticated, fetching servers...");
+      console.log("Authenticated user ID:", user.id);
 
-      const { data, error } = await supabase
+      // First check if user has a profile
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', user.id)
+        .single();
+
+      if (profileError) {
+        console.error("Profile fetch error:", profileError);
+        throw new Error(`Failed to fetch profile: ${profileError.message}`);
+      }
+
+      if (!profile) {
+        console.log("Creating profile for user...");
+        const { error: createProfileError } = await supabase
+          .from('profiles')
+          .insert([{ 
+            id: user.id,
+            username: user.email?.split('@')[0] || 'user',
+            is_online: true
+          }]);
+
+        if (createProfileError) {
+          console.error("Profile creation error:", createProfileError);
+          throw new Error(`Failed to create profile: ${createProfileError.message}`);
+        }
+      }
+
+      console.log("Fetching server memberships...");
+      const { data: memberships, error: membershipError } = await supabase
         .from('server_members')
         .select(`
           server:servers (
@@ -78,19 +110,25 @@ export const ServerGrid = () => {
         `)
         .eq('user_id', user.id);
 
-      if (error) {
-        console.error("Server fetch error:", error);
-        throw error;
+      if (membershipError) {
+        console.error("Server membership fetch error:", membershipError);
+        throw new Error(`Failed to fetch server memberships: ${membershipError.message}`);
       }
 
-      console.log("Servers fetched successfully:", data);
-      return data.map(item => item.server) as Server[];
+      console.log("Server memberships fetched:", memberships);
+      return memberships.map(item => item.server) as Server[];
     },
     retry: 1,
     refetchOnWindowFocus: false,
+    meta: {
+      errorMessage: "Failed to load servers"
+    }
   });
 
   if (error) {
+    console.error("Server grid error:", error);
+    toast.error("Failed to load servers. Please try again.");
+    
     return (
       <Card className="w-full max-w-5xl mx-auto">
         <div className="p-8 text-center space-y-4">
