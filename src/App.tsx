@@ -17,7 +17,6 @@ import NotFound from "./pages/NotFound";
 import { useEffect, useState } from "react";
 import { supabase } from "./integrations/supabase/client";
 
-// Configure React Query with logging
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -29,7 +28,6 @@ const queryClient = new QueryClient({
   }
 });
 
-// Create a protected route wrapper component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -37,14 +35,12 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     console.log('[ProtectedRoute] Checking authentication status');
     
-    // Check initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       console.log('[ProtectedRoute] Initial session check:', session?.user?.id);
       setIsAuthenticated(!!session);
       setIsLoading(false);
     });
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log(`[ProtectedRoute] Auth state changed: ${event}`, session?.user?.id);
       setIsAuthenticated(!!session);
@@ -75,7 +71,6 @@ const App = () => {
   useEffect(() => {
     console.log('[App] Initializing');
     
-    // Handle online status updates
     const handleBeforeUnload = async () => {
       console.log('[App] Handling page unload');
       const { data: { session } } = await supabase.auth.getSession();
@@ -94,7 +89,6 @@ const App = () => {
 
     window.addEventListener('beforeunload', handleBeforeUnload);
 
-    // Update online status on initial load
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
         try {
@@ -109,7 +103,6 @@ const App = () => {
       }
     });
 
-    // Performance monitoring
     const routeChangeStart = performance.now();
     console.log('[Performance] Initial route render start');
 
@@ -124,12 +117,13 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="light" storageKey="app-theme">
         <TooltipProvider>
-          <div className="relative min-h-screen font-sans bg-[#403E43]">
+          <div className="relative min-h-screen font-sans bg-background">
             <div className="relative z-10">
               <Toaster />
               <Sonner />
               <BrowserRouter>
-                <div className="pb-16">
+                <Navigation />
+                <main className="pt-16">
                   <Routes>
                     <Route path="/" element={<Index />} />
                     <Route 
@@ -182,8 +176,7 @@ const App = () => {
                     />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
-                  <Navigation />
-                </div>
+                </main>
               </BrowserRouter>
             </div>
           </div>

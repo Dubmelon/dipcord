@@ -32,9 +32,9 @@ export const Navigation = () => {
 
   return (
     <motion.nav 
-      initial={{ y: 100 }}
+      initial={{ y: -100 }}
       animate={{ y: 0 }}
-      className="fixed bottom-0 left-0 w-full bg-background/80 backdrop-blur-lg border-t border-border z-50"
+      className="fixed top-0 left-0 right-0 w-full bg-background/80 backdrop-blur-lg border-b border-border z-50"
     >
       <div className="flex items-center justify-around h-16 p-2 max-w-screen-xl mx-auto">
         {navItems.map((item) => (
