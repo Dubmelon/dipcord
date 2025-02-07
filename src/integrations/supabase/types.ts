@@ -269,6 +269,7 @@ export type Database = {
       }
       posts: {
         Row: {
+          channel_id: string | null
           comments_count: number | null
           content: string
           created_at: string
@@ -281,6 +282,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          channel_id?: string | null
           comments_count?: number | null
           content: string
           created_at?: string
@@ -293,6 +295,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          channel_id?: string | null
           comments_count?: number | null
           content?: string
           created_at?: string
