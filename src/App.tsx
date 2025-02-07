@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -22,14 +23,56 @@ const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
   useEffect(() => {
-    supabase.auth.onAuthStateChange((event, session) => {
-      setIsAuthenticated(!!session);
+    // Handle auth state changes and online status
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      const isAuthed = !!session;
+      setIsAuthenticated(isAuthed);
+
+      // Update online status based on auth state
+      if (session?.user) {
+        if (event === 'SIGNED_IN') {
+          await supabase
+            .from('profiles')
+            .update({ is_online: true })
+            .eq('id', session.user.id);
+        } else if (event === 'SIGNED_OUT') {
+          await supabase
+            .from('profiles')
+            .update({ is_online: false })
+            .eq('id', session.user.id);
+        }
+      }
     });
 
     // Check initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setIsAuthenticated(!!session);
+      if (session?.user) {
+        await supabase
+          .from('profiles')
+          .update({ is_online: true })
+          .eq('id', session.user.id);
+      }
     });
+
+    // Set up beforeunload handler to mark user as offline when leaving
+    const handleBeforeUnload = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        await supabase
+          .from('profiles')
+          .update({ is_online: false })
+          .eq('id', session.user.id);
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    // Cleanup
+    return () => {
+      subscription?.unsubscribe();
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
   }, []);
 
   // Show nothing while checking authentication
