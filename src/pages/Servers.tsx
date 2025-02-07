@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,83 +29,98 @@ const Servers = () => {
   const [newServerName, setNewServerName] = useState("");
   const [newServerDescription, setNewServerDescription] = useState("");
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
+  const { data: currentUser } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: async () => {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error) throw error;
+      if (!user) {
         navigate("/");
+        throw new Error("Not authenticated");
       }
-    };
-    checkAuth();
-  }, [navigate]);
+      return user;
+    },
+  });
 
-  const { data: servers, isLoading } = useQuery({
+  const { data: servers, isLoading, error: serversError } = useQuery({
     queryKey: ['servers'],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      if (!currentUser) return [];
 
-      // Get all servers with member count
+      // Get all servers with member count and efficient join
       const { data, error } = await supabase
         .from('servers')
         .select(`
           *,
-          member_count:server_members(count)
+          member_count:server_members(count),
+          members:server_members(user_id)
         `)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        toast.error("Failed to load servers");
+        throw error;
+      }
 
-      // Get user's memberships
-      const { data: memberships } = await supabase
-        .from('server_members')
-        .select('server_id')
-        .eq('user_id', user.id);
-
-      const memberServerIds = new Set(memberships?.map(m => m.server_id) || []);
-      
-      return (data || []).map(server => ({
+      return data?.map(server => ({
         ...server,
         member_count: server.member_count?.[0]?.count || 0,
-        is_member: memberServerIds.has(server.id)
+        is_member: server.members?.some(member => member.user_id === currentUser.id) || false
       })) as Server[];
     },
+    enabled: !!currentUser,
+    staleTime: 1000 * 60, // Cache for 1 minute
+    retry: 1,
   });
 
   const createServer = useMutation({
     mutationFn: async ({ name, description }: { name: string; description: string }) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      if (!currentUser) throw new Error("Not authenticated");
 
-      const { data: profile, error: profileError } = await supabase
+      // First ensure user profile exists
+      const { data: profile } = await supabase
         .from('profiles')
         .select('id')
-        .eq('id', user.id)
-        .maybeSingle();
+        .eq('id', currentUser.id)
+        .single();
 
       if (!profile) {
         const { error: insertError } = await supabase
           .from('profiles')
           .insert([{
-            id: user.id,
-            username: user.email?.split('@')[0] || 'user',
-            full_name: user.email
+            id: currentUser.id,
+            username: currentUser.email?.split('@')[0] || 'user',
+            full_name: currentUser.email
           }]);
         
         if (insertError) throw insertError;
-      } else if (profileError) {
-        throw profileError;
       }
 
-      const { error } = await supabase
+      // Create server
+      const { data: server, error: serverError } = await supabase
         .from('servers')
         .insert([{ 
           name,
           description,
-          owner_id: user.id 
+          owner_id: currentUser.id 
+        }])
+        .select()
+        .single();
+
+      if (serverError) throw serverError;
+
+      // Add creator as member
+      const { error: memberError } = await supabase
+        .from('server_members')
+        .insert([{
+          server_id: server.id,
+          user_id: currentUser.id,
+          role: 'owner'
         }]);
 
-      if (error) throw error;
+      if (memberError) throw memberError;
+
+      return server;
     },
     onSuccess: () => {
       setNewServerName("");
@@ -119,17 +135,16 @@ const Servers = () => {
 
   const joinServer = useMutation({
     mutationFn: async (serverId: string) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      if (!currentUser) throw new Error("Not authenticated");
 
-      // Check if already a member
-      const { data: existingMembership } = await supabase
+      const { data: existingMembership, error: checkError } = await supabase
         .from('server_members')
         .select('id')
         .eq('server_id', serverId)
-        .eq('user_id', user.id)
+        .eq('user_id', currentUser.id)
         .maybeSingle();
 
+      if (checkError) throw checkError;
       if (existingMembership) {
         throw new Error("You are already a member of this server");
       }
@@ -138,7 +153,8 @@ const Servers = () => {
         .from('server_members')
         .insert([{ 
           server_id: serverId,
-          user_id: user.id 
+          user_id: currentUser.id,
+          role: 'member'
         }]);
 
       if (error) throw error;
@@ -165,9 +181,23 @@ const Servers = () => {
     if (error) {
       toast.error(error.message);
     } else {
+      queryClient.clear();
       navigate("/");
     }
   };
+
+  if (serversError) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center space-y-4">
+          <p className="text-red-500">Error loading servers</p>
+          <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['servers'] })}>
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-transparent">
@@ -215,8 +245,26 @@ const Servers = () => {
         </Card>
 
         {isLoading ? (
-          <div className="flex justify-center p-8">
-            <Loader2 className="h-8 w-8 animate-spin text-white" />
+          <div className="grid gap-4 md:grid-cols-2">
+            {[1, 2, 3, 4].map((i) => (
+              <Card key={i} className="glass-morphism animate-pulse">
+                <CardHeader>
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 rounded-full bg-white/10" />
+                    <div className="space-y-2">
+                      <div className="h-4 w-24 bg-white/10 rounded" />
+                      <div className="h-3 w-32 bg-white/10 rounded" />
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-4 w-16 bg-white/10 rounded" />
+                </CardContent>
+                <CardFooter>
+                  <div className="h-9 w-full bg-white/10 rounded" />
+                </CardFooter>
+              </Card>
+            ))}
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2">
