@@ -60,10 +60,24 @@ export const useServers = () => {
       const profileEnd = performance.now();
       console.log(`[ServerGrid] Profile operation took ${profileEnd - profileStart}ms`);
 
-      // Optimized server query that avoids recursion
+      // Server memberships fetch with timing
       const serverStart = performance.now();
       console.log("[ServerGrid] Fetching servers...");
       
+      // First get server IDs
+      const { data: memberships, error: membershipError } = await supabase
+        .from('server_members')
+        .select('server_id')
+        .eq('user_id', user.id);
+
+      if (membershipError) {
+        console.error("[ServerGrid] Server memberships fetch error:", membershipError);
+        throw new Error(`Failed to fetch server memberships: ${membershipError.message}`);
+      }
+
+      const serverIds = memberships.map(m => m.server_id).filter(Boolean);
+
+      // Then fetch the actual servers
       const { data: servers, error: serverError } = await supabase
         .from('servers')
         .select(`
@@ -72,12 +86,7 @@ export const useServers = () => {
           description,
           avatar_url
         `)
-        .in('id', (
-          supabase
-            .from('server_members')
-            .select('server_id')
-            .eq('user_id', user.id)
-        ));
+        .in('id', serverIds);
 
       if (serverError) {
         console.error("[ServerGrid] Server fetch error:", serverError);
