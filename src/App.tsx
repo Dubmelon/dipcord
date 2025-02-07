@@ -17,66 +17,117 @@ import NotFound from "./pages/NotFound";
 import { useEffect, useState } from "react";
 import { supabase } from "./integrations/supabase/client";
 
-const queryClient = new QueryClient();
+// Configure React Query with logging
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      onError: (error) => {
+        console.error('[Query Error]:', error);
+      }
+    },
+    mutations: {
+      onError: (error) => {
+        console.error('[Mutation Error]:', error);
+      }
+    }
+  }
+});
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
   useEffect(() => {
+    console.log('[App] Initializing authentication state');
+    
     // Handle auth state changes and online status
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log(`[Auth] Event: ${event}`, session?.user?.id);
       const isAuthed = !!session;
       setIsAuthenticated(isAuthed);
 
       // Update online status based on auth state
       if (session?.user) {
         if (event === 'SIGNED_IN') {
-          await supabase
-            .from('profiles')
-            .update({ is_online: true })
-            .eq('id', session.user.id);
+          console.log('[Auth] Updating user online status to true');
+          try {
+            await supabase
+              .from('profiles')
+              .update({ is_online: true })
+              .eq('id', session.user.id);
+          } catch (error) {
+            console.error('[Auth] Failed to update online status:', error);
+          }
         } else if (event === 'SIGNED_OUT') {
-          await supabase
-            .from('profiles')
-            .update({ is_online: false })
-            .eq('id', session.user.id);
+          console.log('[Auth] Updating user online status to false');
+          try {
+            await supabase
+              .from('profiles')
+              .update({ is_online: false })
+              .eq('id', session.user.id);
+          } catch (error) {
+            console.error('[Auth] Failed to update offline status:', error);
+          }
         }
       }
     });
 
     // Check initial session
     supabase.auth.getSession().then(async ({ data: { session } }) => {
+      console.log('[App] Initial session check:', session?.user?.id);
       setIsAuthenticated(!!session);
       if (session?.user) {
-        await supabase
-          .from('profiles')
-          .update({ is_online: true })
-          .eq('id', session.user.id);
+        try {
+          await supabase
+            .from('profiles')
+            .update({ is_online: true })
+            .eq('id', session.user.id);
+          console.log('[App] Updated initial online status');
+        } catch (error) {
+          console.error('[App] Failed to update initial online status:', error);
+        }
       }
     });
 
     // Set up beforeunload handler to mark user as offline when leaving
     const handleBeforeUnload = async () => {
+      console.log('[App] Handling page unload');
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
-        await supabase
-          .from('profiles')
-          .update({ is_online: false })
-          .eq('id', session.user.id);
+        try {
+          await supabase
+            .from('profiles')
+            .update({ is_online: false })
+            .eq('id', session.user.id);
+          console.log('[App] Updated offline status before unload');
+        } catch (error) {
+          console.error('[App] Failed to update offline status before unload:', error);
+        }
       }
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
 
+    // Performance monitoring
+    const routeChangeStart = performance.now();
+    console.log('[Performance] Initial route render start');
+
     // Cleanup
     return () => {
       subscription?.unsubscribe();
       window.removeEventListener('beforeunload', handleBeforeUnload);
+      const routeChangeEnd = performance.now();
+      console.log(`[Performance] Route render time: ${routeChangeEnd - routeChangeStart}ms`);
     };
   }, []);
 
   // Show nothing while checking authentication
-  if (isAuthenticated === null) return null;
+  if (isAuthenticated === null) {
+    console.log('[App] Authentication state still loading');
+    return null;
+  }
+
+  console.log('[App] Rendering with auth state:', isAuthenticated);
 
   return (
     <QueryClientProvider client={queryClient}>

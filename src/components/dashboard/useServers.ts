@@ -11,6 +11,7 @@ export const useServers = () => {
   return useQuery({
     queryKey: ['user-servers'],
     queryFn: async () => {
+      const startTime = performance.now();
       console.log("[ServerGrid] Starting server fetch process...");
       
       const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -28,6 +29,8 @@ export const useServers = () => {
 
       console.log("[ServerGrid] Authenticated user ID:", user.id);
 
+      // Profile check/creation with timing
+      const profileStart = performance.now();
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('id')
@@ -54,7 +57,11 @@ export const useServers = () => {
           throw new Error(`Failed to create profile: ${createProfileError.message}`);
         }
       }
+      const profileEnd = performance.now();
+      console.log(`[ServerGrid] Profile operation took ${profileEnd - profileStart}ms`);
 
+      // Server memberships fetch with timing
+      const membershipStart = performance.now();
       console.log("[ServerGrid] Fetching server memberships...");
       const { data: memberships, error: membershipError } = await supabase
         .from('server_members')
@@ -73,13 +80,18 @@ export const useServers = () => {
         throw new Error(`Failed to fetch server memberships: ${membershipError.message}`);
       }
 
+      const membershipEnd = performance.now();
+      console.log(`[ServerGrid] Server memberships fetch took ${membershipEnd - membershipStart}ms`);
       console.log("[ServerGrid] Server memberships fetched:", memberships);
       
       const validServers = memberships
         .filter(item => item.server)
         .map(item => item.server as Server);
       
+      const endTime = performance.now();
+      console.log(`[ServerGrid] Total operation took ${endTime - startTime}ms`);
       console.log("[ServerGrid] Processed valid servers:", validServers);
+      
       return validServers;
     },
     retry: 1,
