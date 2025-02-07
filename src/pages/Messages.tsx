@@ -26,7 +26,7 @@ const Messages = () => {
 
       const { data, error } = await supabase
         .from("profiles")
-        .select("*")
+        .select("id, username, avatar_url, is_online, last_seen")
         .neq("id", user.id);
 
       if (error) throw error;
@@ -39,13 +39,21 @@ const Messages = () => {
     queryFn: async () => {
       if (!selectedUser) return [];
       const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
       const { data, error } = await supabase
         .from("direct_messages")
         .select(`
           *,
-          sender:profiles!direct_messages_sender_id_fkey(*)
+          sender:profiles!direct_messages_sender_id_fkey(
+            id,
+            username,
+            avatar_url,
+            is_online,
+            last_seen
+          )
         `)
-        .or(`and(sender_id.eq.${user?.id},receiver_id.eq.${selectedUser}),and(sender_id.eq.${selectedUser},receiver_id.eq.${user?.id})`)
+        .or(`and(sender_id.eq.${user.id},receiver_id.eq.${selectedUser}),and(sender_id.eq.${selectedUser},receiver_id.eq.${user.id})`)
         .order("created_at", { ascending: true });
 
       if (error) throw error;

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageCircle } from "lucide-react";
 import { motion } from "framer-motion";
+import { DirectMessage } from "./DirectMessage";
 
 interface ChatAreaProps {
   messages: any[] | undefined;
@@ -45,24 +46,16 @@ export const ChatArea = ({
         ) : (
           <div className="space-y-4">
             {messages?.map((message) => (
-              <motion.div
+              <DirectMessage
                 key={message.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className={`flex ${
-                  message.sender_id === selectedUser ? "justify-start" : "justify-end"
-                }`}
-              >
-                <div
-                  className={`max-w-[70%] p-3 rounded-lg ${
-                    message.sender_id === selectedUser
-                      ? "bg-muted"
-                      : "bg-primary text-primary-foreground"
-                  }`}
-                >
-                  {message.content}
-                </div>
-              </motion.div>
+                id={message.id}
+                content={message.content}
+                created_at={message.created_at}
+                sender={message.sender}
+                media_urls={message.media_urls}
+                isRead={message.read_at !== null}
+                isDelivered={true}
+              />
             ))}
           </div>
         )}
