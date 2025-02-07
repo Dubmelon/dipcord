@@ -11,7 +11,6 @@ export const useServers = () => {
   return useQuery({
     queryKey: ['user-servers'],
     queryFn: async () => {
-      const startTime = performance.now();
       console.log("[ServerGrid] Starting server fetch process...");
       
       const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -29,7 +28,7 @@ export const useServers = () => {
 
       console.log("[ServerGrid] Authenticated user ID:", user.id);
 
-      // First get servers where user is a member
+      // Get servers where user is a member
       const { data: memberships, error: membershipError } = await supabase
         .from('server_members')
         .select('server_id')
@@ -43,7 +42,7 @@ export const useServers = () => {
       const serverIds = memberships?.map(m => m.server_id) || [];
       console.log("[ServerGrid] User's server memberships:", serverIds);
 
-      // Then fetch both public servers and servers where user is a member
+      // Fetch all servers user has access to (public or member)
       const { data: servers, error: serverError } = await supabase
         .from('servers')
         .select(`
@@ -54,8 +53,7 @@ export const useServers = () => {
           is_private,
           member_count,
           owner_id
-        `)
-        .or(`id.in.(${serverIds.join(',')}),is_private.eq.false`);
+        `);
 
       if (serverError) {
         console.error("[ServerGrid] Server fetch error:", serverError);
@@ -68,8 +66,6 @@ export const useServers = () => {
         is_member: serverIds.includes(server.id)
       })) as Server[];
 
-      const endTime = performance.now();
-      console.log(`[ServerGrid] Total operation took ${endTime - startTime}ms`);
       console.log("[ServerGrid] Servers fetched:", serversWithMembership);
       
       return serversWithMembership || [];
