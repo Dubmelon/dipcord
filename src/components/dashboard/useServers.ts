@@ -41,6 +41,7 @@ export const useServers = () => {
       }
 
       const serverIds = memberships?.map(m => m.server_id) || [];
+      console.log("[ServerGrid] User's server memberships:", serverIds);
 
       // Then fetch both public servers and servers where user is a member
       const { data: servers, error: serverError } = await supabase
@@ -65,7 +66,7 @@ export const useServers = () => {
       const serversWithMembership = servers?.map(server => ({
         ...server,
         is_member: serverIds.includes(server.id)
-      }));
+      })) as Server[];
 
       const endTime = performance.now();
       console.log(`[ServerGrid] Total operation took ${endTime - startTime}ms`);
