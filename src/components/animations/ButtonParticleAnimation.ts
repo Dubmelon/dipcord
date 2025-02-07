@@ -26,26 +26,25 @@ export class ButtonParticleAnimation extends BaseAnimation {
 
   private initializeParticles(x: number, y: number): void {
     for (let i = 0; i < this.particleCount; i++) {
-      // Create an even circular distribution with more spread
-      const angle = (Math.PI * 2 * i) / this.particleCount;
-      // Increase base speed and randomization for more spread
-      const baseSpeed = 8; // Increased base speed
-      const randomSpeed = Math.random() * 6; // More random variation
-      const speed = baseSpeed + randomSpeed;
+      // Create an even circular distribution
+      const baseAngle = (Math.PI * 2 * i) / this.particleCount;
+      // Add significant random variation to the angle for natural spread
+      const angleVariation = (Math.random() - 0.5) * Math.PI / 4;
+      const finalAngle = baseAngle + angleVariation;
       
-      // Add some random offset to the angle for less uniform distribution
-      const randomAngleOffset = (Math.random() - 0.5) * 0.5;
-      const finalAngle = angle + randomAngleOffset;
+      // Randomize speed with a higher base value
+      const minSpeed = 10;
+      const maxSpeed = 15;
+      const speed = minSpeed + Math.random() * (maxSpeed - minSpeed);
       
       const shape = Math.random() < 0.33 ? "circle" : Math.random() < 0.66 ? "star" : "triangle";
       
       this.particles.push({
         x,
         y,
-        // Use cosine and sine with the adjusted angle and speed
         vx: Math.cos(finalAngle) * speed,
         vy: Math.sin(finalAngle) * speed,
-        size: 2 + Math.random() * 4,
+        size: 3 + Math.random() * 4, // Slightly larger particles
         color: this.colors[Math.floor(Math.random() * this.colors.length)],
         rotation: Math.random() * Math.PI * 2,
         rotationSpeed: (Math.random() - 0.5) * 0.2,
@@ -98,13 +97,14 @@ export class ButtonParticleAnimation extends BaseAnimation {
     this.particles = this.particles.filter(particle => particle.opacity > 0);
 
     this.particles.forEach(particle => {
-      // Reduce deceleration for more consistent outward movement
-      particle.vx *= 0.99;
-      particle.vy *= 0.99;
+      // Very minimal deceleration for more explosive effect
+      particle.vx *= 0.995;
+      particle.vy *= 0.995;
       particle.x += particle.vx;
       particle.y += particle.vy;
       particle.rotation += particle.rotationSpeed;
-      particle.opacity -= 0.02; // Slightly faster fade out
+      // Faster fade out
+      particle.opacity -= 0.025;
       this.drawParticle(particle);
     });
 
