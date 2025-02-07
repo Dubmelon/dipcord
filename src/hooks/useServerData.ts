@@ -1,6 +1,15 @@
 
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+
+const mockServerData = {
+  id: "1",
+  name: "Gaming Hub",
+  description: "A place for gamers to hang out",
+  avatar_url: null,
+  owner: {
+    username: "JohnDoe"
+  }
+};
 
 export const useServerData = (serverId: string | undefined) => {
   return useQuery({
@@ -9,20 +18,12 @@ export const useServerData = (serverId: string | undefined) => {
       console.log(`[ServerView] Fetching server details for ID: ${serverId}`);
       const startTime = performance.now();
 
-      const { data, error } = await supabase
-        .from('servers')
-        .select('*, owner:profiles(username)')
-        .eq('id', serverId)
-        .single();
+      // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      if (error) {
-        console.error('[ServerView] Server fetch error:', error);
-        throw error;
-      }
-
       const endTime = performance.now();
-      console.log(`[ServerView] Server fetch completed in ${(endTime - startTime).toFixed(2)}ms:`, data);
-      return data;
+      console.log(`[ServerView] Server fetch completed in ${(endTime - startTime).toFixed(2)}ms:`, mockServerData);
+      return mockServerData;
     },
     enabled: !!serverId,
     staleTime: 30000,

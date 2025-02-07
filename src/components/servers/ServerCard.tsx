@@ -5,18 +5,17 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Loader2, Users } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 interface Server {
   id: string;
   name: string;
   description: string | null;
-  created_at: string;
+  created_at?: string;
   avatar_url: string | null;
   owner_id: string | null;
-  updated_at: string;
-  is_private: boolean | null;
+  updated_at?: string;
+  is_private: boolean;
   member_count: number;
   is_member?: boolean;
 }
@@ -31,31 +30,12 @@ export const ServerCard = ({ server, currentUserId }: ServerCardProps) => {
 
   const joinServer = useMutation({
     mutationFn: async (serverId: string) => {
-      const { data: existingMembership, error: checkError } = await supabase
-        .from('server_members')
-        .select('id')
-        .eq('server_id', serverId)
-        .eq('user_id', currentUserId)
-        .maybeSingle();
-
-      if (checkError) throw checkError;
-      if (existingMembership) {
-        throw new Error("You are already a member of this server");
-      }
-
-      const { error } = await supabase
-        .from('server_members')
-        .insert([{ 
-          server_id: serverId,
-          user_id: currentUserId,
-          role: 'member'
-        }]);
-
-      if (error) {
-        if (error.code === 'PGRST116') {
-          throw new Error("You don't have permission to join this server");
-        }
-        throw error;
+      // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Mock join server logic
+      if (Math.random() > 0.9) {
+        throw new Error("Failed to join server");
       }
     },
     onSuccess: () => {

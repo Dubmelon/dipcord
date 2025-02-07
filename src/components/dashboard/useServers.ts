@@ -1,74 +1,52 @@
 
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { Server } from "./types";
-import { toast } from "sonner";
+
+// Mock data for development
+const mockServers: Server[] = [
+  {
+    id: "1",
+    name: "Gaming Hub",
+    description: "A place for gamers to hang out",
+    avatar_url: null,
+    is_private: false,
+    member_count: 150,
+    owner_id: "1",
+    is_member: true,
+    currentUserId: "1"
+  },
+  {
+    id: "2",
+    name: "Book Club",
+    description: "Discuss your favorite books",
+    avatar_url: null,
+    is_private: true,
+    member_count: 45,
+    owner_id: "2",
+    is_member: false,
+    currentUserId: "1"
+  },
+  {
+    id: "3",
+    name: "Music Production",
+    description: "Share and create music together",
+    avatar_url: null,
+    is_private: false,
+    member_count: 89,
+    owner_id: "1",
+    is_member: true,
+    currentUserId: "1"
+  }
+];
 
 export const useServers = () => {
-  const navigate = useNavigate();
-
   return useQuery({
     queryKey: ['user-servers'],
     queryFn: async () => {
-      console.log("[ServerGrid] Starting server fetch process...");
-      
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      
-      if (authError) {
-        console.error("[ServerGrid] Authentication error:", authError);
-        throw new Error(`Authentication failed: ${authError.message}`);
-      }
-      
-      if (!user) {
-        console.log("[ServerGrid] No authenticated user found");
-        navigate("/");
-        throw new Error("Not authenticated");
-      }
-
-      console.log("[ServerGrid] Authenticated user ID:", user.id);
-
-      const { data: servers, error: serverError } = await supabase
-        .from('servers')
-        .select(`
-          id,
-          name,
-          description,
-          avatar_url,
-          is_private,
-          member_count,
-          owner_id,
-          server_members (
-            user_id
-          )
-        `);
-
-      if (serverError) {
-        console.error("[ServerGrid] Server fetch error:", serverError);
-        throw new Error(`Failed to fetch servers: ${serverError.message}`);
-      }
-
-      // Process the results to add is_member flag and currentUserId
-      const processedServers = servers?.map(server => ({
-        id: server.id,
-        name: server.name,
-        description: server.description,
-        avatar_url: server.avatar_url,
-        is_private: server.is_private,
-        member_count: server.member_count,
-        owner_id: server.owner_id,
-        is_member: server.server_members?.some(member => member.user_id === user.id) || false,
-        currentUserId: user.id
-      })) as Server[];
-
-      console.log("[ServerGrid] Servers fetched:", processedServers);
-      
-      return processedServers || [];
+      // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      return mockServers;
     },
-    retry: 1,
-    refetchOnWindowFocus: false,
-    meta: {
-      errorMessage: "Failed to load servers"
-    }
+    refetchOnWindowFocus: false
   });
 };

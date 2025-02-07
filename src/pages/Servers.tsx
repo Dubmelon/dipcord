@@ -1,6 +1,5 @@
 
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { LogOut } from "lucide-react";
@@ -16,10 +15,15 @@ interface Server {
   avatar_url: string | null;
   owner_id: string | null;
   updated_at: string;
-  is_private: boolean | null;
+  is_private: boolean;
   member_count: number;
   is_member?: boolean;
 }
+
+const mockUser = {
+  id: "1",
+  email: "demo@example.com"
+};
 
 const Servers = () => {
   const navigate = useNavigate();
@@ -27,13 +31,9 @@ const Servers = () => {
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
     queryFn: async () => {
-      const { data: { user }, error } = await supabase.auth.getUser();
-      if (error) throw error;
-      if (!user) {
-        navigate("/");
-        throw new Error("Not authenticated");
-      }
-      return user;
+      // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return mockUser;
     },
   });
 
@@ -42,38 +42,45 @@ const Servers = () => {
     queryFn: async () => {
       if (!currentUser) return [];
 
-      const { data, error } = await supabase
-        .from('servers')
-        .select(`
-          *,
-          member_count:server_members(count),
-          members:server_members(user_id)
-        `)
-        .order('created_at', { ascending: false });
+      // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
-      if (error) {
-        toast.error("Failed to load servers");
-        throw error;
-      }
-
-      return data?.map(server => ({
-        ...server,
-        member_count: server.member_count?.[0]?.count || 0,
-        is_member: server.members?.some(member => member.user_id === currentUser.id) || false
-      })) as Server[];
+      // Return mock data
+      return [
+        {
+          id: "1",
+          name: "Gaming Hub",
+          description: "A place for gamers to hang out",
+          created_at: new Date().toISOString(),
+          avatar_url: null,
+          owner_id: currentUser.id,
+          updated_at: new Date().toISOString(),
+          is_private: false,
+          member_count: 150,
+          is_member: true
+        },
+        {
+          id: "2",
+          name: "Book Club",
+          description: "Discuss your favorite books",
+          created_at: new Date().toISOString(),
+          avatar_url: null,
+          owner_id: "2",
+          updated_at: new Date().toISOString(),
+          is_private: true,
+          member_count: 45,
+          is_member: false
+        }
+      ] as Server[];
     },
     enabled: !!currentUser,
     staleTime: 1000 * 60,
     retry: 1,
   });
 
-  const handleSignOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      toast.error(error.message);
-    } else {
-      navigate("/");
-    }
+  const handleSignOut = () => {
+    navigate("/");
+    toast.success("Signed out successfully");
   };
 
   if (serversError) {

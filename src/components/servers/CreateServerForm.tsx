@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2, Plus } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 interface CreateServerFormProps {
@@ -19,58 +18,19 @@ export const CreateServerForm = ({ currentUserId }: CreateServerFormProps) => {
 
   const createServer = useMutation({
     mutationFn: async ({ name, description }: { name: string; description: string }) => {
-      // First ensure user profile exists
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('id', currentUserId)
-        .single();
-
-      if (!profile) {
-        const { error: insertError } = await supabase
-          .from('profiles')
-          .insert([{
-            id: currentUserId,
-            username: 'user',
-            full_name: 'User'
-          }]);
-        
-        if (insertError) throw insertError;
-      }
-
-      // Create server
-      const { data: server, error: serverError } = await supabase
-        .from('servers')
-        .insert([{ 
-          name,
-          description,
-          owner_id: currentUserId 
-        }])
-        .select()
-        .single();
-
-      if (serverError) {
-        if (serverError.code === '23505') {
-          throw new Error("A server with this name already exists");
-        }
-        if (serverError.code === '23514') {
-          throw new Error("Server name must be between 3 and 50 characters");
-        }
-        throw serverError;
-      }
-
-      // Add creator as member
-      const { error: memberError } = await supabase
-        .from('server_members')
-        .insert([{
-          server_id: server.id,
-          user_id: currentUserId,
-          role: 'owner'
-        }]);
-
-      if (memberError) throw memberError;
-
-      return server;
+      // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Mock server creation
+      return {
+        id: Math.random().toString(),
+        name,
+        description,
+        owner_id: currentUserId,
+        is_private: false,
+        member_count: 1,
+        avatar_url: null
+      };
     },
     onSuccess: () => {
       setNewServerName("");
