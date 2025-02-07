@@ -68,33 +68,33 @@
   }
 
   .froggy {
-    --background: 160 51% 60%;
-    --foreground: 0 0% 0%;
+    --background: 151 30% 82%;
+    --foreground: 151 40% 20%;
     
-    --card: 120 30% 95%;
-    --card-foreground: 0 0% 10%;
+    --card: 151 33% 96%;
+    --card-foreground: 151 40% 20%;
     
-    --popover: 120 30% 95%;
-    --popover-foreground: 0 0% 10%;
+    --popover: 151 33% 96%;
+    --popover-foreground: 151 40% 20%;
     
-    --primary: 120 35% 40%;
+    --primary: 151 40% 35%;
     --primary-foreground: 0 0% 100%;
     
-    --secondary: 120 25% 55%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 151 25% 75%;
+    --secondary-foreground: 151 40% 20%;
     
-    --muted: 120 15% 85%;
-    --muted-foreground: 0 0% 20%;
+    --muted: 151 15% 90%;
+    --muted-foreground: 151 30% 30%;
     
-    --accent: 39 100% 85%;
-    --accent-foreground: 0 0% 10%;
+    --accent: 151 50% 60%;
+    --accent-foreground: 151 40% 20%;
     
     --destructive: 0 85% 60%;
     --destructive-foreground: 0 0% 98%;
     
-    --border: 120 25% 75%;
-    --input: 120 25% 75%;
-    --ring: 120 35% 40%;
+    --border: 151 25% 75%;
+    --input: 151 25% 75%;
+    --ring: 151 40% 35%;
     
     --radius: 0.75rem;
   }
@@ -104,12 +104,13 @@
   }
   
   body {
-    @apply bg-background text-foreground antialiased overflow-x-hidden min-h-screen font-sans;
+    @apply bg-background text-foreground antialiased min-h-screen font-sans;
     font-feature-settings: "ss01", "ss02", "cv01", "cv02", "cv03";
-    background: hsl(var(--background));
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
+    background-color: hsl(var(--background));
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transform: translateZ(0);
+    will-change: transform;
   }
 
   h1 {
@@ -136,9 +137,5 @@
   
   .hover-scale {
     @apply transition-transform duration-200 hover:scale-105;
-  }
-
-  .halloween-gradient {
-    @apply bg-gradient-to-b from-background via-secondary to-primary/50;
   }
 }

@@ -1,10 +1,12 @@
+
 import { format } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { UserContextMenu } from "@/components/shared/UserContextMenu";
 import { MessageStatus } from "@/components/shared/MessageStatus";
 import { MediaPreview } from "@/components/server/message/MediaPreview";
 import { Badge } from "@/components/ui/badge";
-import { Lock } from "lucide-react";
+import { Lock, Save } from "lucide-react";
+import { toast } from "sonner";
 
 interface DirectMessageProps {
   id: string;
@@ -29,6 +31,11 @@ export const DirectMessage = ({
   isRead = false,
   isDelivered = true
 }: DirectMessageProps) => {
+  const handleSave = () => {
+    // TODO: Implement save functionality
+    toast.success("Message saved!");
+  };
+
   return (
     <div className="flex items-start hover:bg-black/30 px-4 py-2 transition-colors group">
       {sender && (
@@ -60,7 +67,13 @@ export const DirectMessage = ({
               online
             </Badge>
           )}
-          <div className="ml-auto flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="ml-auto flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button 
+              onClick={handleSave}
+              className="text-muted-foreground hover:text-primary transition-colors"
+            >
+              <Save className="h-4 w-4" />
+            </button>
             <MessageStatus isDelivered={isDelivered} isRead={isRead} />
             <Lock className="h-3 w-3 text-muted-foreground ml-1" />
           </div>
