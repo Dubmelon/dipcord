@@ -1,4 +1,3 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 @tailwind base;
@@ -70,22 +69,22 @@
 
   .froggy {
     --background: 160 51% 60%;
-    --foreground: 0 0% 10%;
+    --foreground: 0 0% 0%;
     
-    --card: 120 30% 85%;
+    --card: 120 30% 95%;
     --card-foreground: 0 0% 10%;
     
-    --popover: 120 30% 85%;
+    --popover: 120 30% 95%;
     --popover-foreground: 0 0% 10%;
     
-    --primary: 120 35% 70%;
-    --primary-foreground: 0 0% 10%;
+    --primary: 120 35% 40%;
+    --primary-foreground: 0 0% 100%;
     
     --secondary: 120 25% 55%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary-foreground: 0 0% 100%;
     
     --muted: 120 15% 85%;
-    --muted-foreground: 0 0% 40%;
+    --muted-foreground: 0 0% 20%;
     
     --accent: 39 100% 85%;
     --accent-foreground: 0 0% 10%;
@@ -95,7 +94,7 @@
     
     --border: 120 25% 75%;
     --input: 120 25% 75%;
-    --ring: 120 35% 70%;
+    --ring: 120 35% 40%;
     
     --radius: 0.75rem;
   }
@@ -107,7 +106,7 @@
   body {
     @apply bg-background text-foreground antialiased overflow-x-hidden min-h-screen font-sans;
     font-feature-settings: "ss01", "ss02", "cv01", "cv02", "cv03";
-    background: var(--background);
+    background: hsl(var(--background));
     background-size: cover;
     background-position: center;
     background-attachment: fixed;

@@ -47,7 +47,13 @@ export const AppearanceSettings = () => {
               className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-background p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary cursor-pointer"
             >
               <RadioGroupItem value="froggy" id="froggy" className="sr-only" />
-              <div className="w-8 h-8 rounded-full bg-[#66CDAA] border"></div>
+              <div className="w-8 h-8">
+                <img 
+                  src="/lovable-uploads/17a3d408-05f9-493e-a745-3b97f781d182.png" 
+                  alt="Froggy theme" 
+                  className="w-full h-full object-cover rounded-full border"
+                />
+              </div>
               <span className="mt-2">Froggy</span>
             </Label>
           </RadioGroup>
