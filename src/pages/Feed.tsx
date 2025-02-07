@@ -20,17 +20,32 @@ const Feed = () => {
   // Memoize the auth check function
   const checkAuth = useCallback(async () => {
     console.log("[Feed] Checking authentication status");
-    const { data: { session }, error } = await supabase.auth.getSession();
-    if (error) {
-      console.error("[Feed] Auth check error:", error);
-      toast.error("Authentication error");
-    }
-    if (!session) {
-      console.log("[Feed] No active session, redirecting to login");
-      navigate("/");
-    } else {
+    const startTime = performance.now();
+    
+    try {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error("[Feed] Auth check error:", error);
+        toast.error("Authentication error");
+        return;
+      }
+
+      if (!session) {
+        console.log("[Feed] No active session, redirecting to login");
+        navigate("/");
+        return;
+      }
+
       console.log("[Feed] User authenticated:", session.user.id);
       setCurrentUser(session.user);
+      
+      const endTime = performance.now();
+      console.log(`[Feed] Auth check completed in ${(endTime - startTime).toFixed(2)}ms`);
+    } catch (error) {
+      console.error("[Feed] Unexpected auth error:", error);
+      toast.error("Authentication failed");
+      navigate("/");
     }
   }, [navigate]);
 
@@ -79,7 +94,7 @@ const Feed = () => {
       }
 
       console.log("[Feed] Fetched posts count:", data?.length);
-      return data;
+      return data || [];
     },
     staleTime: 30000,
     retry: 1,
@@ -90,6 +105,11 @@ const Feed = () => {
     mutationFn: async ({ content, mediaUrls }: { content: string; mediaUrls: string[] }) => {
       console.log("[Feed] Creating new post", { content, mediaUrls });
       const startTime = performance.now();
+
+      if (!currentUser?.id) {
+        console.error("[Feed] No user ID available for post creation");
+        throw new Error("User not authenticated");
+      }
 
       const urls = content.match(/(https?:\/\/[^\s]+)/g) || [];
       const embeddedMedia = urls.map(url => ({
@@ -110,7 +130,10 @@ const Feed = () => {
       const endTime = performance.now();
       console.log(`[Feed] Post created in ${(endTime - startTime).toFixed(2)}ms`);
 
-      if (error) throw error;
+      if (error) {
+        console.error("[Feed] Post creation error:", error);
+        throw error;
+      }
     },
     onSuccess: () => {
       console.log("[Feed] Post creation successful");
@@ -119,12 +142,17 @@ const Feed = () => {
     },
     onError: (error) => {
       console.error("[Feed] Post creation error:", error);
-      toast.error("Failed to create post");
+      toast.error("Failed to create post. Please try again.");
     },
   });
 
   const likePostMutation = useMutation({
     mutationFn: async (postId: string) => {
+      if (!currentUser?.id) {
+        console.error("[Feed] No user ID available for liking post");
+        throw new Error("User not authenticated");
+      }
+
       console.log("[Feed] Liking post:", postId);
       const { error } = await supabase
         .from('likes')
@@ -143,6 +171,11 @@ const Feed = () => {
 
   const unlikePostMutation = useMutation({
     mutationFn: async (postId: string) => {
+      if (!currentUser?.id) {
+        console.error("[Feed] No user ID available for unliking post");
+        throw new Error("User not authenticated");
+      }
+
       console.log("[Feed] Unliking post:", postId);
       const { error } = await supabase
         .from('likes')
@@ -220,13 +253,15 @@ const Feed = () => {
   return (
     <div className="min-h-screen bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto p-4 max-w-2xl space-y-6">
-        <CreatePost
-          currentUser={currentUser}
-          onSubmit={async (content, mediaUrls) => {
-            await createPostMutation.mutateAsync({ content, mediaUrls });
-          }}
-          isSubmitting={createPostMutation.isPending}
-        />
+        {currentUser && (
+          <CreatePost
+            currentUser={currentUser}
+            onSubmit={async (content, mediaUrls) => {
+              await createPostMutation.mutateAsync({ content, mediaUrls });
+            }}
+            isSubmitting={createPostMutation.isPending}
+          />
+        )}
 
         <LazyMotion features={domAnimation}>
           <motion.div
