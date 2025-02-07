@@ -3,7 +3,7 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = "https://jouqghqhhccwstmjveen.supabase.co";
+const SUPABASE_URL = "https://5c368387-bc3b-4534-98f1-67930bb13708.lovableproject.com";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpvdXFnaHFoaGNjd3N0bWp2ZWVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgyNzQ3NTgsImV4cCI6MjA1Mzg1MDc1OH0.YvH0FTszPZudNXZdCIBiCrXB5Ss1elWIZG3etGz87Rw";
 
 // Create Supabase client with explicit headers configuration
