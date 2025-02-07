@@ -51,7 +51,12 @@ export const ServerCard = ({ server, currentUserId }: ServerCardProps) => {
           role: 'member'
         }]);
 
-      if (error) throw error;
+      if (error) {
+        if (error.code === 'PGRST116') {
+          throw new Error("You don't have permission to join this server");
+        }
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['servers'] });
@@ -59,7 +64,8 @@ export const ServerCard = ({ server, currentUserId }: ServerCardProps) => {
     },
     onError: (error: Error) => {
       toast.error(error.message);
-    }
+    },
+    retry: false
   });
 
   return (

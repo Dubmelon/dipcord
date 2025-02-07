@@ -49,7 +49,15 @@ export const CreateServerForm = ({ currentUserId }: CreateServerFormProps) => {
         .select()
         .single();
 
-      if (serverError) throw serverError;
+      if (serverError) {
+        if (serverError.code === '23505') {
+          throw new Error("A server with this name already exists");
+        }
+        if (serverError.code === '23514') {
+          throw new Error("Server name must be between 3 and 50 characters");
+        }
+        throw serverError;
+      }
 
       // Add creator as member
       const { error: memberError } = await supabase
@@ -71,7 +79,7 @@ export const CreateServerForm = ({ currentUserId }: CreateServerFormProps) => {
       toast.success("Server created successfully!");
     },
     onError: (error: Error) => {
-      toast.error(`Error creating server: ${error.message}`);
+      toast.error(error.message);
     }
   });
 
@@ -90,7 +98,7 @@ export const CreateServerForm = ({ currentUserId }: CreateServerFormProps) => {
       </CardHeader>
       <CardContent className="space-y-4">
         <Input
-          placeholder="Server name"
+          placeholder="Server name (3-50 characters)"
           value={newServerName}
           onChange={(e) => setNewServerName(e.target.value)}
           className="bg-white/5 border-white/10 text-white placeholder:text-white/50"
@@ -105,7 +113,13 @@ export const CreateServerForm = ({ currentUserId }: CreateServerFormProps) => {
       <CardFooter>
         <Button 
           onClick={handleCreateServer} 
-          disabled={!newServerName.trim() || !newServerDescription.trim() || createServer.isPending}
+          disabled={
+            !newServerName.trim() || 
+            !newServerDescription.trim() || 
+            createServer.isPending ||
+            newServerName.length < 3 ||
+            newServerName.length > 50
+          }
           className="hover-scale w-full"
         >
           {createServer.isPending ? (
