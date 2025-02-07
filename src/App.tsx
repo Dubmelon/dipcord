@@ -117,15 +117,11 @@ const App = () => {
       <ThemeProvider defaultTheme="light" storageKey="app-theme">
         <TooltipProvider>
           <div className="flex flex-col min-h-screen font-sans bg-background">
-            <div className="sticky top-0 z-50">
-              <BrowserRouter>
-                <Navigation />
-              </BrowserRouter>
-            </div>
-            <div className="flex-1 relative">
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
+            <BrowserRouter>
+              <Navigation />
+              <main className="flex-1 relative pt-16"> {/* Added pt-16 for navigation spacing */}
+                <Toaster />
+                <Sonner />
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route 
@@ -178,8 +174,8 @@ const App = () => {
                   />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
-              </BrowserRouter>
-            </div>
+              </main>
+            </BrowserRouter>
           </div>
         </TooltipProvider>
       </ThemeProvider>

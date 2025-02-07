@@ -1,4 +1,3 @@
-
 import { useLocation, Link } from "react-router-dom";
 import { Home, Server, MessageSquare, LogOut, Settings, X } from "lucide-react";
 import { Button } from "./ui/button";
@@ -40,13 +39,13 @@ export const Navigation = () => {
         {navItems.map((item) => (
           <Link key={item.path} to={item.path}>
             <Button
-              variant="ghost"
+              variant={isActive(item.path) ? "secondary" : "ghost"}
               size="icon"
               className={`relative hover:scale-110 transition-transform ${
                 isActive(item.path) ? "after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-primary" : ""
               }`}
             >
-              <item.icon className="h-5 w-5" />
+              <item.icon className={`h-5 w-5 ${isActive(item.path) ? "text-primary" : ""}`} />
               <span className="sr-only">{item.label}</span>
             </Button>
           </Link>
