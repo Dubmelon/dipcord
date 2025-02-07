@@ -1,3 +1,4 @@
+
 import { useLocation, Link } from "react-router-dom";
 import { Home, Server, MessageSquare, LogOut, Settings, X } from "lucide-react";
 import { Button } from "./ui/button";
@@ -7,7 +8,7 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 
 const navItems = [
-  { path: "/", icon: Home, label: "Home" },
+  { path: "/dashboard", icon: Home, label: "Dashboard" },
   { path: "/feed", icon: X, label: "Feed" },
   { path: "/servers", icon: Server, label: "Servers" },
   { path: "/messages", icon: MessageSquare, label: "Messages" },

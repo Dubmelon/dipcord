@@ -1,3 +1,4 @@
+
 import { useEffect, memo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,14 @@ const IndexPage = () => {
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN" && session) {
-        navigate("/feed");
+        navigate("/dashboard");
+      }
+    });
+
+    // Check if user is already signed in
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        navigate("/dashboard");
       }
     });
 
