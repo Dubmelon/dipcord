@@ -28,21 +28,7 @@ export const useServers = () => {
 
       console.log("[ServerGrid] Authenticated user ID:", user.id);
 
-      // Get servers where user is a member
-      const { data: memberships, error: membershipError } = await supabase
-        .from('server_members')
-        .select('server_id')
-        .eq('user_id', user.id);
-
-      if (membershipError) {
-        console.error("[ServerGrid] Server memberships fetch error:", membershipError);
-        throw new Error(`Failed to fetch server memberships: ${membershipError.message}`);
-      }
-
-      const serverIds = memberships?.map(m => m.server_id) || [];
-      console.log("[ServerGrid] User's server memberships:", serverIds);
-
-      // Fetch all servers user has access to (public or member)
+      // Fetch all accessible servers in a single query
       const { data: servers, error: serverError } = await supabase
         .from('servers')
         .select(`
@@ -52,23 +38,33 @@ export const useServers = () => {
           avatar_url,
           is_private,
           member_count,
-          owner_id
-        `);
+          owner_id,
+          server_members!inner (
+            user_id
+          )
+        `)
+        .or(`is_private.eq.false,owner_id.eq.${user.id},server_members.user_id.eq.${user.id}`);
 
       if (serverError) {
         console.error("[ServerGrid] Server fetch error:", serverError);
         throw new Error(`Failed to fetch servers: ${serverError.message}`);
       }
 
-      // Add is_member flag to each server
-      const serversWithMembership = servers?.map(server => ({
-        ...server,
-        is_member: serverIds.includes(server.id)
+      // Process the results to add is_member flag
+      const processedServers = servers?.map(server => ({
+        id: server.id,
+        name: server.name,
+        description: server.description,
+        avatar_url: server.avatar_url,
+        is_private: server.is_private,
+        member_count: server.member_count,
+        owner_id: server.owner_id,
+        is_member: server.server_members.some(member => member.user_id === user.id)
       })) as Server[];
 
-      console.log("[ServerGrid] Servers fetched:", serversWithMembership);
+      console.log("[ServerGrid] Servers fetched:", processedServers);
       
-      return serversWithMembership || [];
+      return processedServers || [];
     },
     retry: 1,
     refetchOnWindowFocus: false,
