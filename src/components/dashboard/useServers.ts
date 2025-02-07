@@ -42,8 +42,7 @@ export const useServers = () => {
           server_members (
             user_id
           )
-        `)
-        .or(`is_private.eq.false,owner_id.eq.${user.id}`);
+        `);
 
       if (serverError) {
         console.error("[ServerGrid] Server fetch error:", serverError);
