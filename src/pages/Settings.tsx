@@ -40,9 +40,11 @@ const Settings = () => {
       return profile;
     },
     retry: 1,
-    onError: (error) => {
-      toast.error("Failed to load profile: " + error.message);
-      navigate("/");
+    meta: {
+      onError: (error: Error) => {
+        toast.error("Failed to load profile: " + error.message);
+        navigate("/");
+      }
     }
   });
 
