@@ -301,7 +301,9 @@ export type Database = {
           created_at: string
           embedded_media: Json[] | null
           id: string
+          is_delivered: boolean | null
           is_edited: boolean | null
+          is_read: boolean | null
           media_urls: string[] | null
           sender_id: string | null
           updated_at: string
@@ -312,7 +314,9 @@ export type Database = {
           created_at?: string
           embedded_media?: Json[] | null
           id?: string
+          is_delivered?: boolean | null
           is_edited?: boolean | null
+          is_read?: boolean | null
           media_urls?: string[] | null
           sender_id?: string | null
           updated_at?: string
@@ -323,7 +327,9 @@ export type Database = {
           created_at?: string
           embedded_media?: Json[] | null
           id?: string
+          is_delivered?: boolean | null
           is_edited?: boolean | null
+          is_read?: boolean | null
           media_urls?: string[] | null
           sender_id?: string | null
           updated_at?: string
