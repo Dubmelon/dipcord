@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -28,62 +29,53 @@ const queryClient = new QueryClient({
   }
 });
 
-const App = () => {
+// Create a protected route wrapper component
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    console.log('[App] Initializing authentication state');
+    console.log('[ProtectedRoute] Checking authentication status');
     
-    // Handle auth state changes and online status
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log(`[Auth] Event: ${event}`, session?.user?.id);
-      const isAuthed = !!session;
-      setIsAuthenticated(isAuthed);
-
-      // Update online status based on auth state
-      if (session?.user) {
-        if (event === 'SIGNED_IN') {
-          console.log('[Auth] Updating user online status to true');
-          try {
-            await supabase
-              .from('profiles')
-              .update({ is_online: true })
-              .eq('id', session.user.id);
-          } catch (error) {
-            console.error('[Auth] Failed to update online status:', error);
-          }
-        } else if (event === 'SIGNED_OUT') {
-          console.log('[Auth] Updating user online status to false');
-          try {
-            await supabase
-              .from('profiles')
-              .update({ is_online: false })
-              .eq('id', session.user.id);
-          } catch (error) {
-            console.error('[Auth] Failed to update offline status:', error);
-          }
-        }
-      }
-    });
-
     // Check initial session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      console.log('[App] Initial session check:', session?.user?.id);
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('[ProtectedRoute] Initial session check:', session?.user?.id);
       setIsAuthenticated(!!session);
-      if (session?.user) {
-        try {
-          await supabase
-            .from('profiles')
-            .update({ is_online: true })
-            .eq('id', session.user.id);
-          console.log('[App] Updated initial online status');
-        } catch (error) {
-          console.error('[App] Failed to update initial online status:', error);
-        }
-      }
+      setIsLoading(false);
     });
 
-    // Set up beforeunload handler to mark user as offline when leaving
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log(`[ProtectedRoute] Auth state changed: ${event}`, session?.user?.id);
+      setIsAuthenticated(!!session);
+      setIsLoading(false);
+    });
+
+    return () => {
+      subscription?.unsubscribe();
+    };
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <>{children}</>;
+};
+
+const App = () => {
+  useEffect(() => {
+    console.log('[App] Initializing');
+    
+    // Handle online status updates
     const handleBeforeUnload = async () => {
       console.log('[App] Handling page unload');
       const { data: { session } } = await supabase.auth.getSession();
@@ -102,26 +94,31 @@ const App = () => {
 
     window.addEventListener('beforeunload', handleBeforeUnload);
 
+    // Update online status on initial load
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session?.user) {
+        try {
+          await supabase
+            .from('profiles')
+            .update({ is_online: true })
+            .eq('id', session.user.id);
+          console.log('[App] Updated initial online status');
+        } catch (error) {
+          console.error('[App] Failed to update initial online status:', error);
+        }
+      }
+    });
+
     // Performance monitoring
     const routeChangeStart = performance.now();
     console.log('[Performance] Initial route render start');
 
-    // Cleanup
     return () => {
-      subscription?.unsubscribe();
       window.removeEventListener('beforeunload', handleBeforeUnload);
       const routeChangeEnd = performance.now();
       console.log(`[Performance] Route render time: ${routeChangeEnd - routeChangeStart}ms`);
     };
   }, []);
-
-  // Show nothing while checking authentication
-  if (isAuthenticated === null) {
-    console.log('[App] Authentication state still loading');
-    return null;
-  }
-
-  console.log('[App] Rendering with auth state:', isAuthenticated);
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -134,37 +131,58 @@ const App = () => {
               <BrowserRouter>
                 <div className="pb-16">
                   <Routes>
-                    <Route 
-                      path="/" 
-                      element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Index />} 
-                    />
+                    <Route path="/" element={<Index />} />
                     <Route 
                       path="/dashboard" 
-                      element={isAuthenticated ? <Dashboard /> : <Navigate to="/" replace />} 
+                      element={
+                        <ProtectedRoute>
+                          <Dashboard />
+                        </ProtectedRoute>
+                      } 
                     />
                     <Route 
                       path="/feed" 
-                      element={isAuthenticated ? <Feed /> : <Navigate to="/" replace />} 
+                      element={
+                        <ProtectedRoute>
+                          <Feed />
+                        </ProtectedRoute>
+                      } 
                     />
                     <Route 
                       path="/servers" 
-                      element={isAuthenticated ? <Servers /> : <Navigate to="/" replace />} 
+                      element={
+                        <ProtectedRoute>
+                          <Servers />
+                        </ProtectedRoute>
+                      } 
                     />
                     <Route 
                       path="/servers/:serverId" 
-                      element={isAuthenticated ? <ServerView /> : <Navigate to="/" replace />} 
+                      element={
+                        <ProtectedRoute>
+                          <ServerView />
+                        </ProtectedRoute>
+                      } 
                     />
                     <Route 
                       path="/messages" 
-                      element={isAuthenticated ? <Messages /> : <Navigate to="/" replace />} 
+                      element={
+                        <ProtectedRoute>
+                          <Messages />
+                        </ProtectedRoute>
+                      } 
                     />
                     <Route 
                       path="/settings" 
-                      element={isAuthenticated ? <Settings /> : <Navigate to="/" replace />} 
+                      element={
+                        <ProtectedRoute>
+                          <Settings />
+                        </ProtectedRoute>
+                      } 
                     />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
-                  {isAuthenticated && <Navigation />}
+                  <Navigation />
                 </div>
               </BrowserRouter>
             </div>
