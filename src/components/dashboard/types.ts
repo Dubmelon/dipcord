@@ -8,4 +8,5 @@ export interface Server {
   member_count: number;
   owner_id: string | null;
   is_member?: boolean;
+  currentUserId?: string;
 }
