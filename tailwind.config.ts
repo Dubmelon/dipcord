@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -67,10 +68,28 @@ export default {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        "water-splash": {
+          "0%": { 
+            transform: "scale(0)",
+            opacity: "1",
+            borderRadius: "100%" 
+          },
+          "50%": { 
+            transform: "scale(1.5)",
+            opacity: "0.5",
+            borderRadius: "45%" 
+          },
+          "100%": { 
+            transform: "scale(2)",
+            opacity: "0",
+            borderRadius: "25%" 
+          }
+        }
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "water-splash": "water-splash 0.5s ease-out forwards",
       },
     },
   },

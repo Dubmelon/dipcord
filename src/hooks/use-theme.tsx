@@ -1,7 +1,7 @@
 
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
 
-type Theme = "dark" | "light" | "froggy";
+type Theme = "light" | "dark" | "halloween" | "halloween-dark" | "froggy" | "froggy-dark";
 
 interface ThemeProviderProps {
   children: React.ReactNode;
@@ -33,8 +33,17 @@ export function ThemeProvider({
 
   const updateTheme = useCallback((newTheme: Theme) => {
     const root = window.document.documentElement;
-    root.classList.remove("light", "dark", "froggy");
+    
+    // Remove all theme classes
+    root.classList.remove(
+      "light", "dark",
+      "halloween", "halloween-dark",
+      "froggy", "froggy-dark"
+    );
+    
+    // Add new theme class
     root.classList.add(newTheme);
+    
     localStorage.setItem(storageKey, newTheme);
   }, [storageKey]);
 
@@ -45,6 +54,7 @@ export function ThemeProvider({
   const value = {
     theme,
     setTheme: (newTheme: Theme) => {
+      console.log(`[Theme] Switching to ${newTheme} theme`);
       setTheme(newTheme);
     },
   };
