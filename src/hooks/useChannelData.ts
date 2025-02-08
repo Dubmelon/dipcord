@@ -1,6 +1,7 @@
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface Channel {
   id: string;
@@ -12,104 +13,108 @@ interface Channel {
   description: string | null;
 }
 
-const mockChannels: Record<string, Channel[]> = {
-  "1": [
-    {
-      id: "1",
-      name: "general",
-      type: "text",
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      server_id: "1",
-      description: "General discussion"
-    },
-    {
-      id: "2",
-      name: "off-topic",
-      type: "text",
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      server_id: "1",
-      description: "Random chatter"
-    },
-    {
-      id: "3",
-      name: "gaming-voice",
-      type: "voice",
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      server_id: "1",
-      description: "Voice chat for gaming"
-    }
-  ],
-  "2": [
-    {
-      id: "4",
-      name: "book-discussions",
-      type: "text",
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      server_id: "2",
-      description: "Discuss your current reads"
-    },
-    {
-      id: "5",
-      name: "reading-room",
-      type: "voice",
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      server_id: "2",
-      description: "Voice chat for book discussions"
-    }
-  ]
-};
-
 export const useChannelData = (serverId: string | undefined) => {
   const queryClient = useQueryClient();
 
-  const { data: channels, isLoading } = useQuery({
+  const { data: channels, isLoading, error } = useQuery({
     queryKey: ['channels', serverId],
     queryFn: async () => {
       console.log(`[ServerView] Fetching channels for server: ${serverId}`);
       const startTime = performance.now();
 
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 500));
+      if (!serverId) {
+        throw new Error("Server ID is required");
+      }
 
-      const serverChannels = mockChannels[serverId || ""];
-      if (!serverChannels) {
-        return [];
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("Authentication required");
+      }
+
+      const { data, error } = await supabase
+        .from('channels')
+        .select('*')
+        .eq('server_id', serverId)
+        .order('created_at', { ascending: true });
+
+      if (error) {
+        console.error('[ServerView] Channel fetch error:', error);
+        throw new Error(error.message);
       }
 
       const endTime = performance.now();
-      console.log(`[ServerView] Channels fetch completed in ${(endTime - startTime).toFixed(2)}ms. Found ${serverChannels.length} channels`);
+      console.log(`[ServerView] Channels fetch completed in ${(endTime - startTime).toFixed(2)}ms. Found ${data.length} channels`);
       
-      return serverChannels;
+      return data as Channel[];
     },
     enabled: !!serverId,
     staleTime: 30000,
+    gcTime: 5 * 60 * 1000, // 5 minutes
+    retry: (failureCount, error) => {
+      // Only retry network-related errors, not auth errors
+      if (error instanceof Error && error.message.includes('Authentication')) {
+        return false;
+      }
+      return failureCount < 3;
+    },
     meta: {
       errorMessage: "Failed to load channels"
     }
   });
 
-  // Mock real-time updates setup
-  const setupRealtimeSubscription = useCallback(() => {
+  // Set up realtime subscription for channels
+  useEffect(() => {
     if (!serverId) return;
 
-    console.log('[ServerView] Setting up mock realtime subscription for channels');
+    console.log('[ServerView] Setting up realtime subscription for channels');
     
-    return () => {
-      console.log('[ServerView] Cleaning up mock realtime subscription');
-    };
-  }, [serverId]);
+    const channel = supabase
+      .channel(`channels:${serverId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'channels',
+          filter: `server_id=eq.${serverId}`
+        },
+        (payload) => {
+          console.log('[ServerView] Channel update received:', payload);
+          queryClient.invalidateQueries({ queryKey: ['channels', serverId] });
+          
+          // Show toast notification for channel updates
+          if (payload.eventType === 'INSERT') {
+            toast.success('New channel created');
+          } else if (payload.eventType === 'DELETE') {
+            toast.info('Channel removed');
+          }
+        }
+      )
+      .subscribe((status) => {
+        console.log('[ServerView] Channel subscription status:', status);
+        if (status === 'SUBSCRIBED') {
+          console.log('[ServerView] Successfully subscribed to channel updates');
+        }
+      });
 
+    return () => {
+      console.log('[ServerView] Cleaning up channel subscription');
+      supabase.removeChannel(channel);
+    };
+  }, [serverId, queryClient]);
+
+  // Error handler
   useEffect(() => {
-    const cleanup = setupRealtimeSubscription();
-    return () => {
-      if (cleanup) cleanup();
-    };
-  }, [setupRealtimeSubscription]);
+    if (error) {
+      console.error('[ServerView] Channel data error:', error);
+      toast.error(error instanceof Error ? error.message : "Failed to load channels");
+    }
+  }, [error]);
 
-  return { channels, isLoading };
+  return { 
+    channels, 
+    isLoading,
+    error,
+    isError: !!error
+  };
 };

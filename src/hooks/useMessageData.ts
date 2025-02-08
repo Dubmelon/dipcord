@@ -1,5 +1,8 @@
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useEffect } from "react";
 
 interface Message {
   id: string;
@@ -12,82 +15,108 @@ interface Message {
     is_online: boolean;
   } | null;
   media_urls: string[] | null;
-  is_read?: boolean;
-  is_delivered?: boolean;
+  is_edited: boolean;
 }
 
-const mockMessages: Record<string, Message[]> = {
-  "1": [
-    {
-      id: "1",
-      content: "Welcome to the Gaming Hub general chat!",
-      created_at: new Date().toISOString(),
-      sender: {
-        id: "1",
-        username: "JohnDoe",
-        avatar_url: null,
-        is_online: true
-      },
-      media_urls: null,
-      is_read: true,
-      is_delivered: true
-    },
-    {
-      id: "2",
-      content: "Hey everyone! What games are you playing?",
-      created_at: new Date(Date.now() - 3600000).toISOString(),
-      sender: {
-        id: "2",
-        username: "GameMaster",
-        avatar_url: null,
-        is_online: false
-      },
-      media_urls: null,
-      is_read: true,
-      is_delivered: true
-    }
-  ],
-  "2": [
-    {
-      id: "3",
-      content: "Anyone up for some casual gaming?",
-      created_at: new Date().toISOString(),
-      sender: {
-        id: "3",
-        username: "CasualGamer",
-        avatar_url: null,
-        is_online: true
-      },
-      media_urls: null,
-      is_read: false,
-      is_delivered: true
-    }
-  ]
-};
-
 export const useMessageData = (channelId: string | null) => {
-  return useQuery({
+  const queryClient = useQueryClient();
+
+  const { data: messages, isLoading, error } = useQuery({
     queryKey: ['messages', channelId],
     queryFn: async () => {
-      if (!channelId) return [];
-      
+      if (!channelId) {
+        throw new Error("Channel ID is required");
+      }
+
       console.log(`[ServerView] Fetching messages for channel: ${channelId}`);
       const startTime = performance.now();
 
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      const messages = mockMessages[channelId] || [];
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("Authentication required");
+      }
+
+      const { data, error } = await supabase
+        .from('messages')
+        .select(`
+          *,
+          sender:profiles(
+            id,
+            username,
+            avatar_url,
+            is_online
+          )
+        `)
+        .eq('channel_id', channelId)
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (error) {
+        console.error('[ServerView] Message fetch error:', error);
+        throw new Error(error.message);
+      }
 
       const endTime = performance.now();
-      console.log(`[ServerView] Messages fetch completed in ${(endTime - startTime).toFixed(2)}ms. Found ${messages.length} messages`);
+      console.log(`[ServerView] Messages fetch completed in ${(endTime - startTime).toFixed(2)}ms. Found ${data.length} messages`);
       
-      return messages;
+      return data as Message[];
     },
     enabled: !!channelId,
     staleTime: 5000,
+    gcTime: 5 * 60 * 1000,
+    retry: (failureCount, error) => {
+      if (error instanceof Error && error.message.includes('Authentication')) {
+        return false;
+      }
+      return failureCount < 3;
+    },
     meta: {
       errorMessage: "Failed to load messages"
     }
   });
+
+  // Set up realtime subscription for messages
+  useEffect(() => {
+    if (!channelId) return;
+
+    console.log('[ServerView] Setting up realtime subscription for messages');
+    
+    const channel = supabase
+      .channel(`messages:${channelId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'messages',
+          filter: `channel_id=eq.${channelId}`
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['messages', channelId] });
+        }
+      )
+      .subscribe((status) => {
+        console.log('[ServerView] Message subscription status:', status);
+      });
+
+    return () => {
+      console.log('[ServerView] Cleaning up message subscription');
+      supabase.removeChannel(channel);
+    };
+  }, [channelId, queryClient]);
+
+  // Error handler
+  useEffect(() => {
+    if (error) {
+      console.error('[ServerView] Message data error:', error);
+      toast.error(error instanceof Error ? error.message : "Failed to load messages");
+    }
+  }, [error]);
+
+  return {
+    messages,
+    isLoading,
+    error,
+    isError: !!error
+  };
 };
