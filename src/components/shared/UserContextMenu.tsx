@@ -1,7 +1,10 @@
+
 import { useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "@/components/ui/context-menu";
 import { ProfileView } from "@/components/profile/ProfileView";
+import { useProfile } from "@/hooks/useProfile";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface UserContextMenuProps {
   userId: string;
@@ -10,6 +13,11 @@ interface UserContextMenuProps {
 
 export const UserContextMenu = ({ userId, children }: UserContextMenuProps) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const { data: profile, isLoading } = useProfile(userId);
+
+  if (isLoading) {
+    return <Skeleton className="w-full h-full" />;
+  }
 
   return (
     <>

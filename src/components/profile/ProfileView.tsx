@@ -1,60 +1,24 @@
+
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { UserPlus, UserMinus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useProfile } from "@/hooks/useProfile";
+import type { Profile } from "@/types/profile";
 
 interface ProfileViewProps {
   userId: string;
   onClose?: () => void;
 }
 
-interface Profile {
-  id: string;
-  username: string;
-  full_name: string | null;
-  avatar_url: string | null;
-  bio: string | null;
-  _count: number;
-  following: number;
-}
-
 export const ProfileView = ({ userId, onClose }: ProfileViewProps) => {
   const queryClient = useQueryClient();
   const [isFollowing, setIsFollowing] = useState(false);
-
-  const { data: profile, isLoading } = useQuery({
-    queryKey: ['profile', userId],
-    queryFn: async () => {
-      if (!userId) throw new Error("User ID is required");
-      
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select(`
-          id,
-          username,
-          full_name,
-          avatar_url,
-          bio,
-          _count: follows!follows_following_id_fkey(count),
-          following: follows!follows_follower_id_fkey(count)
-        `)
-        .eq('id', userId)
-        .maybeSingle();
-
-      if (error) throw error;
-      
-      return {
-        ...profile,
-        _count: profile?._count?.[0]?.count || 0,
-        following: profile?.following?.[0]?.count || 0
-      } as Profile;
-    },
-    enabled: !!userId,
-  });
+  const { data: profile, isLoading } = useProfile(userId);
 
   const { data: followStatus } = useQuery({
     queryKey: ['follow-status', userId],
@@ -114,18 +78,10 @@ export const ProfileView = ({ userId, onClose }: ProfileViewProps) => {
     }
   });
 
-  if (isLoading) {
+  if (isLoading || !profile) {
     return (
       <div className="flex items-center justify-center p-4">
         <Loader2 className="h-6 w-6 animate-spin" />
-      </div>
-    );
-  }
-
-  if (!profile) {
-    return (
-      <div className="p-4 text-center text-muted-foreground">
-        Profile not found
       </div>
     );
   }
@@ -150,16 +106,6 @@ export const ProfileView = ({ userId, onClose }: ProfileViewProps) => {
         {profile.bio && (
           <p className="text-white/80 text-center">{profile.bio}</p>
         )}
-        <div className="flex justify-center gap-8 text-center">
-          <div>
-            <p className="text-lg font-semibold text-white">{profile._count}</p>
-            <p className="text-sm text-white/60">Followers</p>
-          </div>
-          <div>
-            <p className="text-lg font-semibold text-white">{profile.following}</p>
-            <p className="text-sm text-white/60">Following</p>
-          </div>
-        </div>
         <div className="flex justify-center gap-2">
           <Button
             variant="outline"
