@@ -81,11 +81,52 @@ export type Database = {
         }
         Relationships: []
       }
+      comment_reactions: {
+        Row: {
+          comment_id: string | null
+          created_at: string
+          id: string
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          comment_id?: string | null
+          created_at?: string
+          id?: string
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          comment_id?: string | null
+          created_at?: string
+          id?: string
+          type?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comment_reactions_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comment_reactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       comments: {
         Row: {
           content: string
           created_at: string
+          dislikes_count: number | null
           id: string
+          likes_count: number | null
           parent_comment_id: string | null
           post_id: string | null
           updated_at: string
@@ -94,7 +135,9 @@ export type Database = {
         Insert: {
           content: string
           created_at?: string
+          dislikes_count?: number | null
           id?: string
+          likes_count?: number | null
           parent_comment_id?: string | null
           post_id?: string | null
           updated_at?: string
@@ -103,7 +146,9 @@ export type Database = {
         Update: {
           content?: string
           created_at?: string
+          dislikes_count?: number | null
           id?: string
+          likes_count?: number | null
           parent_comment_id?: string | null
           post_id?: string | null
           updated_at?: string

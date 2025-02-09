@@ -4,12 +4,13 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Heart, MessageSquare, Share2 } from "lucide-react";
-import { CommentSection } from "@/components/post/CommentSection";
+import { CommentDialog } from "@/components/post/CommentDialog";
 import { MediaEmbed } from "@/components/post/MediaEmbed";
 import { motion } from "framer-motion";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useProfile } from "@/hooks/useProfile";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useState } from "react";
 
 interface PostCardProps {
   post: any;
@@ -23,6 +24,7 @@ export const PostCard = ({ post, currentUser, onLike, onUnlike, onShare }: PostC
   const hasLiked = post.likes?.some((like: any) => like.user_id === currentUser?.id);
   const isMobile = useIsMobile();
   const { data: posterProfile, isLoading: loadingProfile } = useProfile(post.user_id);
+  const [isCommentDialogOpen, setIsCommentDialogOpen] = useState(false);
 
   // Extract URLs from content
   const urls = post.content.match(/(https?:\/\/[^\s]+)/g) || [];
@@ -102,6 +104,7 @@ export const PostCard = ({ post, currentUser, onLike, onUnlike, onShare }: PostC
                 variant="ghost"
                 size={isMobile ? "sm" : "default"}
                 className="flex items-center gap-1"
+                onClick={() => setIsCommentDialogOpen(true)}
               >
                 <MessageSquare className="h-4 w-4" />
                 <span>{post.comments?.length || 0}</span>
@@ -116,7 +119,9 @@ export const PostCard = ({ post, currentUser, onLike, onUnlike, onShare }: PostC
               </Button>
             </div>
 
-            <CommentSection
+            <CommentDialog
+              isOpen={isCommentDialogOpen}
+              onClose={() => setIsCommentDialogOpen(false)}
               postId={post.id}
               comments={post.comments || []}
               currentUser={currentUser}
