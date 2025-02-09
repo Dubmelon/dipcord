@@ -21,6 +21,7 @@ interface CommentDialogProps {
 export const CommentDialog = ({ isOpen, onClose, postId, comments, currentUser }: CommentDialogProps) => {
   const [newComment, setNewComment] = useState("");
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
   const queryClient = useQueryClient();
 
   const createCommentMutation = useMutation({
@@ -42,6 +43,7 @@ export const CommentDialog = ({ isOpen, onClose, postId, comments, currentUser }
       queryClient.invalidateQueries({ queryKey: ["posts"] });
       setNewComment("");
       setReplyingTo(null);
+      setIsEditing(false);
       toast.success("Comment added successfully!");
     },
     onError: (error) => {
@@ -54,7 +56,6 @@ export const CommentDialog = ({ isOpen, onClose, postId, comments, currentUser }
     mutationFn: async ({ commentId, type }: { commentId: string; type: 'like' | 'dislike' }) => {
       if (!currentUser) throw new Error("Must be logged in to react");
 
-      // Check if user already has a reaction
       const { data: existingReaction } = await supabase
         .from("comment_reactions")
         .select()
@@ -64,14 +65,12 @@ export const CommentDialog = ({ isOpen, onClose, postId, comments, currentUser }
 
       if (existingReaction) {
         if (existingReaction.type === type) {
-          // Remove reaction if clicking the same type
           const { error } = await supabase
             .from("comment_reactions")
             .delete()
             .eq("id", existingReaction.id);
           if (error) throw error;
         } else {
-          // Update reaction type if different
           const { error } = await supabase
             .from("comment_reactions")
             .update({ type })
@@ -79,7 +78,6 @@ export const CommentDialog = ({ isOpen, onClose, postId, comments, currentUser }
           if (error) throw error;
         }
       } else {
-        // Create new reaction
         const { error } = await supabase
           .from("comment_reactions")
           .insert({
@@ -191,45 +189,6 @@ export const CommentDialog = ({ isOpen, onClose, postId, comments, currentUser }
           <DialogTitle>Comments</DialogTitle>
         </DialogHeader>
         
-        {/* Comment Input */}
-        <form onSubmit={handleSubmitComment} className="flex gap-2 mt-4">
-          <Avatar className="h-8 w-8">
-            <AvatarImage src={currentUser?.user_metadata?.avatar_url} />
-            <AvatarFallback>
-              {currentUser?.email?.[0]?.toUpperCase() ?? "?"}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1">
-            <Textarea
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              placeholder={replyingTo ? "Write a reply..." : "Write a comment..."}
-              className="min-h-[40px] bg-white/5 border-white/10 resize-none"
-              rows={3}
-            />
-            <div className="flex justify-between items-center mt-2">
-              {replyingTo && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setReplyingTo(null)}
-                >
-                  Cancel Reply
-                </Button>
-              )}
-              <Button
-                type="submit"
-                size="sm"
-                disabled={!newComment.trim()}
-                className="ml-auto"
-              >
-                {replyingTo ? "Reply" : "Comment"}
-              </Button>
-            </div>
-          </div>
-        </form>
-
         {/* Comments List */}
         <div className="space-y-4 mt-4">
           {Object.values(commentThreads).map((thread: any) => (
@@ -241,6 +200,61 @@ export const CommentDialog = ({ isOpen, onClose, postId, comments, currentUser }
             </div>
           ))}
         </div>
+
+        {/* Comment Input - Only shown when clicking to edit */}
+        {isEditing && (
+          <form onSubmit={handleSubmitComment} className="flex gap-2 mt-4">
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={currentUser?.user_metadata?.avatar_url} />
+              <AvatarFallback>
+                {currentUser?.email?.[0]?.toUpperCase() ?? "?"}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1">
+              <Textarea
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder={replyingTo ? "Write a reply..." : "Write a comment..."}
+                className="min-h-[40px] bg-white/5 border-white/10 resize-none"
+                rows={3}
+              />
+              <div className="flex justify-between items-center mt-2">
+                {replyingTo && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setReplyingTo(null);
+                      setIsEditing(false);
+                    }}
+                  >
+                    Cancel Reply
+                  </Button>
+                )}
+                <Button
+                  type="submit"
+                  size="sm"
+                  disabled={!newComment.trim()}
+                  className="ml-auto"
+                >
+                  {replyingTo ? "Reply" : "Comment"}
+                </Button>
+              </div>
+            </div>
+          </form>
+        )}
+
+        {/* Add Comment Button */}
+        {!isEditing && (
+          <Button
+            onClick={() => setIsEditing(true)}
+            variant="outline"
+            className="w-full mt-4"
+          >
+            Write a comment...
+          </Button>
+        )}
       </DialogContent>
     </Dialog>
   );
