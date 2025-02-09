@@ -1,5 +1,5 @@
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -133,7 +133,7 @@ export const CommentDialog = ({ isOpen, onClose, postId, comments, currentUser }
         </AvatarFallback>
       </Avatar>
       <div className="flex-1">
-        <div className="bg-white/5 rounded-lg p-3">
+        <div className="bg-background/5 rounded-lg p-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="font-semibold text-sm">
@@ -184,9 +184,12 @@ export const CommentDialog = ({ isOpen, onClose, postId, comments, currentUser }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="bg-background border-border">
         <DialogHeader>
           <DialogTitle>Comments</DialogTitle>
+          <DialogDescription>
+            View and add comments to this post
+          </DialogDescription>
         </DialogHeader>
         
         {/* Comments List */}
@@ -215,7 +218,7 @@ export const CommentDialog = ({ isOpen, onClose, postId, comments, currentUser }
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
                 placeholder={replyingTo ? "Write a reply..." : "Write a comment..."}
-                className="min-h-[40px] bg-white/5 border-white/10 resize-none"
+                className="min-h-[40px] resize-none"
                 rows={3}
               />
               <div className="flex justify-between items-center mt-2">
