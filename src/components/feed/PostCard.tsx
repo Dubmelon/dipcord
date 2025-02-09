@@ -1,3 +1,4 @@
+
 import { format } from "date-fns";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,8 @@ import { CommentSection } from "@/components/post/CommentSection";
 import { MediaEmbed } from "@/components/post/MediaEmbed";
 import { motion } from "framer-motion";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useProfile } from "@/hooks/useProfile";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface PostCardProps {
   post: any;
@@ -19,6 +22,7 @@ interface PostCardProps {
 export const PostCard = ({ post, currentUser, onLike, onUnlike, onShare }: PostCardProps) => {
   const hasLiked = post.likes?.some((like: any) => like.user_id === currentUser?.id);
   const isMobile = useIsMobile();
+  const { data: posterProfile, isLoading: loadingProfile } = useProfile(post.user_id);
 
   // Extract URLs from content
   const urls = post.content.match(/(https?:\/\/[^\s]+)/g) || [];
@@ -27,6 +31,10 @@ export const PostCard = ({ post, currentUser, onLike, onUnlike, onShare }: PostC
     type: url.includes('youtube.com') || url.includes('youtu.be') ? 'youtube' :
           url.includes('medal.tv') ? 'medal' : 'link'
   }));
+
+  if (loadingProfile) {
+    return <Skeleton className="w-full h-32" />;
+  }
 
   return (
     <motion.div
@@ -38,14 +46,14 @@ export const PostCard = ({ post, currentUser, onLike, onUnlike, onShare }: PostC
       <Card className="p-4 bg-card shadow-lg">
         <div className="flex items-start gap-3">
           <Avatar className="w-10 h-10 shrink-0">
-            <AvatarImage src={post.user?.avatar_url} />
+            <AvatarImage src={posterProfile?.avatar_url || ''} />
             <AvatarFallback>
-              {post.user?.username?.[0]?.toUpperCase() ?? "?"}
+              {posterProfile?.username?.[0]?.toUpperCase() ?? "?"}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-semibold">{post.user?.username}</span>
+              <span className="font-semibold">{posterProfile?.username}</span>
               <span className="text-sm text-muted-foreground">
                 {format(new Date(post.created_at), "MMM d, yyyy")}
               </span>

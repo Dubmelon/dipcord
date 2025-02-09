@@ -26,11 +26,7 @@ export const usePosts = (feedType: FeedType = 'all') => {
           likes_count,
           comments_count,
           post_score,
-          user:profiles!posts_user_id_fkey (
-            id,
-            username,
-            avatar_url
-          ),
+          user_id,
           likes!left (
             user_id
           )
