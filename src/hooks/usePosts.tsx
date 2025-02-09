@@ -3,17 +3,18 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-export const usePosts = () => {
+type FeedType = 'all' | 'following' | 'for_you';
+
+export const usePosts = (feedType: FeedType = 'all') => {
   const queryClient = useQueryClient();
 
   const { data: posts, isLoading } = useQuery({
-    queryKey: ['posts'],
+    queryKey: ['posts', feedType],
     queryFn: async () => {
-      console.log("[Feed] Fetching posts");
+      console.log("[Feed] Fetching posts for feed type:", feedType);
       const startTime = performance.now();
 
-      // Using a single query with nested selects for better performance
-      const { data, error } = await supabase
+      let query = supabase
         .from('posts')
         .select(`
           id,
@@ -24,6 +25,7 @@ export const usePosts = () => {
           is_edited,
           likes_count,
           comments_count,
+          post_score,
           user:profiles!posts_user_id_fkey (
             id,
             username,
@@ -32,9 +34,35 @@ export const usePosts = () => {
           likes!left (
             user_id
           )
-        `)
+        `);
+
+      if (feedType === 'following') {
+        // Get posts from users that the current user follows
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("User not authenticated");
+
+        const { data: followingIds } = await supabase
+          .from('follows')
+          .select('following_id')
+          .eq('follower_id', user.id);
+
+        if (followingIds && followingIds.length > 0) {
+          query = query.in('user_id', followingIds.map(f => f.following_id));
+        } else {
+          // If not following anyone, return empty array
+          return [];
+        }
+      } else if (feedType === 'for_you') {
+        // Order by post_score for recommended posts
+        query = query.order('post_score', { ascending: false });
+      }
+
+      // Add final ordering and limit
+      query = query
         .order('created_at', { ascending: false })
         .limit(20);
+
+      const { data, error } = await query;
 
       const endTime = performance.now();
       console.log(`[Feed] Posts fetched in ${(endTime - startTime).toFixed(2)}ms`);
@@ -47,7 +75,7 @@ export const usePosts = () => {
       console.log("[Feed] Fetched posts count:", data?.length);
       return data || [];
     },
-    staleTime: 30000, //Cache data for 30 seconds
+    staleTime: 30000,
     refetchOnWindowFocus: false,
   });
 

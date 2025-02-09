@@ -352,10 +352,12 @@ export type Database = {
           content: string
           created_at: string
           embedded_media: Json[] | null
+          engagement_count: number | null
           id: string
           is_edited: boolean | null
           likes_count: number | null
           media_urls: string[] | null
+          post_score: number | null
           updated_at: string
           user_id: string
         }
@@ -365,10 +367,12 @@ export type Database = {
           content: string
           created_at?: string
           embedded_media?: Json[] | null
+          engagement_count?: number | null
           id?: string
           is_edited?: boolean | null
           likes_count?: number | null
           media_urls?: string[] | null
+          post_score?: number | null
           updated_at?: string
           user_id: string
         }
@@ -378,10 +382,12 @@ export type Database = {
           content?: string
           created_at?: string
           embedded_media?: Json[] | null
+          engagement_count?: number | null
           id?: string
           is_edited?: boolean | null
           likes_count?: number | null
           media_urls?: string[] | null
+          post_score?: number | null
           updated_at?: string
           user_id?: string
         }
