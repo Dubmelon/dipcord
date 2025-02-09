@@ -1,5 +1,6 @@
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -118,3 +119,4 @@ export const useChannelData = (serverId: string | undefined) => {
     isError: !!error
   };
 };
+
