@@ -184,7 +184,7 @@ export const CommentDialog = ({ isOpen, onClose, postId, comments, currentUser }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-background border-border">
+      <DialogContent className="sm:max-w-2xl bg-background border-border">
         <DialogHeader>
           <DialogTitle>Comments</DialogTitle>
           <DialogDescription>
@@ -193,7 +193,7 @@ export const CommentDialog = ({ isOpen, onClose, postId, comments, currentUser }
         </DialogHeader>
         
         {/* Comments List */}
-        <div className="space-y-4 mt-4">
+        <div className="space-y-4 mt-4 max-h-[60vh] overflow-y-auto">
           {Object.values(commentThreads).map((thread: any) => (
             <div key={thread.id}>
               <CommentComponent comment={thread} />

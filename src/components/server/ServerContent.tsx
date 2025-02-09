@@ -24,7 +24,7 @@ export const ServerContent = ({
   setSidebarOpen,
   serverName
 }: ServerContentProps) => {
-  const { data: messages, isLoading: loadingMessages } = useMessageData(selectedChannel);
+  const { messages, isLoading: loadingMessages } = useMessageData(selectedChannel);
 
   if (!selectedChannel) {
     return (
@@ -86,7 +86,7 @@ export const ServerContent = ({
       ) : (
         <>
           <div className="flex-1 overflow-hidden">
-            <MessageList messages={messages} channelId={selectedChannel} />
+            <MessageList messageList={messages} channelId={selectedChannel} />
           </div>
           <div className="mt-auto">
             <MessageInput channelId={selectedChannel} />
