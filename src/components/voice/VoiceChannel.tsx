@@ -21,16 +21,16 @@ export const VoiceChannel = ({ channelId }: VoiceChannelProps) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { data: existingParticipant } = await supabase
-        .from('voice_channel_participants')
+      const { data: existingSession } = await supabase
+        .from('voip_sessions')
         .select('*')
         .eq('channel_id', channelId)
         .eq('user_id', user.id)
         .maybeSingle();
 
-      if (existingParticipant) {
+      if (existingSession) {
         const { error } = await supabase
-          .from('voice_channel_participants')
+          .from('voip_sessions')
           .update({ 
             connection_state: 'connected',
             is_muted: false,
@@ -43,7 +43,7 @@ export const VoiceChannel = ({ channelId }: VoiceChannelProps) => {
         if (error) throw error;
       } else {
         const { error } = await supabase
-          .from('voice_channel_participants')
+          .from('voip_sessions')
           .insert({
             channel_id: channelId,
             user_id: user.id,
@@ -70,7 +70,7 @@ export const VoiceChannel = ({ channelId }: VoiceChannelProps) => {
       if (!user) throw new Error("Not authenticated");
 
       const { error } = await supabase
-        .from('voice_channel_participants')
+        .from('voip_sessions')
         .update({ 
           connection_state: 'disconnected',
           is_muted: false,

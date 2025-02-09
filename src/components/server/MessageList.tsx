@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState, useCallback } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -19,12 +18,9 @@ interface Message {
     is_online: boolean;
   } | null;
   media_urls: string[] | null;
-  is_read?: boolean;
-  is_delivered?: boolean;
 }
 
 interface MessageListProps {
-  messages?: Message[];
   channelId: string;
 }
 
@@ -56,8 +52,6 @@ export const MessageList = ({ channelId }: MessageListProps) => {
           content,
           created_at,
           media_urls,
-          is_read,
-          is_delivered,
           sender:profiles(id, username, avatar_url, is_online)
         `)
         .eq('channel_id', channelId)
@@ -66,7 +60,7 @@ export const MessageList = ({ channelId }: MessageListProps) => {
         .limit(PAGE_SIZE);
 
       if (error) throw error;
-      return (data as Message[]).reverse();
+      return data as Message[];
     },
     staleTime: 30000,
   });
@@ -134,8 +128,6 @@ export const MessageList = ({ channelId }: MessageListProps) => {
               created_at={message.created_at}
               sender={message.sender}
               media_urls={message.media_urls}
-              isRead={message.is_read}
-              isDelivered={message.is_delivered}
             />
           ))}
         </div>

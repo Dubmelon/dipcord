@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Mic, MicOff, Headphones, HeadphoneOff } from "lucide-react";
@@ -26,7 +27,7 @@ export const VoiceControls = ({
       if (!user) throw new Error("Not authenticated");
 
       const { error } = await supabase
-        .from('voice_channel_participants')
+        .from('voip_sessions')
         .update({ is_muted: isMuted, is_deafened: isDeafened })
         .eq('channel_id', channelId)
         .eq('user_id', user.id);

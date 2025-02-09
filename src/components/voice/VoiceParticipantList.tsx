@@ -3,9 +3,19 @@ import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Mic, MicOff, HeadphoneOff } from "lucide-react";
-import { UserContextMenu } from "./UserContextMenu";
-import type { VoiceParticipant } from "@/types/database";
+import { Mic, MicOff } from "lucide-react";
+import { UserContextMenu } from "../shared/UserContextMenu";
+
+interface VoiceParticipant {
+  id: string;
+  is_muted: boolean;
+  is_deafened: boolean;
+  user: {
+    id: string;
+    username: string;
+    avatar_url: string | null;
+  };
+}
 
 interface VoiceParticipantListProps {
   channelId: string;
@@ -23,7 +33,6 @@ export const VoiceParticipantList = ({ channelId }: VoiceParticipantListProps) =
           id,
           is_muted,
           is_deafened,
-          connection_state,
           user:profiles(
             id,
             username,
@@ -74,9 +83,6 @@ export const VoiceParticipantList = ({ channelId }: VoiceParticipantListProps) =
         <UserContextMenu
           key={participant.id}
           userId={participant.user.id}
-          username={participant.user.username}
-          isMuted={participant.is_muted}
-          isDeafened={participant.is_deafened}
         >
           <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 cursor-context-menu">
             <Avatar className="h-8 w-8">
@@ -89,14 +95,10 @@ export const VoiceParticipantList = ({ channelId }: VoiceParticipantListProps) =
               {participant.user.username}
             </span>
             <div className="flex items-center gap-2">
-              {participant.is_muted && (
+              {participant.is_muted ? (
                 <MicOff className="h-4 w-4 text-muted-foreground" />
-              )}
-              {!participant.is_muted && (
+              ) : (
                 <Mic className="h-4 w-4 text-green-500" />
-              )}
-              {participant.is_deafened && (
-                <HeadphoneOff className="h-4 w-4 text-muted-foreground" />
               )}
             </div>
           </div>
