@@ -526,6 +526,51 @@ export type Database = {
           },
         ]
       }
+      voice_channel_participants: {
+        Row: {
+          channel_id: string
+          created_at: string
+          id: string
+          is_deafened: boolean | null
+          is_muted: boolean | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          channel_id: string
+          created_at?: string
+          id?: string
+          is_deafened?: boolean | null
+          is_muted?: boolean | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          channel_id?: string
+          created_at?: string
+          id?: string
+          is_deafened?: boolean | null
+          is_muted?: boolean | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "voice_channel_participants_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "voice_channel_participants_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       voip_sessions: {
         Row: {
           channel_id: string | null

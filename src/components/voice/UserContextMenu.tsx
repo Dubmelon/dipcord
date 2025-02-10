@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import {
   ContextMenu,
@@ -10,10 +11,8 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { Slider } from "@/components/ui/slider";
-import { Switch } from "@/components/ui/switch";
 import {
   UserPlus,
-  UserMinus,
   Ban,
   Volume2,
   MessageSquare,
@@ -59,7 +58,7 @@ export const UserContextMenu = ({
       if (!user) throw new Error("Not authenticated");
 
       const { error } = await supabase
-        .from('voice_channel_participants')
+        .from('voip_sessions')
         .update({ is_muted: !isMuted })
         .eq('user_id', userId);
 

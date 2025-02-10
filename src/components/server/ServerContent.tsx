@@ -86,7 +86,7 @@ export const ServerContent = ({
       ) : (
         <>
           <div className="flex-1 overflow-hidden">
-            <MessageList messageList={messages} channelId={selectedChannel} />
+            <MessageList messages={messages} channelId={selectedChannel} />
           </div>
           <div className="mt-auto">
             <MessageInput channelId={selectedChannel} />
