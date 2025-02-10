@@ -1,11 +1,13 @@
 
 import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ServerData {
   id: string;
   name: string;
   description: string | null;
-  avatar_url: string | null;
+  icon_url: string | null;
+  banner_url: string | null;
   owner: {
     id: string;
     username: string;
@@ -16,37 +18,6 @@ interface ServerData {
   updated_at: string;
 }
 
-const mockServerData: Record<string, ServerData> = {
-  "1": {
-    id: "1",
-    name: "Gaming Hub",
-    description: "A place for gamers to hang out and discuss their favorite games",
-    avatar_url: null,
-    owner: {
-      id: "1",
-      username: "JohnDoe",
-      avatar_url: null
-    },
-    member_count: 150,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  },
-  "2": {
-    id: "2",
-    name: "Book Club",
-    description: "Discuss your favorite books with fellow readers",
-    avatar_url: null,
-    owner: {
-      id: "2",
-      username: "BookLover",
-      avatar_url: null
-    },
-    member_count: 45,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  }
-};
-
 export const useServerData = (serverId: string | undefined) => {
   return useQuery({
     queryKey: ['server', serverId],
@@ -54,17 +25,39 @@ export const useServerData = (serverId: string | undefined) => {
       console.log(`[ServerView] Fetching server details for ID: ${serverId}`);
       const startTime = performance.now();
 
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const server = mockServerData[serverId || ""];
+      const { data: server, error } = await supabase
+        .from('servers')
+        .select(`
+          id,
+          name,
+          description,
+          icon_url,
+          banner_url,
+          member_count,
+          created_at,
+          updated_at,
+          owner:owner_id (
+            id,
+            username,
+            avatar_url
+          )
+        `)
+        .eq('id', serverId)
+        .single();
+
+      if (error) {
+        console.error('[ServerView] Error fetching server:', error);
+        throw error;
+      }
+
       if (!server) {
         throw new Error("Server not found");
       }
 
       const endTime = performance.now();
       console.log(`[ServerView] Server fetch completed in ${(endTime - startTime).toFixed(2)}ms:`, server);
-      return server;
+      
+      return server as ServerData;
     },
     enabled: !!serverId,
     staleTime: 30000,

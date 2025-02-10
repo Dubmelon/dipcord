@@ -6,24 +6,21 @@ import { LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { CreateServerForm } from "@/components/servers/CreateServerForm";
 import { ServerList } from "@/components/servers/ServerList";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Server {
   id: string;
   name: string;
   description: string | null;
   created_at: string;
-  avatar_url: string | null;
-  owner_id: string | null;
+  icon_url: string | null;
+  banner_url: string | null;
+  owner_id: string;
   updated_at: string;
   is_private: boolean;
   member_count: number;
   is_member?: boolean;
 }
-
-const mockUser = {
-  id: "1",
-  email: "demo@example.com"
-};
 
 const Servers = () => {
   const navigate = useNavigate();
@@ -31,9 +28,13 @@ const Servers = () => {
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
     queryFn: async () => {
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      return mockUser;
+      const { data: { user }, error } = await supabase.auth.getUser();
+      
+      if (error) {
+        throw error;
+      }
+      
+      return user;
     },
   });
 
@@ -42,43 +43,39 @@ const Servers = () => {
     queryFn: async () => {
       if (!currentUser) return [];
 
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const { data, error } = await supabase
+        .from('servers')
+        .select(`
+          id,
+          name,
+          description,
+          created_at,
+          icon_url,
+          banner_url,
+          owner_id,
+          updated_at,
+          is_private,
+          member_count
+        `)
+        .order('name');
 
-      // Return mock data
-      return [
-        {
-          id: "1",
-          name: "Gaming Hub",
-          description: "A place for gamers to hang out",
-          created_at: new Date().toISOString(),
-          avatar_url: null,
-          owner_id: currentUser.id,
-          updated_at: new Date().toISOString(),
-          is_private: false,
-          member_count: 150,
-          is_member: true
-        },
-        {
-          id: "2",
-          name: "Book Club",
-          description: "Discuss your favorite books",
-          created_at: new Date().toISOString(),
-          avatar_url: null,
-          owner_id: "2",
-          updated_at: new Date().toISOString(),
-          is_private: true,
-          member_count: 45,
-          is_member: false
-        }
-      ] as Server[];
+      if (error) {
+        throw error;
+      }
+
+      return data as Server[];
     },
     enabled: !!currentUser,
     staleTime: 1000 * 60,
     retry: 1,
   });
 
-  const handleSignOut = () => {
+  const handleSignOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast.error("Error signing out");
+      return;
+    }
     navigate("/");
     toast.success("Signed out successfully");
   };
