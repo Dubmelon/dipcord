@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ThumbsUp, ThumbsDown, Reply, MoreVertical } from "lucide-react";
 import { format } from "date-fns";
 import { useState } from "react";
-import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -18,11 +18,31 @@ interface CommentDialogProps {
   currentUser: any;
 }
 
-export const CommentDialog = ({ isOpen, onClose, postId, comments, currentUser }: CommentDialogProps) => {
+export const CommentDialog = ({ isOpen, onClose, postId, comments: initialComments, currentUser }: CommentDialogProps) => {
   const [newComment, setNewComment] = useState("");
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const queryClient = useQueryClient();
+
+  // Fetch comments with reactions and user info
+  const { data: comments = initialComments } = useQuery({
+    queryKey: ['comments', postId],
+    queryFn: async () => {
+      const { data: comments, error } = await supabase
+        .from('comments')
+        .select(`
+          *,
+          user:profiles!comments_user_id_fkey(*),
+          reactions:comment_reactions(*)
+        `)
+        .eq('post_id', postId)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+      return comments;
+    },
+    initialData: initialComments,
+  });
 
   const createCommentMutation = useMutation({
     mutationFn: async ({ content, parentCommentId }: { content: string; parentCommentId?: string }) => {
@@ -40,7 +60,8 @@ export const CommentDialog = ({ isOpen, onClose, postId, comments, currentUser }
       if (insertError) throw insertError;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["posts"] });
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
+      queryClient.invalidateQueries({ queryKey: ['comments', postId] });
       setNewComment("");
       setReplyingTo(null);
       setIsEditing(false);
@@ -89,7 +110,7 @@ export const CommentDialog = ({ isOpen, onClose, postId, comments, currentUser }
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["posts"] });
+      queryClient.invalidateQueries({ queryKey: ['comments', postId] });
     },
     onError: (error) => {
       toast.error("Failed to update reaction. Please try again.");
@@ -124,67 +145,73 @@ export const CommentDialog = ({ isOpen, onClose, postId, comments, currentUser }
     return acc;
   }, {});
 
-  const CommentComponent = ({ comment, isReply = false }: { comment: any; isReply?: boolean }) => (
-    <div className={`flex gap-2 group ${isReply ? 'ml-8 mt-2' : 'mt-4'}`}>
-      <Avatar className="h-8 w-8">
-        <AvatarImage src={comment.user?.avatar_url ?? undefined} />
-        <AvatarFallback>
-          {comment.user?.username?.[0]?.toUpperCase() ?? "?"}
-        </AvatarFallback>
-      </Avatar>
-      <div className="flex-1">
-        <div className="bg-background/5 rounded-lg p-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="font-semibold text-sm">
-                {comment.user?.username}
-              </span>
-              <span className="text-xs text-muted-foreground">
-                {format(new Date(comment.created_at), "MMM d")}
-              </span>
+  const CommentComponent = ({ comment, isReply = false }: { comment: any; isReply?: boolean }) => {
+    const userReaction = comment.reactions?.find((r: any) => r.user_id === currentUser?.id)?.type;
+    const likesCount = comment.reactions?.filter((r: any) => r.type === 'like').length || 0;
+    const dislikesCount = comment.reactions?.filter((r: any) => r.type === 'dislike').length || 0;
+
+    return (
+      <div className={`flex gap-2 group ${isReply ? 'ml-8 mt-2' : 'mt-4'}`}>
+        <Avatar className="h-8 w-8">
+          <AvatarImage src={comment.user?.avatar_url ?? undefined} />
+          <AvatarFallback>
+            {comment.user?.username?.[0]?.toUpperCase() ?? "?"}
+          </AvatarFallback>
+        </Avatar>
+        <div className="flex-1">
+          <div className="bg-background/5 rounded-lg p-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-sm">
+                  {comment.user?.username}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {format(new Date(comment.created_at), "MMM d")}
+                </span>
+              </div>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
             </div>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <MoreVertical className="h-4 w-4" />
+            <p className="text-sm mt-1">{comment.content}</p>
+          </div>
+          <div className="flex items-center gap-2 mt-1">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-8 px-2"
+              onClick={() => toggleReactionMutation.mutate({ commentId: comment.id, type: 'like' })}
+            >
+              <ThumbsUp className={`h-4 w-4 mr-1 ${userReaction === 'like' ? 'fill-primary text-primary' : ''}`} />
+              <span className="text-xs">{likesCount}</span>
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-8 px-2"
+              onClick={() => toggleReactionMutation.mutate({ commentId: comment.id, type: 'dislike' })}
+            >
+              <ThumbsDown className={`h-4 w-4 mr-1 ${userReaction === 'dislike' ? 'fill-destructive text-destructive' : ''}`} />
+              <span className="text-xs">{dislikesCount}</span>
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-8 px-2"
+              onClick={() => setReplyingTo(comment.id)}
+            >
+              <Reply className="h-4 w-4 mr-1" />
+              <span className="text-xs">Reply</span>
             </Button>
           </div>
-          <p className="text-sm mt-1">{comment.content}</p>
-        </div>
-        <div className="flex items-center gap-2 mt-1">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="h-8 px-2"
-            onClick={() => toggleReactionMutation.mutate({ commentId: comment.id, type: 'like' })}
-          >
-            <ThumbsUp className={`h-4 w-4 mr-1 ${comment.likes_count > 0 ? 'fill-primary text-primary' : ''}`} />
-            <span className="text-xs">{comment.likes_count || 0}</span>
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="h-8 px-2"
-            onClick={() => toggleReactionMutation.mutate({ commentId: comment.id, type: 'dislike' })}
-          >
-            <ThumbsDown className={`h-4 w-4 mr-1 ${comment.dislikes_count > 0 ? 'fill-destructive text-destructive' : ''}`} />
-            <span className="text-xs">{comment.dislikes_count || 0}</span>
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="h-8 px-2"
-            onClick={() => setReplyingTo(comment.id)}
-          >
-            <Reply className="h-4 w-4 mr-1" />
-            <span className="text-xs">Reply</span>
-          </Button>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl bg-background border-border">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Comments</DialogTitle>
           <DialogDescription>
@@ -195,16 +222,16 @@ export const CommentDialog = ({ isOpen, onClose, postId, comments, currentUser }
         {/* Comments List */}
         <div className="space-y-4 mt-4 max-h-[60vh] overflow-y-auto">
           {Object.values(commentThreads).map((thread: any) => (
-            <div key={thread.id}>
+            <div key={thread.id} className="space-y-2">
               <CommentComponent comment={thread} />
-              {thread.replies.map((reply: any) => (
+              {thread.replies?.map((reply: any) => (
                 <CommentComponent key={reply.id} comment={reply} isReply />
               ))}
             </div>
           ))}
         </div>
 
-        {/* Comment Input - Only shown when clicking to edit */}
+        {/* Comment Input */}
         {isEditing && (
           <form onSubmit={handleSubmitComment} className="flex gap-2 mt-4">
             <Avatar className="h-8 w-8">
