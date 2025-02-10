@@ -29,21 +29,33 @@ export const CommentDialog = ({
   const [isEditing, setIsEditing] = useState(false);
   const queryClient = useQueryClient();
 
-  const { data: comments = initialComments } = useQuery({
+  const { data: comments = [] } = useQuery({
     queryKey: ['comments', postId],
     queryFn: async () => {
       const { data: comments, error } = await supabase
         .from('comments')
         .select(`
-          *,
-          user:profiles!comments_user_id_fkey(*),
-          reactions:comment_reactions(*)
+          id,
+          content,
+          created_at,
+          updated_at,
+          post_id,
+          user_id,
+          parent_comment_id,
+          likes_count,
+          dislikes_count,
+          user:profiles!comments_user_id_fkey (
+            id,
+            username,
+            avatar_url
+          ),
+          reactions:comment_reactions (*)
         `)
         .eq('post_id', postId)
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      return comments;
+      return comments as CommentType[];
     },
     initialData: initialComments,
   });
@@ -59,6 +71,8 @@ export const CommentDialog = ({
           user_id: currentUser.id,
           content,
           parent_comment_id: parentCommentId,
+          likes_count: 0,
+          dislikes_count: 0,
         });
 
       if (insertError) throw insertError;
@@ -211,3 +225,4 @@ export const CommentDialog = ({
     </Dialog>
   );
 };
+
