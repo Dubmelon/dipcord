@@ -54,14 +54,6 @@ export const ServerContent = ({
     );
   }
 
-  if (loadingMessages) {
-    return (
-      <div className="flex-1 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
-
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -86,7 +78,11 @@ export const ServerContent = ({
       ) : (
         <>
           <div className="flex-1 overflow-hidden">
-            <MessageList messages={messages} channelId={selectedChannel} />
+            <MessageList 
+              messages={messages || []} 
+              isLoading={loadingMessages}
+              emptyMessage="No messages in this channel yet"
+            />
           </div>
           <div className="mt-auto">
             <MessageInput channelId={selectedChannel} />
