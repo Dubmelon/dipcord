@@ -1,21 +1,14 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { Server } from "@/types/database";
 
-interface ServerData {
-  id: string;
-  name: string;
-  description: string | null;
-  icon_url: string | null;
-  banner_url: string | null;
+interface ServerData extends Server {
   owner: {
     id: string;
     username: string;
     avatar_url: string | null;
   };
-  member_count: number;
-  created_at: string;
-  updated_at: string;
 }
 
 export const useServerData = (serverId: string | undefined) => {

@@ -3,16 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-
-interface Channel {
-  id: string;
-  name: string;
-  type: 'text' | 'voice';
-  created_at: string;
-  updated_at: string;
-  server_id: string;
-  description: string | null;
-}
+import type { Channel } from "@/types/database";
 
 export const useChannelData = (serverId: string | undefined) => {
   const queryClient = useQueryClient();
@@ -50,9 +41,8 @@ export const useChannelData = (serverId: string | undefined) => {
     },
     enabled: !!serverId,
     staleTime: 30000,
-    gcTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 5 * 60 * 1000,
     retry: (failureCount, error) => {
-      // Only retry network-related errors, not auth errors
       if (error instanceof Error && error.message.includes('Authentication')) {
         return false;
       }
@@ -104,14 +94,6 @@ export const useChannelData = (serverId: string | undefined) => {
     };
   }, [serverId, queryClient]);
 
-  // Error handler
-  useEffect(() => {
-    if (error) {
-      console.error('[ServerView] Channel data error:', error);
-      toast.error(error instanceof Error ? error.message : "Failed to load channels");
-    }
-  }, [error]);
-
   return { 
     channels, 
     isLoading,
@@ -119,4 +101,3 @@ export const useChannelData = (serverId: string | undefined) => {
     isError: !!error
   };
 };
-
