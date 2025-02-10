@@ -48,4 +48,3 @@ export const ServerList = ({ servers, currentUserId, isLoading }: ServerListProp
     </div>
   );
 };
-

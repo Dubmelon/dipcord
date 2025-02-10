@@ -6,19 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Loader2, Users } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-
-interface Server {
-  id: string;
-  name: string;
-  description: string | null;
-  created_at?: string;
-  avatar_url: string | null;
-  owner_id: string | null;
-  updated_at?: string;
-  is_private: boolean;
-  member_count: number;
-  is_member?: boolean;
-}
+import { Server } from "@/components/dashboard/types";
 
 interface ServerCardProps {
   server: Server;
@@ -53,7 +41,7 @@ export const ServerCard = ({ server, currentUserId }: ServerCardProps) => {
       <CardHeader>
         <div className="flex items-center space-x-4">
           <Avatar>
-            <AvatarImage src={server.avatar_url ?? undefined} />
+            <AvatarImage src={server.icon_url ?? undefined} />
             <AvatarFallback className="bg-white/10 text-white">
               {server.name.substring(0, 2).toUpperCase()}
             </AvatarFallback>
