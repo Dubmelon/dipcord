@@ -7,20 +7,7 @@ import { toast } from "sonner";
 import { CreateServerForm } from "@/components/servers/CreateServerForm";
 import { ServerList } from "@/components/servers/ServerList";
 import { supabase } from "@/integrations/supabase/client";
-
-interface Server {
-  id: string;
-  name: string;
-  description: string | null;
-  created_at: string;
-  icon_url: string | null;
-  banner_url: string | null;
-  owner_id: string;
-  updated_at: string;
-  is_private: boolean;
-  member_count: number;
-  is_member?: boolean;
-}
+import { Server } from "@/components/dashboard/types";
 
 const Servers = () => {
   const navigate = useNavigate();
@@ -119,3 +106,4 @@ const Servers = () => {
 };
 
 export default Servers;
+

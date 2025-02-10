@@ -1,19 +1,7 @@
 
 import { Card } from "@/components/ui/card";
 import { ServerCard } from "./ServerCard";
-
-interface Server {
-  id: string;
-  name: string;
-  description: string | null;
-  created_at: string;
-  avatar_url: string | null;
-  owner_id: string | null;
-  updated_at: string;
-  is_private: boolean | null;
-  member_count: number;
-  is_member?: boolean;
-}
+import { Server } from "@/components/dashboard/types";
 
 interface ServerListProps {
   servers: Server[];
@@ -60,3 +48,4 @@ export const ServerList = ({ servers, currentUserId, isLoading }: ServerListProp
     </div>
   );
 };
+
