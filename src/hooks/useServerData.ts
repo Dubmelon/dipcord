@@ -1,14 +1,10 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import type { Server } from "@/types/database";
+import type { Server, Profile } from "@/types/database";
 
-interface ServerData extends Server {
-  owner: {
-    id: string;
-    username: string;
-    avatar_url: string | null;
-  };
+interface ServerData extends Omit<Server, 'owner'> {
+  owner: Profile;
 }
 
 export const useServerData = (serverId: string | undefined) => {
@@ -32,7 +28,11 @@ export const useServerData = (serverId: string | undefined) => {
           owner:owner_id (
             id,
             username,
-            avatar_url
+            avatar_url,
+            full_name,
+            bio,
+            is_online,
+            last_seen
           )
         `)
         .eq('id', serverId)

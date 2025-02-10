@@ -1,24 +1,16 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { Plus, Hash, Volume2 } from "lucide-react";
+import { Plus, Hash, Volume2, MessageSquare, Megaphone } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
-
-interface Channel {
-  id: string;
-  name: string;
-  type: 'text' | 'voice';
-  created_at: string;
-  updated_at: string;
-  server_id: string;
-  description: string | null;
-}
+import type { Channel } from "@/types/database";
 
 interface ChannelListProps {
   serverId: string;
@@ -30,7 +22,7 @@ interface ChannelListProps {
 export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChannel }: ChannelListProps) => {
   const [isCreatingChannel, setIsCreatingChannel] = useState(false);
   const [newChannelName, setNewChannelName] = useState("");
-  const [newChannelType, setNewChannelType] = useState<'text' | 'voice'>('text');
+  const [newChannelType, setNewChannelType] = useState<Channel['type']>('text');
   const queryClient = useQueryClient();
 
   const createChannel = useMutation({
@@ -58,6 +50,19 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
       console.error(error);
     },
   });
+
+  const getChannelIcon = (type: Channel['type']) => {
+    switch (type) {
+      case 'text':
+        return <Hash className="h-4 w-4 shrink-0" />;
+      case 'voice':
+        return <Volume2 className="h-4 w-4 shrink-0" />;
+      case 'forum':
+        return <MessageSquare className="h-4 w-4 shrink-0" />;
+      case 'announcement':
+        return <Megaphone className="h-4 w-4 shrink-0" />;
+    }
+  };
 
   const container = {
     hidden: { opacity: 0 },
@@ -94,23 +99,18 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
                 value={newChannelName}
                 onChange={(e) => setNewChannelName(e.target.value)}
               />
-              <div className="flex space-x-2">
-                <Button
-                  variant={newChannelType === 'text' ? 'default' : 'outline'}
-                  onClick={() => setNewChannelType('text')}
-                  className="flex-1"
-                >
-                  <Hash className="h-4 w-4 mr-2" />
-                  Text
-                </Button>
-                <Button
-                  variant={newChannelType === 'voice' ? 'default' : 'outline'}
-                  onClick={() => setNewChannelType('voice')}
-                  className="flex-1"
-                >
-                  <Volume2 className="h-4 w-4 mr-2" />
-                  Voice
-                </Button>
+              <div className="grid grid-cols-2 gap-2">
+                {(['text', 'voice', 'forum', 'announcement'] as const).map((type) => (
+                  <Button
+                    key={type}
+                    variant={newChannelType === type ? 'default' : 'outline'}
+                    onClick={() => setNewChannelType(type)}
+                    className="flex items-center justify-center gap-2"
+                  >
+                    {getChannelIcon(type)}
+                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                  </Button>
+                ))}
               </div>
               <Button
                 className="w-full"
@@ -130,51 +130,35 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
           animate="show"
           className="space-y-4 py-4"
         >
-          <div>
-            <h3 className="text-sm font-semibold mb-2 px-2">Text Channels</h3>
-            <motion.div variants={container} className="space-y-0.5">
-              {channels
-                ?.filter((channel) => channel.type === 'text')
-                .map((channel) => (
-                  <motion.button
-                    key={channel.id}
-                    variants={item}
-                    onClick={() => onSelectChannel(channel.id)}
-                    className={`w-full p-2 flex items-center space-x-2 rounded-lg transition-all ${
-                      selectedChannel === channel.id 
-                        ? 'bg-accent text-accent-foreground' 
-                        : 'hover:bg-accent/50'
-                    }`}
-                  >
-                    <Hash className="h-4 w-4 shrink-0" />
-                    <span className="truncate">{channel.name}</span>
-                  </motion.button>
-                ))}
-            </motion.div>
-          </div>
-          <Separator className="bg-border/50" />
-          <div>
-            <h3 className="text-sm font-semibold mb-2 px-2">Voice Channels</h3>
-            <motion.div variants={container} className="space-y-0.5">
-              {channels
-                ?.filter((channel) => channel.type === 'voice')
-                .map((channel) => (
-                  <motion.button
-                    key={channel.id}
-                    variants={item}
-                    onClick={() => onSelectChannel(channel.id)}
-                    className={`w-full p-2 flex items-center space-x-2 rounded-lg transition-all ${
-                      selectedChannel === channel.id 
-                        ? 'bg-accent text-accent-foreground' 
-                        : 'hover:bg-accent/50'
-                    }`}
-                  >
-                    <Volume2 className="h-4 w-4 shrink-0" />
-                    <span className="truncate">{channel.name}</span>
-                  </motion.button>
-                ))}
-            </motion.div>
-          </div>
+          {(['text', 'announcement', 'forum', 'voice'] as const).map((channelType) => {
+            const typeChannels = channels?.filter((channel) => channel.type === channelType);
+            if (!typeChannels?.length) return null;
+
+            return (
+              <div key={channelType}>
+                <h3 className="text-sm font-semibold mb-2 px-2 capitalize">
+                  {channelType} Channels
+                </h3>
+                <motion.div variants={container} className="space-y-0.5">
+                  {typeChannels.map((channel) => (
+                    <motion.button
+                      key={channel.id}
+                      variants={item}
+                      onClick={() => onSelectChannel(channel.id)}
+                      className={`w-full p-2 flex items-center space-x-2 rounded-lg transition-all ${
+                        selectedChannel === channel.id 
+                          ? 'bg-accent text-accent-foreground' 
+                          : 'hover:bg-accent/50'
+                      }`}
+                    >
+                      {getChannelIcon(channel.type)}
+                      <span className="truncate">{channel.name}</span>
+                    </motion.button>
+                  ))}
+                </motion.div>
+              </div>
+            );
+          })}
         </motion.div>
       </ScrollArea>
     </div>
