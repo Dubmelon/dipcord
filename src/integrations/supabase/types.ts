@@ -863,35 +863,53 @@ export type Database = {
       }
       profiles: {
         Row: {
+          about_markdown: string | null
+          accent_color: string | null
           avatar_url: string | null
+          banner_url: string | null
           bio: string | null
           created_at: string
           full_name: string | null
           id: string
           is_online: boolean | null
           last_seen: string | null
+          status_emoji: string | null
+          status_text: string | null
+          theme_preference: string | null
           updated_at: string
           username: string
         }
         Insert: {
+          about_markdown?: string | null
+          accent_color?: string | null
           avatar_url?: string | null
+          banner_url?: string | null
           bio?: string | null
           created_at?: string
           full_name?: string | null
           id: string
           is_online?: boolean | null
           last_seen?: string | null
+          status_emoji?: string | null
+          status_text?: string | null
+          theme_preference?: string | null
           updated_at?: string
           username: string
         }
         Update: {
+          about_markdown?: string | null
+          accent_color?: string | null
           avatar_url?: string | null
+          banner_url?: string | null
           bio?: string | null
           created_at?: string
           full_name?: string | null
           id?: string
           is_online?: boolean | null
           last_seen?: string | null
+          status_emoji?: string | null
+          status_text?: string | null
+          theme_preference?: string | null
           updated_at?: string
           username?: string
         }
