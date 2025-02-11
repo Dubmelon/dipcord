@@ -53,28 +53,34 @@ export type Database = {
       }
       channels: {
         Row: {
+          category: Database["public"]["Enums"]["channel_category"] | null
           created_at: string
           description: string | null
           id: string
           name: string
+          position: number | null
           server_id: string
           type: Database["public"]["Enums"]["channel_type"]
           updated_at: string
         }
         Insert: {
+          category?: Database["public"]["Enums"]["channel_category"] | null
           created_at?: string
           description?: string | null
           id?: string
           name: string
+          position?: number | null
           server_id: string
           type: Database["public"]["Enums"]["channel_type"]
           updated_at?: string
         }
         Update: {
+          category?: Database["public"]["Enums"]["channel_category"] | null
           created_at?: string
           description?: string | null
           id?: string
           name?: string
+          position?: number | null
           server_id?: string
           type?: Database["public"]["Enums"]["channel_type"]
           updated_at?: string
@@ -805,6 +811,7 @@ export type Database = {
         Row: {
           id: string
           joined_at: string
+          last_read_channels: Json | null
           nickname: string | null
           server_id: string
           user_id: string
@@ -812,6 +819,7 @@ export type Database = {
         Insert: {
           id?: string
           joined_at?: string
+          last_read_channels?: Json | null
           nickname?: string | null
           server_id: string
           user_id: string
@@ -819,6 +827,7 @@ export type Database = {
         Update: {
           id?: string
           joined_at?: string
+          last_read_channels?: Json | null
           nickname?: string | null
           server_id?: string
           user_id?: string
@@ -1151,6 +1160,7 @@ export type Database = {
       }
     }
     Enums: {
+      channel_category: "general" | "text" | "voice" | "announcement"
       channel_type: "text" | "voice" | "forum" | "announcement"
       content_type: "post" | "comment" | "message"
       notification_type:
