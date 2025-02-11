@@ -42,7 +42,8 @@ const Servers = () => {
           owner_id,
           updated_at,
           is_private,
-          member_count
+          member_count,
+          is_member:server_members!inner(user_id)
         `)
         .order('name');
 
@@ -50,7 +51,10 @@ const Servers = () => {
         throw error;
       }
 
-      return data as Server[];
+      return data.map(server => ({
+        ...server,
+        is_member: true // Since we're using an inner join, all returned servers are ones the user is a member of
+      })) as Server[];
     },
     enabled: !!currentUser,
     staleTime: 1000 * 60,

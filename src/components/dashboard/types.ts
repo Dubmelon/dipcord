@@ -12,5 +12,5 @@ export interface Server {
   updated_at?: string;
   is_member?: boolean;
   currentUserId?: string;
-  avatar_url?: string | null; // Made optional for backward compatibility
+  avatar_url?: string | null;
 }

@@ -7,6 +7,7 @@ import { Loader2, Users } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Server } from "@/components/dashboard/types";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ServerCardProps {
   server: Server;
@@ -18,12 +19,14 @@ export const ServerCard = ({ server, currentUserId }: ServerCardProps) => {
 
   const joinServer = useMutation({
     mutationFn: async (serverId: string) => {
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const { error } = await supabase
+        .from('server_members')
+        .insert([
+          { server_id: serverId, user_id: currentUserId }
+        ]);
       
-      // Mock join server logic
-      if (Math.random() > 0.9) {
-        throw new Error("Failed to join server");
+      if (error) {
+        throw error;
       }
     },
     onSuccess: () => {
@@ -31,10 +34,12 @@ export const ServerCard = ({ server, currentUserId }: ServerCardProps) => {
       toast.success("Joined server successfully!");
     },
     onError: (error: Error) => {
-      toast.error(error.message);
-    },
-    retry: false
+      console.error('[ServerCard] Error joining server:', error);
+      toast.error("Failed to join server");
+    }
   });
+
+  const isOwner = server.owner_id === currentUserId;
 
   return (
     <Card className="glass-morphism hover-scale">
@@ -59,11 +64,11 @@ export const ServerCard = ({ server, currentUserId }: ServerCardProps) => {
       <CardContent>
         <div className="flex items-center text-sm text-white/60">
           <Users className="h-4 w-4 mr-1" />
-          {server.member_count} members
+          {server.member_count} {server.member_count === 1 ? 'member' : 'members'}
         </div>
       </CardContent>
       <CardFooter>
-        {server.is_member ? (
+        {server.is_member || isOwner ? (
           <Link to={`/servers/${server.id}`} className="w-full">
             <Button className="w-full" variant="outline">
               View Server
@@ -77,7 +82,10 @@ export const ServerCard = ({ server, currentUserId }: ServerCardProps) => {
             disabled={joinServer.isPending}
           >
             {joinServer.isPending ? (
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                Joining...
+              </>
             ) : (
               "Join Server"
             )}
