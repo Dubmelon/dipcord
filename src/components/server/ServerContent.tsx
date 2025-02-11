@@ -6,10 +6,11 @@ import { MessageList } from "@/components/server/MessageList";
 import { MessageInput } from "@/components/server/MessageInput";
 import { VoiceChannel } from "@/components/voice/VoiceChannel";
 import { useMessageData } from "@/hooks/useMessageData";
+import type { Channel } from "@/types/database";
 
 interface ServerContentProps {
   selectedChannel: string | null;
-  selectedChannelType: 'text' | 'voice' | undefined;
+  selectedChannelType: Channel['type'] | undefined;
   isMobile: boolean;
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
@@ -75,6 +76,10 @@ export const ServerContent = ({
       )}
       {selectedChannelType === 'voice' ? (
         <VoiceChannel channelId={selectedChannel} />
+      ) : selectedChannelType === 'forum' || selectedChannelType === 'announcement' ? (
+        <div className="flex items-center justify-center h-full text-muted-foreground">
+          <p>{selectedChannelType === 'forum' ? 'Forum' : 'Announcement'} channel functionality coming soon</p>
+        </div>
       ) : (
         <>
           <div className="flex-1 overflow-hidden">
