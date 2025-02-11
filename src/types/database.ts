@@ -187,10 +187,22 @@ export interface Role {
     EMBED_LINKS: boolean;
     ATTACH_FILES: boolean;
     MENTION_ROLES: boolean;
+    VIEW_CHANNELS: boolean;
+    CREATE_INSTANT_INVITE: boolean;
+    CHANGE_NICKNAME: boolean;
+    MANAGE_NICKNAMES: boolean;
+    MANAGE_EMOJIS: boolean;
+    ADMINISTRATOR: boolean;
+    VIEW_AUDIT_LOG: boolean;
+    VIEW_SERVER_INSIGHTS: boolean;
+    MODERATE_MEMBERS: boolean;
   };
   is_system: boolean;
   created_at: string;
   updated_at: string;
+  display_separately: boolean;
+  hoist: boolean;
+  mentionable: boolean;
 }
 
 export interface Thread {

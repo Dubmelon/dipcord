@@ -952,13 +952,48 @@ export type Database = {
           },
         ]
       }
+      role_icons: {
+        Row: {
+          created_at: string
+          id: string
+          role_id: string | null
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role_id?: string | null
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role_id?: string | null
+          updated_at?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "role_icons_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       roles: {
         Row: {
           color: string | null
           created_at: string
+          display_separately: boolean | null
+          hoist: boolean | null
           icon: string | null
           id: string
           is_system: boolean | null
+          mentionable: boolean | null
           name: string
           permissions: string[]
           permissions_v2: Json
@@ -969,9 +1004,12 @@ export type Database = {
         Insert: {
           color?: string | null
           created_at?: string
+          display_separately?: boolean | null
+          hoist?: boolean | null
           icon?: string | null
           id?: string
           is_system?: boolean | null
+          mentionable?: boolean | null
           name: string
           permissions?: string[]
           permissions_v2?: Json
@@ -982,9 +1020,12 @@ export type Database = {
         Update: {
           color?: string | null
           created_at?: string
+          display_separately?: boolean | null
+          hoist?: boolean | null
           icon?: string | null
           id?: string
           is_system?: boolean | null
+          mentionable?: boolean | null
           name?: string
           permissions?: string[]
           permissions_v2?: Json
