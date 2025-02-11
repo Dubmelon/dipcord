@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -119,7 +120,7 @@ const App = () => {
           <div className="flex flex-col min-h-screen font-sans bg-background">
             <BrowserRouter>
               <Navigation />
-              <main className="flex-1 relative pt-16"> {/* Added pt-16 for navigation spacing */}
+              <main className="flex-1 relative pt-16">
                 <Toaster />
                 <Sonner />
                 <Routes>
@@ -149,7 +150,7 @@ const App = () => {
                     } 
                   />
                   <Route 
-                    path="/servers/:serverId" 
+                    path="/servers/:serverId/*" 
                     element={
                       <ProtectedRoute>
                         <ServerView />

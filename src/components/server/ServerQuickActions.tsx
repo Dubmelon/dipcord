@@ -37,7 +37,7 @@ export const ServerQuickActions = ({ isMobile, onToggleSidebar }: ServerQuickAct
   };
 
   const handleSettingsClick = () => {
-    navigate(`/servers/${serverId}/settings`);
+    navigate('settings');
   };
 
   return (
