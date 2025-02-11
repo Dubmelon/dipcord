@@ -71,7 +71,7 @@ const ServerView = () => {
                     animate={{ x: 0, opacity: 1 }}
                     exit={{ x: -300, opacity: 0 }}
                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                    className="fixed md:relative left-0 top-0 h-full z-30 md:w-72 w-64 border-r bg-muted/50 backdrop-blur-sm"
+                    className="fixed md:relative left-0 top-0 h-full z-30 md:w-60 w-56 border-r bg-muted/50 backdrop-blur-sm"
                   >
                     <ChannelList
                       serverId={serverId!}
@@ -103,7 +103,7 @@ const ServerView = () => {
                 />
               </motion.div>
 
-              <div className="hidden lg:block w-60 border-l bg-muted/50 backdrop-blur-sm overflow-y-auto">
+              <div className="hidden lg:block w-52 border-l bg-muted/50 backdrop-blur-sm overflow-y-auto">
                 <ServerMemberList serverId={serverId!} />
               </div>
             </div>

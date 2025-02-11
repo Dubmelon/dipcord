@@ -141,7 +141,7 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
 
   return (
     <div className="w-full h-full bg-muted/50 backdrop-blur-xl flex flex-col">
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 pb-16">
         <div className="p-2 space-y-4">
           {Object.entries(channelsByCategory).map(([category, categoryChannels]) => (
             <div key={category} className="space-y-1">
@@ -298,8 +298,8 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
         </Dialog>
       </div>
 
-      {/* User Controls */}
-      <div className="p-4 border-t border-border bg-background/50">
+      {/* User Controls - Now absolutely positioned */}
+      <div className="absolute bottom-0 left-0 right-0 p-3 border-t border-border bg-background/50 backdrop-blur-sm">
         <div className="flex items-center gap-3 mb-2">
           <Avatar className="h-8 w-8">
             <AvatarImage src={currentUser?.avatar_url || ''} />
@@ -310,7 +310,7 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
             <p className="text-xs text-muted-foreground">Online</p>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-1">
           <Button
             variant="ghost"
             size="icon"
