@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -40,9 +39,9 @@ interface CategoryState {
   [key: string]: boolean;
 }
 
-type ChannelCategory = "text" | "voice" | "announcement" | "general";
+type ChannelCategory = 'general' | 'text' | 'voice' | 'announcement';
 
-const CHANNEL_CATEGORIES: ChannelCategory[] = ["general", "text", "voice", "announcement"];
+const CHANNEL_CATEGORIES: ChannelCategory[] = ['general', 'text', 'voice', 'announcement'];
 
 export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChannel }: ChannelListProps) => {
   const [isCreatingChannel, setIsCreatingChannel] = useState(false);
@@ -132,13 +131,13 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
 
   // Group channels by their category
   const channelsByCategory = channels?.reduce((acc, channel) => {
-    const category = channel.category || 'general';
+    const category = channel.category ?? 'general';
     if (!acc[category]) {
       acc[category] = [];
     }
     acc[category].push(channel);
     return acc;
-  }, {} as Record<string, Channel[]>) || {};
+  }, {} as Record<ChannelCategory, Channel[]>) || {};
 
   return (
     <div className="w-60 h-full bg-muted/80 backdrop-blur-xl flex flex-col">

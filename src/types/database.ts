@@ -90,6 +90,7 @@ export interface Channel {
   name: string;
   description: string | null;
   type: 'text' | 'voice' | 'forum' | 'announcement';
+  category: 'general' | 'text' | 'voice' | 'announcement' | null;
   created_at: string;
   updated_at: string;
 }
