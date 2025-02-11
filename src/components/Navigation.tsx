@@ -1,3 +1,4 @@
+
 import { useLocation, Link } from "react-router-dom";
 import { Home, Server, MessageSquare, LogOut, Settings, X } from "lucide-react";
 import { Button } from "./ui/button";
@@ -17,6 +18,11 @@ const navItems = [
 export const Navigation = () => {
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Hide navigation on server pages
+  if (location.pathname.startsWith('/servers/')) {
+    return null;
+  }
 
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
