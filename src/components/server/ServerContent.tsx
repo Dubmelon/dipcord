@@ -59,7 +59,7 @@ export const ServerContent = ({
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="flex flex-col h-full relative min-h-0"
+      className="flex flex-col h-screen overflow-hidden"
     >
       {isMobile && !sidebarOpen && (
         <Button
@@ -82,14 +82,14 @@ export const ServerContent = ({
         </div>
       ) : (
         <>
-          <div className="flex-1 overflow-hidden min-h-0">
+          <div className="flex-1 overflow-hidden" style={{ height: 'calc(100vh - 80px)' }}>
             <MessageList 
               messages={messages || []} 
               isLoading={loadingMessages}
               emptyMessage="No messages in this channel yet"
             />
           </div>
-          <div className="mt-auto">
+          <div className="flex-shrink-0">
             <MessageInput channelId={selectedChannel} />
           </div>
         </>

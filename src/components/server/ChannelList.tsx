@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
@@ -48,8 +49,8 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
   }, {} as Record<ChannelCategoryType, Channel[]>);
 
   return (
-    <div className="w-full h-full flex flex-col bg-muted/50 backdrop-blur-xl">
-      <div className="flex-1 overflow-y-auto min-h-0">
+    <div className="flex flex-col h-full bg-muted/50 backdrop-blur-xl">
+      <div className="flex-1 overflow-y-auto" style={{ height: 'calc(100vh - 120px)' }}>
         <div className="p-2 space-y-2">
           {Object.entries(channelsByCategory).map(([category, categoryChannels]) => (
             <ChannelCategory
@@ -64,7 +65,7 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
           ))}
         </div>
       </div>
-      <div className="mt-auto">
+      <div className="flex-shrink-0">
         <UserControls serverId={serverId} currentUser={currentUser} />
       </div>
     </div>
