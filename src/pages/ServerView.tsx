@@ -1,6 +1,6 @@
 
 import { useState, useMemo, useCallback } from "react";
-import { useParams, Routes, Route } from "react-router-dom";
+import { useParams, Routes, Route, Navigate } from "react-router-dom";
 import { ChannelList } from "@/components/server/ChannelList";
 import { Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -50,7 +50,7 @@ const ServerView = () => {
   }
 
   if (!server) {
-    return null;
+    return <Navigate to="/servers" replace />;
   }
 
   return (
@@ -64,7 +64,7 @@ const ServerView = () => {
       <Routes>
         <Route path="settings" element={<ServerSettings server={server} />} />
         <Route
-          path="*"
+          path="/*"
           element={
             <div className="flex flex-1 overflow-hidden">
               <AnimatePresence mode="wait">
@@ -113,4 +113,3 @@ const ServerView = () => {
 };
 
 export default ServerView;
-

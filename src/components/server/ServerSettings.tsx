@@ -4,6 +4,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { useNotificationSettings } from "@/hooks/useNotificationSettings";
+import { toast } from "sonner";
 import type { Server } from "@/types/database";
 
 interface ServerSettingsProps {
@@ -19,13 +20,22 @@ export const ServerSettings = ({ server }: ServerSettingsProps) => {
   );
 
   const handleMuteToggle = async (checked: boolean) => {
-    if (!currentUser) return;
+    if (!currentUser) {
+      toast.error("You must be logged in to change notification settings");
+      return;
+    }
     
-    await updateNotificationSetting.mutateAsync({
-      targetType: 'server',
-      targetId: server.id,
-      isMuted: checked
-    });
+    try {
+      await updateNotificationSetting.mutateAsync({
+        targetType: 'server',
+        targetId: server.id,
+        isMuted: checked
+      });
+      toast.success(checked ? "Server muted" : "Server unmuted");
+    } catch (error) {
+      console.error("Error updating notification settings:", error);
+      toast.error("Failed to update notification settings");
+    }
   };
 
   return (
