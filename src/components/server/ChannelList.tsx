@@ -14,7 +14,8 @@ import {
   Settings,
   Mic,
   Headphones,
-  Settings2
+  Settings2,
+  FolderPlus
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -26,6 +27,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import type { Channel } from "@/types/database";
+import { Label } from "@/components/ui/label";
 
 interface ChannelListProps {
   serverId: string;
@@ -40,8 +42,11 @@ interface CategoryState {
 
 export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChannel }: ChannelListProps) => {
   const [isCreatingChannel, setIsCreatingChannel] = useState(false);
+  const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [newChannelName, setNewChannelName] = useState("");
+  const [newFolderName, setNewFolderName] = useState("");
   const [newChannelType, setNewChannelType] = useState<Channel['type']>('text');
+  const [newChannelCategory, setNewChannelCategory] = useState("general");
   const [expandedCategories, setExpandedCategories] = useState<CategoryState>({ general: true });
   const [isMuted, setIsMuted] = useState(false);
   const [isDeafened, setIsDeafened] = useState(false);
@@ -58,6 +63,7 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
             server_id: serverId,
             name: newChannelName,
             type: newChannelType,
+            category: newChannelCategory
           },
         ]);
       
@@ -67,10 +73,36 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
       queryClient.invalidateQueries({ queryKey: ['channels', serverId] });
       setIsCreatingChannel(false);
       setNewChannelName("");
+      setNewChannelCategory("general");
       toast.success("Channel created successfully!");
     },
     onError: (error) => {
       toast.error("Failed to create channel");
+      console.error(error);
+    },
+  });
+
+  const createFolder = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from('server_folders')
+        .insert([
+          {
+            name: newFolderName,
+            user_id: currentUser?.id,
+          },
+        ]);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['server-folders', currentUser?.id] });
+      setIsCreatingFolder(false);
+      setNewFolderName("");
+      toast.success("Folder created successfully!");
+    },
+    onError: (error) => {
+      toast.error("Failed to create folder");
       console.error(error);
     },
   });
@@ -112,7 +144,6 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
 
   // Group channels by their category, defaulting to 'general' if not specified
   const channelsByCategory = channels?.reduce((acc, channel) => {
-    // Using type assertion since we know the database has this column
     const category = (channel as any).category || 'general';
     if (!acc[category]) {
       acc[category] = [];
@@ -121,11 +152,15 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
     return acc;
   }, {} as Record<string, Channel[]>) || {};
 
+  const handleServerSettings = () => {
+    navigate(`/settings/servers/${serverId}`);
+  };
+
   return (
     <div className="w-60 h-full bg-muted/80 backdrop-blur-xl flex flex-col">
       {/* Server Header */}
       <div className="flex items-center justify-between p-4 border-b border-border cursor-pointer hover:bg-accent/50 transition-colors"
-           onClick={() => navigate(`/servers/${serverId}/settings`)}>
+           onClick={handleServerSettings}>
         <h2 className="text-lg font-bold truncate">Server Settings</h2>
         <Settings2 className="h-4 w-4" />
       </div>
@@ -154,7 +189,7 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
                 </span>
               </button>
 
-              <AnimatePresence>
+              <AnimatePresence mode="wait">
                 {expandedCategories[category] && (
                   <motion.div
                     initial={{ height: 0, opacity: 0 }}
@@ -188,41 +223,96 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
 
       {/* Create Channel Button */}
       <Dialog open={isCreatingChannel} onOpenChange={setIsCreatingChannel}>
-        <DialogTrigger asChild>
-          <Button variant="ghost" size="sm" className="mx-2 mb-2">
-            <Plus className="h-4 w-4 mr-2" />
-            Create Channel
-          </Button>
-        </DialogTrigger>
+        <Dialog open={isCreatingFolder} onOpenChange={setIsCreatingFolder}>
+          <div className="p-2 space-y-2">
+            <DialogTrigger asChild>
+              <Button variant="ghost" size="sm" className="w-full">
+                <Plus className="h-4 w-4 mr-2" />
+                Create Channel
+              </Button>
+            </DialogTrigger>
+            <DialogTrigger asChild>
+              <Button variant="ghost" size="sm" className="w-full">
+                <FolderPlus className="h-4 w-4 mr-2" />
+                Create Folder
+              </Button>
+            </DialogTrigger>
+          </div>
+        </Dialog>
+
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Create Channel</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <Input
-              placeholder="Channel name"
-              value={newChannelName}
-              onChange={(e) => setNewChannelName(e.target.value)}
-            />
-            <div className="grid grid-cols-2 gap-2">
-              {(['text', 'voice', 'forum', 'announcement'] as const).map((type) => (
-                <Button
-                  key={type}
-                  variant={newChannelType === type ? 'default' : 'outline'}
-                  onClick={() => setNewChannelType(type)}
-                  className="flex items-center justify-center gap-2"
-                >
-                  {getChannelIcon(type)}
-                  {type.charAt(0).toUpperCase() + type.slice(1)}
-                </Button>
-              ))}
+            <div className="space-y-2">
+              <Label>Channel Name</Label>
+              <Input
+                placeholder="Channel name"
+                value={newChannelName}
+                onChange={(e) => setNewChannelName(e.target.value)}
+              />
             </div>
+            
+            <div className="space-y-2">
+              <Label>Category</Label>
+              <Input
+                placeholder="Category name"
+                value={newChannelCategory}
+                onChange={(e) => setNewChannelCategory(e.target.value)}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Channel Type</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {(['text', 'voice', 'forum', 'announcement'] as const).map((type) => (
+                  <Button
+                    key={type}
+                    variant={newChannelType === type ? 'default' : 'outline'}
+                    onClick={() => setNewChannelType(type)}
+                    className="flex items-center justify-center gap-2"
+                  >
+                    {getChannelIcon(type)}
+                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                  </Button>
+                ))}
+              </div>
+            </div>
+            
             <Button
               className="w-full"
               onClick={() => createChannel.mutate()}
               disabled={!newChannelName.trim()}
             >
               Create Channel
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Folder Dialog */}
+      <Dialog open={isCreatingFolder} onOpenChange={setIsCreatingFolder}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create Folder</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Folder Name</Label>
+              <Input
+                placeholder="Folder name"
+                value={newFolderName}
+                onChange={(e) => setNewFolderName(e.target.value)}
+              />
+            </div>
+            
+            <Button
+              className="w-full"
+              onClick={() => createFolder.mutate()}
+              disabled={!newFolderName.trim()}
+            >
+              Create Folder
             </Button>
           </div>
         </DialogContent>

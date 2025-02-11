@@ -12,6 +12,7 @@ import { useServerData } from "@/hooks/useServerData";
 import { useChannelData } from "@/hooks/useChannelData";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ServerSettings } from "@/components/server/ServerSettings";
+import { ServerUserSettings } from "@/components/server/ServerUserSettings";
 
 const ServerView = () => {
   const { serverId } = useParams();
@@ -55,7 +56,7 @@ const ServerView = () => {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] overflow-hidden">
+    <div className="flex flex-col h-[calc(100vh-4rem)]">
       <div className="flex flex-1">
         <ServerNavigationSidebar />
         
@@ -68,8 +69,9 @@ const ServerView = () => {
           
           <Routes>
             <Route path="settings/*" element={<ServerSettings server={server} />} />
+            <Route path="user-settings/*" element={<ServerUserSettings />} />
             <Route path="" element={
-              <div className="flex flex-1 overflow-hidden">
+              <div className="flex flex-1">
                 <AnimatePresence mode="wait">
                   {sidebarOpen && (
                     <motion.div
