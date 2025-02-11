@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -140,14 +141,14 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
   }, {} as Record<ChannelCategory, Channel[]>);
 
   return (
-    <div className="w-full h-full bg-muted/50 backdrop-blur-xl flex flex-col relative">
+    <div className="w-full h-full flex flex-col relative bg-muted/50 backdrop-blur-xl">
       <ScrollArea className="flex-1">
-        <div className="p-2 space-y-4">
+        <div className="p-2 space-y-2">
           {Object.entries(channelsByCategory).map(([category, categoryChannels]) => (
-            <div key={category} className="space-y-1">
+            <div key={category} className="space-y-0.5">
               <button
                 onClick={() => toggleCategory(category)}
-                className="flex items-center gap-1 px-2 py-1.5 w-full hover:bg-accent/50 rounded-md transition-colors"
+                className="flex items-center gap-1 px-2 py-1 w-full hover:bg-accent/50 rounded-md transition-colors"
               >
                 {expandedCategories[category] ? (
                   <ChevronDown className="h-3 w-3" />
@@ -175,7 +176,7 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
                         animate={{ x: 0, opacity: 1 }}
                         exit={{ x: -20, opacity: 0 }}
                         onClick={() => onSelectChannel(channel.id)}
-                        className={`w-full p-2 flex items-center space-x-2 rounded-lg transition-all ${
+                        className={`w-full p-1.5 flex items-center space-x-2 rounded-lg transition-all ${
                           selectedChannel === channel.id 
                             ? 'bg-accent text-accent-foreground' 
                             : 'hover:bg-accent/50 text-muted-foreground hover:text-foreground'
@@ -193,8 +194,7 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
         </div>
       </ScrollArea>
 
-      {/* User Controls - Now positioned higher up to match server list settings icon */}
-      <div className="absolute bottom-[80px] left-0 right-0 px-2 py-2 border-t border-border bg-background/95 backdrop-blur-md">
+      <div className="mt-auto border-t border-border bg-background/95 backdrop-blur-md p-2">
         <div className="flex items-center gap-2">
           <Avatar className="h-8 w-8">
             <AvatarImage src={currentUser?.avatar_url || ''} />

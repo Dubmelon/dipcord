@@ -44,7 +44,7 @@ const ServerView = () => {
 
   if (loadingServer || loadingChannels) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="flex items-center justify-center h-screen">
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
@@ -55,15 +55,15 @@ const ServerView = () => {
   }
 
   return (
-    <div className="flex h-full bg-background">
+    <div className="flex h-screen overflow-hidden bg-background">
       <ServerNavigationSidebar />
       
-      <div className="flex-1 flex flex-col min-h-screen max-h-screen overflow-hidden">
+      <div className="flex-1 flex">
         <Routes>
           <Route path="settings/*" element={<ServerSettings server={server} />} />
           <Route path="user-settings/*" element={<ServerUserSettings />} />
           <Route path="" element={
-            <div className="flex flex-1 h-full overflow-hidden">
+            <div className="flex flex-1 overflow-hidden">
               <AnimatePresence mode="wait">
                 {sidebarOpen && (
                   <motion.div
@@ -71,28 +71,30 @@ const ServerView = () => {
                     animate={{ x: 0, opacity: 1 }}
                     exit={{ x: -300, opacity: 0 }}
                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                    className="fixed md:relative left-0 top-0 h-full z-30 md:w-52 w-52 border-r bg-muted/50 backdrop-blur-sm"
+                    className="w-60 relative z-30 flex flex-col"
                   >
-                    <ChannelList
-                      serverId={serverId!}
-                      channels={channels || []}
-                      selectedChannel={selectedChannel}
-                      onSelectChannel={handleChannelSelect}
+                    <ServerHeader 
+                      server={server} 
+                      isMobile={isMobile} 
+                      onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} 
                     />
+                    <div className="flex-1 min-h-0">
+                      <ChannelList
+                        serverId={serverId!}
+                        channels={channels || []}
+                        selectedChannel={selectedChannel}
+                        onSelectChannel={handleChannelSelect}
+                      />
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
 
               <motion.div
                 layout
-                className="flex-1 flex flex-col h-full overflow-hidden"
+                className="flex-1 flex flex-col min-h-0"
                 onClick={handleMessageAreaClick}
               >
-                <ServerHeader 
-                  server={server} 
-                  isMobile={isMobile} 
-                  onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} 
-                />
                 <ServerContent
                   selectedChannel={selectedChannel}
                   selectedChannelType={selectedChannelType}
@@ -103,7 +105,7 @@ const ServerView = () => {
                 />
               </motion.div>
 
-              <div className="hidden lg:block w-52 border-l bg-muted/50 backdrop-blur-sm overflow-y-auto">
+              <div className="hidden lg:block w-60 min-h-0">
                 <ServerMemberList serverId={serverId!} />
               </div>
             </div>
