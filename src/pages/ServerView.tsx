@@ -54,7 +54,7 @@ const ServerView = () => {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] overflow-hidden bg-background/80 backdrop-blur-sm">
+    <div className="flex flex-col h-[calc(100vh-4rem)] overflow-hidden">
       <ServerHeader 
         server={server} 
         isMobile={isMobile} 
@@ -72,7 +72,7 @@ const ServerView = () => {
                   animate={{ x: 0, opacity: 1 }}
                   exit={{ x: -300, opacity: 0 }}
                   transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                  className="fixed md:relative left-0 top-0 h-[calc(100vh-4rem)] z-30 w-72 border-r"
+                  className="fixed md:relative left-0 top-0 h-full z-30 w-72 border-r bg-background/80 backdrop-blur-sm"
                 >
                   <ChannelList
                     serverId={serverId!}
@@ -99,7 +99,7 @@ const ServerView = () => {
               />
             </motion.div>
 
-            <div className="hidden lg:block w-60 border-l">
+            <div className="hidden lg:block w-60 border-l bg-background/80 backdrop-blur-sm">
               <ServerMemberList serverId={serverId!} />
             </div>
           </div>
@@ -110,4 +110,3 @@ const ServerView = () => {
 };
 
 export default ServerView;
-
