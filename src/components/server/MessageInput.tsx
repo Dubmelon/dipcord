@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -70,7 +71,7 @@ export const MessageInput = ({ channelId }: MessageInputProps) => {
   };
 
   return (
-    <div className="p-4 bg-background/80 backdrop-blur-sm border-t border-white/10">
+    <div className="pt-3 pb-4 px-4 bg-background/80 backdrop-blur-sm border-t border-white/10">
       <FilePreview files={selectedFiles} onRemove={removeFile} />
       <div className="flex gap-2">
         <input

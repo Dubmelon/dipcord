@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { ChannelCategory } from "./channel/ChannelCategory";
 import { UserControls } from "./channel/UserControls";
 import { useCreateChannel, useCreateFolder } from "./channel/mutations";
+import type { Channel } from "@/types/database";
 import type { ChannelListProps, CategoryState, ChannelCategory as ChannelCategoryType } from "./channel/types";
 
 export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChannel }: ChannelListProps) => {
@@ -51,7 +52,7 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
 
   return (
     <div className="w-full h-full flex flex-col relative bg-muted/50 backdrop-blur-xl">
-      <ScrollArea className="flex-1">
+      <div className="flex-1 overflow-y-auto">
         <div className="p-2 space-y-2">
           {Object.entries(channelsByCategory).map(([category, categoryChannels]) => (
             <ChannelCategory
@@ -65,7 +66,7 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
             />
           ))}
         </div>
-      </ScrollArea>
+      </div>
 
       <UserControls serverId={serverId} currentUser={currentUser} />
     </div>

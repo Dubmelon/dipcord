@@ -3,22 +3,23 @@ import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Channel } from "@/types/database";
+import type { ChannelCategory } from "./types";
 
 export const useCreateChannel = (serverId: string, onSuccess: () => void) => {
   return useMutation({
     mutationFn: async ({ name, type, category }: { 
       name: string; 
       type: Channel['type']; 
-      category: string; 
+      category: ChannelCategory; 
     }) => {
       const { error } = await supabase
         .from('channels')
-        .insert({
+        .insert([{
           server_id: serverId,
           name,
           type,
           category
-        });
+        }]);
       
       if (error) throw error;
     },
