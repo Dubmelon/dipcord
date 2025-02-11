@@ -63,36 +63,67 @@ export const ServerSettings = ({ server }: ServerSettingsProps) => {
       }
       
       const file = event.target.files[0];
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      
+      if (file.size > maxSize) {
+        toast.error(`File size must be less than 5MB`);
+        return;
+      }
+      
       const fileExt = file.name.split('.').pop();
-      const fileName = `${server.id}/${type}-${Date.now()}.${fileExt}`;
+      const allowedTypes = ['png', 'jpg', 'jpeg', 'gif'];
+      
+      if (!allowedTypes.includes(fileExt?.toLowerCase() || '')) {
+        toast.error('Only image files (PNG, JPG, JPEG, GIF) are allowed');
+        return;
+      }
       
       setUploading(true);
+      const fileName = `${server.id}/${type}/${crypto.randomUUID()}.${fileExt}`;
       
-      const { error: uploadError } = await supabase
+      // Upload the file
+      const { error: uploadError, data: uploadData } = await supabase
         .storage
         .from('server-assets')
-        .upload(fileName, file);
+        .upload(fileName, file, {
+          upsert: true,
+          cacheControl: '3600'
+        });
 
       if (uploadError) {
         throw uploadError;
       }
 
+      // Get the public URL after successful upload
       const { data: { publicUrl } } = supabase
         .storage
         .from('server-assets')
         .getPublicUrl(fileName);
 
+      // Update server settings with new URL
       const updates = type === 'icon' 
         ? { icon_url: publicUrl }
         : { banner_url: publicUrl };
 
-      updateServerSettings.mutate(updates);
+      await updateServerSettings.mutateAsync(updates);
+      
+      // Force an immediate refetch
+      await queryClient.invalidateQueries({ 
+        queryKey: ['server', server.id],
+        refetchType: 'active'
+      });
+      
+      toast.success(`Server ${type} updated successfully`);
       
     } catch (error) {
       console.error(`Error uploading ${type}:`, error);
       toast.error(`Failed to upload ${type}`);
     } finally {
       setUploading(false);
+      // Reset the file input
+      if (event.target) {
+        event.target.value = '';
+      }
     }
   };
 
