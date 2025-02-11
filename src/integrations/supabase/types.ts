@@ -1027,6 +1027,7 @@ export type Database = {
         Row: {
           about_markdown: string | null
           accent_color: string | null
+          activity_status: Json | null
           avatar_url: string | null
           banner_url: string | null
           bio: string | null
@@ -1036,6 +1037,8 @@ export type Database = {
           is_admin: boolean | null
           is_online: boolean | null
           last_seen: string | null
+          mutual_friends_count: number | null
+          mutual_servers_count: number | null
           status_emoji: string | null
           status_text: string | null
           theme_preference: string | null
@@ -1045,6 +1048,7 @@ export type Database = {
         Insert: {
           about_markdown?: string | null
           accent_color?: string | null
+          activity_status?: Json | null
           avatar_url?: string | null
           banner_url?: string | null
           bio?: string | null
@@ -1054,6 +1058,8 @@ export type Database = {
           is_admin?: boolean | null
           is_online?: boolean | null
           last_seen?: string | null
+          mutual_friends_count?: number | null
+          mutual_servers_count?: number | null
           status_emoji?: string | null
           status_text?: string | null
           theme_preference?: string | null
@@ -1063,6 +1069,7 @@ export type Database = {
         Update: {
           about_markdown?: string | null
           accent_color?: string | null
+          activity_status?: Json | null
           avatar_url?: string | null
           banner_url?: string | null
           bio?: string | null
@@ -1072,6 +1079,8 @@ export type Database = {
           is_admin?: boolean | null
           is_online?: boolean | null
           last_seen?: string | null
+          mutual_friends_count?: number | null
+          mutual_servers_count?: number | null
           status_emoji?: string | null
           status_text?: string | null
           theme_preference?: string | null
