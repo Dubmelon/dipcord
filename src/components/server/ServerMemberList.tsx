@@ -1,3 +1,4 @@
+
 import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,14 +21,18 @@ export const ServerMemberList = ({ serverId }: ServerMemberListProps) => {
     queryFn: async () => {
       console.log('[ServerMemberList] Fetching members');
       const { data: serverMembers, error } = await supabase
-        .from('server_members')
+        .from('server_member_roles')
         .select(`
-          id,
+          server_member_id,
           server_id,
           user_id,
           nickname,
           joined_at,
-          user:profiles(
+          role_id,
+          role_name,
+          role_color,
+          role_position,
+          user:profiles!user_id(
             id,
             username,
             avatar_url,
@@ -35,21 +40,32 @@ export const ServerMemberList = ({ serverId }: ServerMemberListProps) => {
             bio,
             is_online,
             last_seen
-          ),
-          roles:user_roles(
-            role:roles(
-              id,
-              name,
-              color,
-              position
-            )
           )
         `)
         .eq('server_id', serverId)
         .order('joined_at', { ascending: true });
 
       if (error) throw error;
-      return serverMembers as unknown as ServerMember[];
+
+      // Transform the data to match the ServerMember type
+      const transformedMembers = serverMembers.map(member => ({
+        id: member.server_member_id,
+        server_id: member.server_id,
+        user_id: member.user_id,
+        nickname: member.nickname,
+        joined_at: member.joined_at,
+        user: member.user,
+        roles: member.role_id ? [{
+          role: {
+            id: member.role_id,
+            name: member.role_name,
+            color: member.role_color,
+            position: member.role_position
+          }
+        }] : []
+      }));
+
+      return transformedMembers as ServerMember[];
     },
     staleTime: 0,
     refetchOnMount: true

@@ -1485,6 +1485,49 @@ export type Database = {
       }
     }
     Views: {
+      server_member_roles: {
+        Row: {
+          joined_at: string | null
+          nickname: string | null
+          role_color: string | null
+          role_id: string | null
+          role_name: string | null
+          role_position: number | null
+          server_id: string | null
+          server_member_id: string | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "server_members_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "server_stats"
+            referencedColumns: ["server_id"]
+          },
+          {
+            foreignKeyName: "server_members_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "servers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "server_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_roles_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       server_stats: {
         Row: {
           channel_count: number | null
