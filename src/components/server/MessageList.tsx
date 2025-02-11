@@ -97,43 +97,40 @@ export const MessageList = ({
   }, {} as Record<string, Message[]>);
 
   return (
-    <div className="flex-1 h-[calc(100vh-16rem)] overflow-hidden">
-      <ScrollArea 
-        ref={scrollRef} 
-        className="h-full px-4"
-        onScrollCapture={handleScroll}
-      >
-        <div className="py-4 space-y-4">
-          <AnimatePresence mode="popLayout">
-            {Object.entries(messageGroups).map(([date, groupMessages]) => (
-              <motion.div
-                key={date}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="space-y-2"
-              >
-                <div className="sticky top-0 z-10 flex items-center justify-center">
-                  <span className="px-2 py-1 text-xs text-muted-foreground bg-background/80 backdrop-blur-sm rounded">
-                    {date}
-                  </span>
-                </div>
-                {groupMessages.map((message) => (
-                  <MessageItem
-                    key={message.id}
-                    id={message.id}
-                    content={message.content}
-                    created_at={message.created_at}
-                    sender={message.sender}
-                    media_urls={message.media_urls}
-                  />
-                ))}
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </div>
-      </ScrollArea>
-    </div>
+    <ScrollArea 
+      ref={scrollRef} 
+      className="h-full px-4"
+      onScrollCapture={handleScroll}
+    >
+      <div className="py-4 space-y-4">
+        <AnimatePresence mode="popLayout">
+          {Object.entries(messageGroups).map(([date, groupMessages]) => (
+            <motion.div
+              key={date}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="space-y-2"
+            >
+              <div className="sticky top-0 z-10 flex items-center justify-center">
+                <span className="px-2 py-1 text-xs text-muted-foreground bg-background/80 backdrop-blur-sm rounded">
+                  {date}
+                </span>
+              </div>
+              {groupMessages.map((message) => (
+                <MessageItem
+                  key={message.id}
+                  id={message.id}
+                  content={message.content}
+                  created_at={message.created_at}
+                  sender={message.sender}
+                  media_urls={message.media_urls}
+                />
+              ))}
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
+    </ScrollArea>
   );
 };
-
