@@ -957,6 +957,62 @@ export type Database = {
           },
         ]
       }
+      profile_notes: {
+        Row: {
+          created_at: string | null
+          id: string
+          note: string | null
+          target_user_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          note?: string | null
+          target_user_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          note?: string | null
+          target_user_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_notes_target_user_id_fkey"
+            columns: ["target_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_notes_target_user_id_fkey"
+            columns: ["target_user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles_extended"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_notes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_notes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles_extended"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profile_server_info: {
         Row: {
           id: string

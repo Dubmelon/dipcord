@@ -136,45 +136,40 @@ export const ProfileView = ({ userId, onClose }: ProfileViewProps) => {
         {/* Member Since */}
         <div className="mb-3">
           <h3 className="text-xs font-semibold uppercase text-[#949ba4] mb-1">Member Since</h3>
-          <p className="text-sm text-[#dbdee1]">Mar 26, 2024</p>
+          <p className="text-sm text-[#dbdee1]">
+            {new Date(profile.created_at).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric'
+            })}
+          </p>
         </div>
 
         {/* Mutual Info */}
         <div className="flex items-center gap-2 text-sm text-[#949ba4] mb-3">
           <Users className="h-4 w-4" />
-          <span>8 Mutual Friends</span>
+          <span>{profile.mutual_friends_count || 0} Mutual Friends</span>
           <span>•</span>
           <Hash className="h-4 w-4" />
-          <span>2 Mutual Servers</span>
+          <span>{profile.mutual_servers_count || 0} Mutual Servers</span>
         </div>
 
-        {/* Roles/Badges */}
-        <div className="flex flex-wrap gap-2 mb-3">
-          <span className="px-2 py-1 bg-[#1e1f22] rounded-[4px] text-xs font-medium text-[#949ba4]">
-            discord mod
-          </span>
-          <span className="px-2 py-1 bg-[#1e1f22] rounded-[4px] text-xs font-medium text-[#949ba4]">
-            Overwatch
-          </span>
-          <span className="px-2 py-1 bg-[#1e1f22] rounded-[4px] text-xs font-medium text-[#949ba4]">
-            Minecraft
-          </span>
-        </div>
-
-        {/* Note Input */}
-        <div className="relative mb-3">
-          <input
-            type="text"
-            placeholder={`Message @${profile.username}`}
-            className="w-full bg-[#1e1f22] text-[#dbdee1] placeholder-[#949ba4] rounded-[4px] px-3 py-[6px] text-sm focus:outline-none"
-          />
-          <button className="absolute right-2 top-1/2 -translate-y-1/2 text-[#949ba4] hover:text-[#dbdee1]">
-            😊
-          </button>
-        </div>
+        {/* Activity Status */}
+        {profile.activity_status?.text && (
+          <div className="mt-3 p-3 bg-[#1e1f22] rounded-[4px]">
+            <div className="flex items-center gap-2 text-sm text-[#dbdee1] mb-2">
+              <Music className="h-4 w-4 text-[#248046]" />
+              <span className="text-[#248046]">{profile.activity_status.type}</span>
+            </div>
+            <p className="text-sm text-[#dbdee1]">{profile.activity_status.text}</p>
+            {profile.activity_status.emoji && (
+              <span className="text-sm">{profile.activity_status.emoji}</span>
+            )}
+          </div>
+        )}
 
         {/* Action Buttons */}
-        <div className="flex gap-2">
+        <div className="flex gap-2 mt-3">
           <Button 
             onClick={() => followMutation.mutate()}
             className={cn(
@@ -192,27 +187,6 @@ export const ProfileView = ({ userId, onClose }: ProfileViewProps) => {
             Block
           </Button>
         </div>
-
-        {/* Activity */}
-        {profile.status_text && (
-          <div className="mt-3 p-3 bg-[#1e1f22] rounded-[4px]">
-            <div className="flex items-center gap-2 text-sm text-[#dbdee1] mb-2">
-              <Music className="h-4 w-4 text-[#248046]" />
-              <span className="text-[#248046]">Listening to Spotify</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <img 
-                src="https://i.scdn.co/image/ab67616d00004851b3f19e423c620e3dc94cd8bc" 
-                alt="Album art"
-                className="h-12 w-12 rounded"
-              />
-              <div>
-                <p className="text-sm font-medium text-[#dbdee1]">Turning Out Pt. ii</p>
-                <p className="text-xs text-[#949ba4]">AJR</p>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
