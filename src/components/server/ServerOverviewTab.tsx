@@ -1,8 +1,10 @@
 
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
 import { ServerImageUpload } from "./ServerImageUpload";
 import type { ServerSettingsProps } from "./types";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
@@ -14,6 +16,14 @@ export const ServerOverviewTab = ({ server }: ServerSettingsProps) => {
   const { currentUser } = useAuth();
   const queryClient = useQueryClient();
   const isOwner = currentUser?.id === server.owner_id;
+  
+  // Local state for form values
+  const [formData, setFormData] = useState({
+    name: server.name,
+    description: server.description || '',
+    allow_invites: server.allow_invites,
+    require_approval: server.require_approval
+  });
 
   const updateServerSettings = useMutation({
     mutationFn: async (updates: Partial<typeof server>) => {
@@ -29,6 +39,7 @@ export const ServerOverviewTab = ({ server }: ServerSettingsProps) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['server', server.id] });
+      queryClient.invalidateQueries({ queryKey: ['user-servers'] });
       toast.success("Server settings updated successfully");
     },
     onError: (error) => {
@@ -37,15 +48,25 @@ export const ServerOverviewTab = ({ server }: ServerSettingsProps) => {
     }
   });
 
-  const handleSettingToggle = (setting: keyof typeof server, value: boolean) => {
+  const handleSettingToggle = (setting: keyof typeof formData) => {
     if (!isOwner) {
       toast.error("Only the server owner can modify settings");
       return;
     }
     
-    updateServerSettings.mutate({
-      [setting]: value
-    });
+    setFormData(prev => ({
+      ...prev,
+      [setting]: !prev[setting as keyof typeof formData]
+    }));
+  };
+
+  const handleSave = () => {
+    if (!isOwner) {
+      toast.error("Only the server owner can modify settings");
+      return;
+    }
+
+    updateServerSettings.mutate(formData);
   };
 
   return (
@@ -56,8 +77,8 @@ export const ServerOverviewTab = ({ server }: ServerSettingsProps) => {
         <div className="space-y-2">
           <Label>Server Name</Label>
           <Input 
-            value={server.name}
-            onChange={(e) => updateServerSettings.mutate({ name: e.target.value })}
+            value={formData.name}
+            onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
             disabled={!isOwner || updateServerSettings.isPending}
           />
         </div>
@@ -65,8 +86,8 @@ export const ServerOverviewTab = ({ server }: ServerSettingsProps) => {
         <div className="space-y-2">
           <Label>Description</Label>
           <Textarea 
-            value={server.description || ''}
-            onChange={(e) => updateServerSettings.mutate({ description: e.target.value })}
+            value={formData.description}
+            onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
             disabled={!isOwner || updateServerSettings.isPending}
             placeholder="Describe your server..."
           />
@@ -105,8 +126,8 @@ export const ServerOverviewTab = ({ server }: ServerSettingsProps) => {
               </p>
             </div>
             <Switch
-              checked={server.allow_invites}
-              onCheckedChange={(checked) => handleSettingToggle('allow_invites', checked)}
+              checked={formData.allow_invites}
+              onCheckedChange={() => handleSettingToggle('allow_invites')}
               disabled={!isOwner || updateServerSettings.isPending}
             />
           </div>
@@ -119,14 +140,21 @@ export const ServerOverviewTab = ({ server }: ServerSettingsProps) => {
               </p>
             </div>
             <Switch
-              checked={server.require_approval}
-              onCheckedChange={(checked) => handleSettingToggle('require_approval', checked)}
+              checked={formData.require_approval}
+              onCheckedChange={() => handleSettingToggle('require_approval')}
               disabled={!isOwner || updateServerSettings.isPending}
             />
           </div>
+
+          <Button 
+            onClick={handleSave}
+            disabled={!isOwner || updateServerSettings.isPending}
+            className="w-full mt-4"
+          >
+            Save Changes
+          </Button>
         </div>
       </div>
     </div>
   );
 };
-

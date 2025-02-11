@@ -41,8 +41,25 @@ export const ServerMemberList = ({ serverId }: ServerMemberListProps) => {
   });
 
   useEffect(() => {
+    // Subscribe to realtime changes for server members
+    const membersChannel = supabase
+      .channel(`server-members-${serverId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'server_members',
+          filter: `server_id=eq.${serverId}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['server-members', serverId] });
+        }
+      )
+      .subscribe();
+
     // Subscribe to realtime changes for member online status
-    const channel = supabase
+    const presenceChannel = supabase
       .channel(`profiles-presence-${serverId}`)
       .on(
         'postgres_changes',
@@ -59,7 +76,8 @@ export const ServerMemberList = ({ serverId }: ServerMemberListProps) => {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(membersChannel);
+      supabase.removeChannel(presenceChannel);
     };
   }, [serverId, queryClient, members]);
 
