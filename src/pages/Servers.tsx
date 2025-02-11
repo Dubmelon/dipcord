@@ -1,16 +1,19 @@
 
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useQuery } from "@tanstack/react-query";
-import { LogOut } from "lucide-react";
+import { LogOut, Search } from "lucide-react";
 import { toast } from "sonner";
 import { CreateServerForm } from "@/components/servers/CreateServerForm";
 import { ServerList } from "@/components/servers/ServerList";
 import { supabase } from "@/integrations/supabase/client";
 import { Server } from "@/components/dashboard/types";
+import { useState } from "react";
 
 const Servers = () => {
   const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
@@ -26,11 +29,11 @@ const Servers = () => {
   });
 
   const { data: servers, isLoading, error: serversError } = useQuery({
-    queryKey: ['servers'],
+    queryKey: ['servers', searchQuery],
     queryFn: async () => {
       if (!currentUser) return [];
 
-      const { data, error } = await supabase
+      const query = supabase
         .from('servers')
         .select(`
           id,
@@ -46,6 +49,13 @@ const Servers = () => {
           is_member:server_members!inner(user_id)
         `)
         .order('name');
+
+      // If there's a search query, filter by name or description
+      if (searchQuery) {
+        query.or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         throw error;
@@ -96,14 +106,27 @@ const Servers = () => {
         </div>
 
         {currentUser && (
-          <CreateServerForm currentUserId={currentUser.id} />
-        )}
+          <>
+            <div className="mb-6 space-y-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search servers..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <CreateServerForm currentUserId={currentUser.id} />
+            </div>
 
-        <ServerList 
-          servers={servers || []} 
-          currentUserId={currentUser?.id || ''} 
-          isLoading={isLoading}
-        />
+            <ServerList 
+              servers={servers || []} 
+              currentUserId={currentUser.id} 
+              isLoading={isLoading}
+            />
+          </>
+        )}
       </div>
     </div>
   );

@@ -537,9 +537,12 @@ export type Database = {
         Row: {
           color: string | null
           created_at: string
+          icon: string | null
           id: string
+          is_system: boolean | null
           name: string
           permissions: string[]
+          permissions_v2: Json
           position: number
           server_id: string
           updated_at: string
@@ -547,9 +550,12 @@ export type Database = {
         Insert: {
           color?: string | null
           created_at?: string
+          icon?: string | null
           id?: string
+          is_system?: boolean | null
           name: string
           permissions?: string[]
+          permissions_v2?: Json
           position?: number
           server_id: string
           updated_at?: string
@@ -557,9 +563,12 @@ export type Database = {
         Update: {
           color?: string | null
           created_at?: string
+          icon?: string | null
           id?: string
+          is_system?: boolean | null
           name?: string
           permissions?: string[]
+          permissions_v2?: Json
           position?: number
           server_id?: string
           updated_at?: string
@@ -567,6 +576,119 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "roles_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "servers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      server_bans: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          moderator_id: string
+          reason: string | null
+          server_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          moderator_id: string
+          reason?: string | null
+          server_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          moderator_id?: string
+          reason?: string | null
+          server_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "server_bans_moderator_id_fkey"
+            columns: ["moderator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "server_bans_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "servers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "server_bans_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      server_invites: {
+        Row: {
+          code: string
+          created_at: string
+          creator_id: string
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          max_uses: number | null
+          role_id: string | null
+          server_id: string
+          used_count: number | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          creator_id: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          role_id?: string | null
+          server_id: string
+          used_count?: number | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          creator_id?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          role_id?: string | null
+          server_id?: string
+          used_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "server_invites_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "server_invites_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "server_invites_server_id_fkey"
             columns: ["server_id"]
             isOneToOne: false
             referencedRelation: "servers"
@@ -892,6 +1014,10 @@ export type Database = {
       clean_expired_sessions: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      generate_invite_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
     }
     Enums: {

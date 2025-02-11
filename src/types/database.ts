@@ -1,4 +1,3 @@
-
 // Base types
 export interface TurnServer {
   id: string;
@@ -72,8 +71,23 @@ export interface Role {
   server_id: string;
   name: string;
   color: string | null;
+  icon: string | null;
   position: number;
-  permissions: string[];
+  permissions_v2: {
+    MANAGE_CHANNELS: boolean;
+    MANAGE_ROLES: boolean;
+    KICK_MEMBERS: boolean;
+    BAN_MEMBERS: boolean;
+    MANAGE_MESSAGES: boolean;
+    MANAGE_WEBHOOKS: boolean;
+    MANAGE_SERVER: boolean;
+    CREATE_INVITES: boolean;
+    SEND_MESSAGES: boolean;
+    EMBED_LINKS: boolean;
+    ATTACH_FILES: boolean;
+    MENTION_ROLES: boolean;
+  };
+  is_system: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -88,6 +102,32 @@ export interface Thread {
   updated_at: string;
   last_message_at: string;
   creator?: Profile;
+}
+
+export interface ServerInvite {
+  id: string;
+  server_id: string;
+  creator_id: string;
+  code: string;
+  max_uses?: number;
+  used_count: number;
+  expires_at?: string;
+  created_at: string;
+  role_id?: string;
+  is_active: boolean;
+  creator?: Profile;
+}
+
+export interface ServerBan {
+  id: string;
+  server_id: string;
+  user_id: string;
+  moderator_id: string;
+  reason?: string;
+  created_at: string;
+  expires_at?: string;
+  user?: Profile;
+  moderator?: Profile;
 }
 
 // Hook return types
