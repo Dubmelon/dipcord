@@ -67,12 +67,59 @@ export const RolesManagementTab = ({ server }: RolesManagementTabProps) => {
         .order('position', { ascending: false });
 
       if (error) throw error;
+      return data as Role[];
+    }
+  });
+
+  const { data: serverMembers } = useQuery({
+    queryKey: ['server-members', server.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('server_member_roles')
+        .select(`
+          server_member_id,
+          user_id,
+          nickname,
+          role_id,
+          user:profiles!user_id(
+            id,
+            username,
+            avatar_url
+          )
+        `)
+        .eq('server_id', server.id);
+
+      if (error) throw error;
       return data;
     }
   });
 
   const createRole = useMutation({
     mutationFn: async () => {
+      const defaultPermissions: Role['permissions_v2'] = {
+        SEND_MESSAGES: true,
+        VIEW_CHANNELS: true,
+        EMBED_LINKS: true,
+        ATTACH_FILES: true,
+        MANAGE_CHANNELS: false,
+        MANAGE_ROLES: false,
+        KICK_MEMBERS: false,
+        BAN_MEMBERS: false,
+        MANAGE_MESSAGES: false,
+        MANAGE_WEBHOOKS: false,
+        MANAGE_SERVER: false,
+        CREATE_INVITES: true,
+        MENTION_ROLES: true,
+        CREATE_INSTANT_INVITE: true,
+        CHANGE_NICKNAME: true,
+        MANAGE_NICKNAMES: false,
+        MANAGE_EMOJIS: false,
+        ADMINISTRATOR: false,
+        VIEW_AUDIT_LOG: false,
+        VIEW_SERVER_INSIGHTS: false,
+        MODERATE_MEMBERS: false
+      };
+
       const { data, error } = await supabase
         .from('roles')
         .insert({
@@ -80,12 +127,7 @@ export const RolesManagementTab = ({ server }: RolesManagementTabProps) => {
           name: 'New Role',
           color: '#99AAB5',
           position: roles?.length || 0,
-          permissions_v2: {
-            SEND_MESSAGES: true,
-            VIEW_CHANNELS: true,
-            EMBED_LINKS: true,
-            ATTACH_FILES: true,
-          }
+          permissions_v2: defaultPermissions
         })
         .select()
         .single();
@@ -125,6 +167,27 @@ export const RolesManagementTab = ({ server }: RolesManagementTabProps) => {
     }
   });
 
+  const assignRole = useMutation({
+    mutationFn: async ({ userId, roleId }: { userId: string; roleId: string }) => {
+      const { error } = await supabase
+        .from('user_roles')
+        .upsert({
+          user_id: userId,
+          role_id: roleId
+        });
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['server-members', server.id] });
+      toast.success('Role assigned successfully');
+    },
+    onError: (error) => {
+      toast.error('Failed to assign role');
+      console.error('Error assigning role:', error);
+    }
+  });
+
   const deleteRole = useMutation({
     mutationFn: async (roleId: string) => {
       const { error } = await supabase
@@ -150,6 +213,16 @@ export const RolesManagementTab = ({ server }: RolesManagementTabProps) => {
   }
 
   const selectedRole = roles?.find(role => role.id === selectedRoleId);
+
+  const updateRolePermission = (permissionId: keyof Role["permissions_v2"], value: boolean) => {
+    if (!selectedRole) return;
+
+    const newPermissions = {
+      ...selectedRole.permissions_v2,
+      [permissionId]: value
+    };
+    updateRole.mutate({ permissions_v2: newPermissions });
+  };
 
   return (
     <div className="space-y-6">
@@ -255,13 +328,9 @@ export const RolesManagementTab = ({ server }: RolesManagementTabProps) => {
                         </div>
                         <Switch
                           checked={selectedRole.permissions_v2[permission.id]}
-                          onCheckedChange={(checked) => {
-                            const newPermissions = {
-                              ...selectedRole.permissions_v2,
-                              [permission.id]: checked
-                            };
-                            updateRole.mutate({ permissions_v2: newPermissions });
-                          }}
+                          onCheckedChange={(checked) => 
+                            updateRolePermission(permission.id, checked)
+                          }
                           disabled={selectedRole.is_system}
                         />
                       </div>
@@ -269,6 +338,37 @@ export const RolesManagementTab = ({ server }: RolesManagementTabProps) => {
                   </div>
                 </div>
               ))}
+            </div>
+
+            <Separator />
+
+            <div className="space-y-4">
+              <h3 className="font-semibold">Members with this role</h3>
+              <ScrollArea className="h-[200px] border rounded-lg p-4">
+                {serverMembers?.map((member) => (
+                  <div 
+                    key={member.server_member_id}
+                    className="flex items-center justify-between py-2"
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-full bg-accent" />
+                      <span>{member.user?.username || 'Unknown User'}</span>
+                    </div>
+                    <Switch
+                      checked={member.role_id === selectedRole.id}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          assignRole.mutate({
+                            userId: member.user_id,
+                            roleId: selectedRole.id
+                          });
+                        }
+                      }}
+                      disabled={selectedRole.is_system}
+                    />
+                  </div>
+                ))}
+              </ScrollArea>
             </div>
           </div>
         )}
