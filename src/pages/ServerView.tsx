@@ -5,6 +5,7 @@ import { ChannelList } from "@/components/server/ChannelList";
 import { Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ServerContent } from "@/components/server/ServerContent";
+import { ServerMemberList } from "@/components/server/ServerMemberList";
 import { useServerData } from "@/hooks/useServerData";
 import { useChannelData } from "@/hooks/useChannelData";
 import type { Channel } from "@/types/database";
@@ -30,7 +31,7 @@ const ServerView = () => {
     if (isMobile) {
       setSidebarOpen(false);
     }
-  }, [isMobile]);
+  }, [iMobile]);
 
   const selectedChannelType = useMemo(() => 
     channels?.find(c => c.id === selectedChannel)?.type,
@@ -55,7 +56,7 @@ const ServerView = () => {
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: -300, opacity: 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed md:relative left-0 top-0 h-[calc(100vh-4rem)] z-30 w-72"
+            className="fixed md:relative left-0 top-0 h-[calc(100vh-4rem)] z-30 w-72 border-r"
           >
             <ChannelList
               serverId={serverId!}
@@ -81,9 +82,12 @@ const ServerView = () => {
           serverName={server?.name}
         />
       </motion.div>
+
+      <div className="hidden lg:block w-60 border-l">
+        <ServerMemberList serverId={serverId!} />
+      </div>
     </div>
   );
 };
 
 export default ServerView;
-
