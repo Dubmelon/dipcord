@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,6 +10,23 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2, GripVertical, Settings, Shield } from "lucide-react";
 import type { Server, Role } from "@/types/database";
 import { toast } from "sonner";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface RolesManagementTabProps {
   server: Server;
@@ -53,9 +69,59 @@ const permissionGroups: PermissionGroup[] = [
   },
 ];
 
+const SortableRoleItem = ({ role, isSelected, onClick }: { 
+  role: Role; 
+  isSelected: boolean;
+  onClick: () => void;
+}) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({ id: role.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer hover:bg-accent ${
+        isSelected ? 'bg-accent' : ''
+      }`}
+      onClick={onClick}
+      {...attributes}
+    >
+      <div {...listeners} className="cursor-grab">
+        <GripVertical className="w-4 h-4 text-muted-foreground" />
+      </div>
+      <div
+        className="w-3 h-3 rounded-full"
+        style={{ backgroundColor: role.color || '#99AAB5' }}
+      />
+      <span className="flex-1">{role.name}</span>
+      {role.is_system && (
+        <Shield className="w-4 h-4 text-blue-500" />
+      )}
+    </div>
+  );
+};
+
 export const RolesManagementTab = ({ server }: RolesManagementTabProps) => {
   const queryClient = useQueryClient();
   const [selectedRoleId, setSelectedRoleId] = useState<string | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const { data: roles, isLoading } = useQuery({
     queryKey: ['server-roles', server.id],
@@ -67,7 +133,7 @@ export const RolesManagementTab = ({ server }: RolesManagementTabProps) => {
         .order('position', { ascending: false });
 
       if (error) throw error;
-      return data as Role[];
+      return data as Array<Role & { permissions_v2: Role['permissions_v2'] }>;
     }
   });
 
@@ -93,6 +159,47 @@ export const RolesManagementTab = ({ server }: RolesManagementTabProps) => {
       return data;
     }
   });
+
+  const updateRolePositions = useMutation({
+    mutationFn: async (updates: { id: string; position: number }[]) => {
+      const { error } = await supabase
+        .from('roles')
+        .upsert(updates.map(({ id, position }) => ({
+          id,
+          position,
+          updated_at: new Date().toISOString()
+        })));
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['server-roles', server.id] });
+      toast.success('Role positions updated');
+    },
+    onError: (error) => {
+      toast.error('Failed to update role positions');
+      console.error('Error updating role positions:', error);
+    }
+  });
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (!over || active.id === over.id || !roles) {
+      return;
+    }
+
+    const oldIndex = roles.findIndex(role => role.id === active.id);
+    const newIndex = roles.findIndex(role => role.id === over.id);
+    
+    const newRoles = arrayMove(roles, oldIndex, newIndex);
+    const updates = newRoles.map((role, index) => ({
+      id: role.id,
+      position: newRoles.length - index - 1 // Reverse order for hierarchy
+    }));
+
+    updateRolePositions.mutate(updates);
+  };
 
   const createRole = useMutation({
     mutationFn: async () => {
@@ -241,25 +348,25 @@ export const RolesManagementTab = ({ server }: RolesManagementTabProps) => {
         <div className="col-span-4 border rounded-lg">
           <ScrollArea className="h-[600px]">
             <div className="p-4 space-y-2">
-              {roles?.map((role) => (
-                <div
-                  key={role.id}
-                  className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer hover:bg-accent ${
-                    selectedRoleId === role.id ? 'bg-accent' : ''
-                  }`}
-                  onClick={() => setSelectedRoleId(role.id)}
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext
+                  items={roles?.map(role => role.id) ?? []}
+                  strategy={verticalListSortingStrategy}
                 >
-                  <GripVertical className="w-4 h-4 text-muted-foreground" />
-                  <div
-                    className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: role.color || '#99AAB5' }}
-                  />
-                  <span className="flex-1">{role.name}</span>
-                  {role.is_system && (
-                    <Shield className="w-4 h-4 text-blue-500" />
-                  )}
-                </div>
-              ))}
+                  {roles?.map((role) => (
+                    <SortableRoleItem
+                      key={role.id}
+                      role={role}
+                      isSelected={selectedRoleId === role.id}
+                      onClick={() => setSelectedRoleId(role.id)}
+                    />
+                  ))}
+                </SortableContext>
+              </DndContext>
             </div>
           </ScrollArea>
         </div>
