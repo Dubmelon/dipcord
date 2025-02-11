@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ServerContent } from "@/components/server/ServerContent";
 import { ServerMemberList } from "@/components/server/ServerMemberList";
 import { ServerHeader } from "@/components/server/ServerHeader";
+import { ServerNavigationSidebar } from "@/components/server/ServerNavigationSidebar";
 import { useServerData } from "@/hooks/useServerData";
 import { useChannelData } from "@/hooks/useChannelData";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -55,56 +56,62 @@ const ServerView = () => {
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] overflow-hidden">
-      <ServerHeader 
-        server={server} 
-        isMobile={isMobile} 
-        onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} 
-      />
-      
-      <Routes>
-        <Route path="settings/*" element={<ServerSettings server={server} />} />
-        <Route path="" element={
-          <div className="flex flex-1 overflow-hidden">
-            <AnimatePresence mode="wait">
-              {sidebarOpen && (
+      <div className="flex flex-1">
+        <ServerNavigationSidebar />
+        
+        <div className="flex-1 flex flex-col">
+          <ServerHeader 
+            server={server} 
+            isMobile={isMobile} 
+            onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} 
+          />
+          
+          <Routes>
+            <Route path="settings/*" element={<ServerSettings server={server} />} />
+            <Route path="" element={
+              <div className="flex flex-1 overflow-hidden">
+                <AnimatePresence mode="wait">
+                  {sidebarOpen && (
+                    <motion.div
+                      initial={{ x: -300, opacity: 0 }}
+                      animate={{ x: 0, opacity: 1 }}
+                      exit={{ x: -300, opacity: 0 }}
+                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                      className="fixed md:relative left-0 top-0 h-full z-30 w-72 border-r bg-background/80 backdrop-blur-sm"
+                    >
+                      <ChannelList
+                        serverId={serverId!}
+                        channels={channels}
+                        selectedChannel={selectedChannel}
+                        onSelectChannel={handleChannelSelect}
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
                 <motion.div
-                  initial={{ x: -300, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  exit={{ x: -300, opacity: 0 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                  className="fixed md:relative left-0 top-0 h-full z-30 w-72 border-r bg-background/80 backdrop-blur-sm"
+                  layout
+                  className="flex-1 flex flex-col h-full relative"
+                  onClick={handleMessageAreaClick}
                 >
-                  <ChannelList
-                    serverId={serverId!}
-                    channels={channels}
+                  <ServerContent
                     selectedChannel={selectedChannel}
-                    onSelectChannel={handleChannelSelect}
+                    selectedChannelType={selectedChannelType}
+                    isMobile={isMobile}
+                    sidebarOpen={sidebarOpen}
+                    setSidebarOpen={setSidebarOpen}
+                    serverName={server.name}
                   />
                 </motion.div>
-              )}
-            </AnimatePresence>
 
-            <motion.div
-              layout
-              className="flex-1 flex flex-col h-full relative"
-              onClick={handleMessageAreaClick}
-            >
-              <ServerContent
-                selectedChannel={selectedChannel}
-                selectedChannelType={selectedChannelType}
-                isMobile={isMobile}
-                sidebarOpen={sidebarOpen}
-                setSidebarOpen={setSidebarOpen}
-                serverName={server.name}
-              />
-            </motion.div>
-
-            <div className="hidden lg:block w-60 border-l bg-background/80 backdrop-blur-sm">
-              <ServerMemberList serverId={serverId!} />
-            </div>
-          </div>
-        } />
-      </Routes>
+                <div className="hidden lg:block w-60 border-l bg-background/80 backdrop-blur-sm">
+                  <ServerMemberList serverId={serverId!} />
+                </div>
+              </div>
+            } />
+          </Routes>
+        </div>
+      </div>
     </div>
   );
 };
