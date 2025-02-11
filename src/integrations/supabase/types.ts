@@ -982,6 +982,13 @@ export type Database = {
             referencedRelation: "roles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "role_icons_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "server_member_roles"
+            referencedColumns: ["role_id"]
+          },
         ]
       }
       roles: {
@@ -1385,6 +1392,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "roles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "server_invites_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "server_member_roles"
+            referencedColumns: ["role_id"]
           },
           {
             foreignKeyName: "server_invites_server_id_fkey"
@@ -1815,6 +1829,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "user_roles_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "server_member_roles"
+            referencedColumns: ["role_id"]
+          },
+          {
             foreignKeyName: "user_roles_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -2033,6 +2054,7 @@ export type Database = {
           joined_at: string | null
           nickname: string | null
           role_color: string | null
+          role_icon: string | null
           role_id: string | null
           role_name: string | null
           role_position: number | null
@@ -2074,13 +2096,6 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "user_profiles_extended"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_roles_role_id_fkey"
-            columns: ["role_id"]
-            isOneToOne: false
-            referencedRelation: "roles"
             referencedColumns: ["id"]
           },
         ]

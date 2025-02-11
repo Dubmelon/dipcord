@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,6 +7,12 @@ import { CircleDot, Shield, ShieldCheck, UserRound } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { ServerMember } from "@/types/database";
 import { UserContextMenu } from "../shared/UserContextMenu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface ServerMemberListProps {
   serverId: string;
@@ -49,7 +54,6 @@ export const ServerMemberList = ({ serverId }: ServerMemberListProps) => {
 
       if (error) throw error;
 
-      // Transform the data to match the ServerMember type
       const transformedMembers = serverMembers.map(member => ({
         id: member.server_member_id,
         server_id: member.server_id,
@@ -117,6 +121,26 @@ export const ServerMemberList = ({ serverId }: ServerMemberListProps) => {
     };
   }, [serverId, queryClient]);
 
+  const renderRoleTooltip = (role: ServerMember['roles'][0]['role']) => (
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        {role.icon && (
+          <img 
+            src={role.icon} 
+            alt={`${role.name} icon`}
+            className="w-6 h-6 rounded-full"
+          />
+        )}
+        <span className="font-semibold" style={{ color: role.color || undefined }}>
+          {role.name}
+        </span>
+      </div>
+      <div className="text-xs text-muted-foreground">
+        Position: {role.position}
+      </div>
+    </div>
+  );
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-4">
@@ -125,7 +149,6 @@ export const ServerMemberList = ({ serverId }: ServerMemberListProps) => {
     );
   }
 
-  // Group members by role and online status
   const roleGroups = members?.reduce((acc, member) => {
     const role = member.roles?.[0]?.role;
     const key = role ? `role-${role.id}` : 'no-role';
@@ -158,33 +181,44 @@ export const ServerMemberList = ({ serverId }: ServerMemberListProps) => {
               exit={{ opacity: 0, y: -20 }}
               className="space-y-2"
             >
-              <h4 className="text-sm font-semibold mb-2 text-muted-foreground flex items-center gap-2">
-                {group.role ? (
-                  <>
-                    {group.role.position > 5 ? (
-                      <ShieldCheck className="h-4 w-4" style={{ color: group.role.color || undefined }} />
-                    ) : (
-                      <Shield className="h-4 w-4" style={{ color: group.role.color || undefined }} />
-                    )}
-                    <span style={{ color: group.role.color || undefined }}>
-                      {group.role.name}
-                    </span>
-                    {group.role.icon && (
-                      <img 
-                        src={group.role.icon} 
-                        alt={`${group.role.name} icon`}
-                        className="w-4 h-4 rounded-full"
-                      />
-                    )}
-                  </>
-                ) : (
-                  <>
-                    <UserRound className="h-4 w-4" />
-                    <span>Members</span>
-                  </>
-                )}
-                <span className="text-xs ml-2">— {group.members.length}</span>
-              </h4>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <h4 className="text-sm font-semibold mb-2 text-muted-foreground flex items-center gap-2 cursor-help">
+                      {group.role ? (
+                        <>
+                          {group.role.position > 5 ? (
+                            <ShieldCheck className="h-4 w-4" style={{ color: group.role.color || undefined }} />
+                          ) : (
+                            <Shield className="h-4 w-4" style={{ color: group.role.color || undefined }} />
+                          )}
+                          <span style={{ color: group.role.color || undefined }}>
+                            {group.role.name}
+                          </span>
+                          {group.role.icon && (
+                            <img 
+                              src={group.role.icon} 
+                              alt={`${group.role.name} icon`}
+                              className="w-4 h-4 rounded-full"
+                            />
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <UserRound className="h-4 w-4" />
+                          <span>Members</span>
+                        </>
+                      )}
+                      <span className="text-xs ml-2">— {group.members.length}</span>
+                    </h4>
+                  </TooltipTrigger>
+                  {group.role && (
+                    <TooltipContent side="right">
+                      {renderRoleTooltip(group.role)}
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              </TooltipProvider>
 
               <div className="space-y-0.5">
                 {group.members.map((member) => (
@@ -205,9 +239,13 @@ export const ServerMemberList = ({ serverId }: ServerMemberListProps) => {
                           <CircleDot className="h-3 w-3 text-green-500 absolute -bottom-0.5 -right-0.5" />
                         )}
                       </div>
-                      <span className={`text-sm font-medium transition-colors ${
-                        member.user?.is_online ? 'text-foreground' : 'text-muted-foreground'
-                      } group-hover:text-foreground`}>
+                      <span 
+                        className={`text-sm font-medium transition-colors group-hover:text-foreground`}
+                        style={{ 
+                          color: member.roles?.[0]?.role?.color || 
+                            (member.user?.is_online ? 'var(--foreground)' : 'var(--muted-foreground)')
+                        }}
+                      >
                         {member.nickname || member.user?.username}
                       </span>
                     </motion.div>
