@@ -24,6 +24,8 @@ export const ServerMemberList = ({ serverId }: ServerMemberListProps) => {
         .from('server_members')
         .select(`
           id,
+          server_id,
+          user_id,
           nickname,
           joined_at,
           user:profiles(

@@ -1,4 +1,3 @@
-
 // Base types
 export interface TurnServer {
   id: string;
@@ -72,6 +71,14 @@ export interface ServerMember {
   nickname: string | null;
   joined_at: string;
   user?: Profile;
+  roles?: {
+    role?: {
+      id: string;
+      name: string;
+      color: string | null;
+      position: number;
+    };
+  }[];
 }
 
 export interface Role {
