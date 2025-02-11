@@ -130,31 +130,31 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
   };
 
   // Group channels by their category
-  const channelsByCategory = channels?.reduce((acc, channel) => {
+  const channelsByCategory = (channels || []).reduce((acc, channel) => {
     const category = channel.category ?? 'general';
     if (!acc[category]) {
       acc[category] = [];
     }
     acc[category].push(channel);
     return acc;
-  }, {} as Record<ChannelCategory, Channel[]>) || {};
+  }, {} as Record<ChannelCategory, Channel[]>);
 
   return (
-    <div className="w-60 h-full bg-muted/80 backdrop-blur-xl flex flex-col">
+    <div className="w-full h-full bg-muted/50 backdrop-blur-xl flex flex-col">
       <ScrollArea className="flex-1">
-        <div className="p-2">
+        <div className="p-2 space-y-4">
           {Object.entries(channelsByCategory).map(([category, categoryChannels]) => (
-            <div key={category} className="mb-4">
+            <div key={category} className="space-y-1">
               <button
                 onClick={() => toggleCategory(category)}
-                className="flex items-center gap-1 px-1 py-1 w-full hover:bg-accent/50 rounded-md transition-colors"
+                className="flex items-center gap-1 px-2 py-1.5 w-full hover:bg-accent/50 rounded-md transition-colors"
               >
                 {expandedCategories[category] ? (
                   <ChevronDown className="h-3 w-3" />
                 ) : (
                   <ChevronRight className="h-3 w-3" />
                 )}
-                <span className="text-xs font-semibold uppercase">
+                <span className="text-xs font-semibold uppercase text-muted-foreground">
                   {category}
                 </span>
               </button>
@@ -166,7 +166,7 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
                     animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.2 }}
-                    className="ml-2 space-y-1 overflow-hidden"
+                    className="ml-2 space-y-0.5 overflow-hidden"
                   >
                     {categoryChannels.map((channel) => (
                       <motion.button
@@ -178,11 +178,11 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
                         className={`w-full p-2 flex items-center space-x-2 rounded-lg transition-all ${
                           selectedChannel === channel.id 
                             ? 'bg-accent text-accent-foreground' 
-                            : 'hover:bg-accent/50'
+                            : 'hover:bg-accent/50 text-muted-foreground hover:text-foreground'
                         }`}
                       >
                         {getChannelIcon(channel.type)}
-                        <span className="truncate">{channel.name}</span>
+                        <span className="truncate text-sm">{channel.name}</span>
                       </motion.button>
                     ))}
                   </motion.div>

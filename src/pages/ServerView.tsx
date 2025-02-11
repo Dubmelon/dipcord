@@ -55,15 +55,15 @@ const ServerView = () => {
   }
 
   return (
-    <div className="flex h-full">
+    <div className="flex h-full bg-background">
       <ServerNavigationSidebar />
       
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-h-screen max-h-screen overflow-hidden">
         <Routes>
           <Route path="settings/*" element={<ServerSettings server={server} />} />
           <Route path="user-settings/*" element={<ServerUserSettings />} />
           <Route path="" element={
-            <div className="flex flex-1 h-full">
+            <div className="flex flex-1 h-full overflow-hidden">
               <AnimatePresence mode="wait">
                 {sidebarOpen && (
                   <motion.div
@@ -71,11 +71,11 @@ const ServerView = () => {
                     animate={{ x: 0, opacity: 1 }}
                     exit={{ x: -300, opacity: 0 }}
                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                    className="fixed md:relative left-0 top-0 h-full z-30 w-72 border-r bg-background/80 backdrop-blur-sm"
+                    className="fixed md:relative left-0 top-0 h-full z-30 md:w-72 w-64 border-r bg-muted/50 backdrop-blur-sm"
                   >
                     <ChannelList
                       serverId={serverId!}
-                      channels={channels}
+                      channels={channels || []}
                       selectedChannel={selectedChannel}
                       onSelectChannel={handleChannelSelect}
                     />
@@ -85,7 +85,7 @@ const ServerView = () => {
 
               <motion.div
                 layout
-                className="flex-1 flex flex-col h-full"
+                className="flex-1 flex flex-col h-full overflow-hidden"
                 onClick={handleMessageAreaClick}
               >
                 <ServerHeader 
@@ -103,7 +103,7 @@ const ServerView = () => {
                 />
               </motion.div>
 
-              <div className="hidden lg:block w-60 border-l bg-background/80 backdrop-blur-sm">
+              <div className="hidden lg:block w-60 border-l bg-muted/50 backdrop-blur-sm overflow-y-auto">
                 <ServerMemberList serverId={serverId!} />
               </div>
             </div>
