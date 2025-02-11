@@ -4,7 +4,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { CircleDot } from "lucide-react";
+import { CircleDot, Shield, ShieldCheck, UserRound } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import type { ServerMember } from "@/types/database";
 import { UserContextMenu } from "../shared/UserContextMenu";
 
@@ -19,7 +20,7 @@ export const ServerMemberList = ({ serverId }: ServerMemberListProps) => {
     queryKey: ['server-members', serverId],
     queryFn: async () => {
       console.log('[ServerMemberList] Fetching members');
-      const { data, error } = await supabase
+      const { data: serverMembers, error } = await supabase
         .from('server_members')
         .select(`
           id,
@@ -31,16 +32,24 @@ export const ServerMemberList = ({ serverId }: ServerMemberListProps) => {
             avatar_url,
             is_online,
             last_seen
+          ),
+          roles:user_roles(
+            role:roles(
+              id,
+              name,
+              color,
+              position
+            )
           )
         `)
         .eq('server_id', serverId)
         .order('joined_at', { ascending: true });
 
       if (error) throw error;
-      return data as ServerMember[];
+      return serverMembers as ServerMember[];
     },
-    staleTime: 0, // Force refresh on every mount
-    refetchOnMount: true // Always refetch when component mounts
+    staleTime: 0,
+    refetchOnMount: true
   });
 
   useEffect(() => {
@@ -94,60 +103,87 @@ export const ServerMemberList = ({ serverId }: ServerMemberListProps) => {
     );
   }
 
-  const onlineMembers = members?.filter(member => member.user?.is_online) || [];
-  const offlineMembers = members?.filter(member => !member.user?.is_online) || [];
+  // Group members by role and online status
+  const roleGroups = members?.reduce((acc, member) => {
+    const role = member.roles?.[0]?.role;
+    const key = role ? `role-${role.id}` : 'no-role';
+    if (!acc[key]) {
+      acc[key] = {
+        role,
+        members: [],
+      };
+    }
+    acc[key].members.push(member);
+    return acc;
+  }, {} as Record<string, { role?: any, members: ServerMember[] }>);
+
+  const sortedGroups = Object.entries(roleGroups || {}).sort((a, b) => {
+    if (!a[1].role && b[1].role) return 1;
+    if (a[1].role && !b[1].role) return -1;
+    if (!a[1].role && !b[1].role) return 0;
+    return (b[1].role.position || 0) - (a[1].role.position || 0);
+  });
 
   return (
     <ScrollArea className="h-[calc(100vh-4rem)]">
       <div className="p-4 space-y-6">
-        <div>
-          <h4 className="text-sm font-semibold mb-2 text-muted-foreground">
-            Online — {onlineMembers.length}
-          </h4>
-          <div className="space-y-2">
-            {onlineMembers.map((member) => (
-              <UserContextMenu key={member.id} userId={member.user?.id}>
-                <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5">
-                  <div className="relative">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={member.user?.avatar_url || ''} />
-                      <AvatarFallback>
-                        {member.user?.username.substring(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <CircleDot className="h-3 w-3 text-green-500 absolute -bottom-0.5 -right-0.5" />
-                  </div>
-                  <span className="text-sm font-medium">
-                    {member.nickname || member.user?.username}
-                  </span>
-                </div>
-              </UserContextMenu>
-            ))}
-          </div>
-        </div>
+        <AnimatePresence mode="popLayout">
+          {sortedGroups.map(([key, group]) => (
+            <motion.div
+              key={key}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="space-y-2"
+            >
+              <h4 className="text-sm font-semibold mb-2 text-muted-foreground flex items-center gap-2">
+                {group.role ? (
+                  <>
+                    {group.role.position > 5 ? <ShieldCheck className="h-4 w-4" /> : <Shield className="h-4 w-4" />}
+                    <span style={{ color: group.role.color || undefined }}>
+                      {group.role.name}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <UserRound className="h-4 w-4" />
+                    <span>Members</span>
+                  </>
+                )}
+                <span className="text-xs ml-2">— {group.members.length}</span>
+              </h4>
 
-        <div>
-          <h4 className="text-sm font-semibold mb-2 text-muted-foreground">
-            Offline — {offlineMembers.length}
-          </h4>
-          <div className="space-y-2">
-            {offlineMembers.map((member) => (
-              <UserContextMenu key={member.id} userId={member.user?.id}>
-                <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={member.user?.avatar_url || ''} />
-                    <AvatarFallback>
-                      {member.user?.username.substring(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="text-sm font-medium text-muted-foreground">
-                    {member.nickname || member.user?.username}
-                  </span>
-                </div>
-              </UserContextMenu>
-            ))}
-          </div>
-        </div>
+              <div className="space-y-0.5">
+                {group.members.map((member) => (
+                  <UserContextMenu key={member.id} userId={member.user?.id}>
+                    <motion.div
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 group"
+                    >
+                      <div className="relative">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={member.user?.avatar_url || ''} />
+                          <AvatarFallback>
+                            {member.user?.username.substring(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        {member.user?.is_online && (
+                          <CircleDot className="h-3 w-3 text-green-500 absolute -bottom-0.5 -right-0.5" />
+                        )}
+                      </div>
+                      <span className={`text-sm font-medium transition-colors ${
+                        member.user?.is_online ? 'text-foreground' : 'text-muted-foreground'
+                      } group-hover:text-foreground`}>
+                        {member.nickname || member.user?.username}
+                      </span>
+                    </motion.div>
+                  </UserContextMenu>
+                ))}
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </div>
     </ScrollArea>
   );

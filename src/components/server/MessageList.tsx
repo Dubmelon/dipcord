@@ -1,9 +1,9 @@
 
-
 import { useEffect, useRef, useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2 } from "lucide-react";
 import { MessageItem } from "./message/MessageItem";
+import { motion, AnimatePresence } from "framer-motion";
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
 
@@ -65,41 +65,74 @@ export const MessageList = ({
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="flex items-center justify-center h-full"
+      >
         <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
+      </motion.div>
     );
   }
 
   if (!messages.length) {
     return (
-      <div className="flex items-center justify-center h-full text-muted-foreground">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex items-center justify-center h-full text-muted-foreground"
+      >
         <p>{emptyMessage}</p>
-      </div>
+      </motion.div>
     );
   }
 
+  const messageGroups = messages.reduce((groups, message) => {
+    const date = new Date(message.created_at).toLocaleDateString();
+    if (!groups[date]) {
+      groups[date] = [];
+    }
+    groups[date].push(message);
+    return groups;
+  }, {} as Record<string, Message[]>);
+
   return (
-    <div className="flex-1 h-[calc(100vh-16rem)] overflow-hidden"> {/* Adjusted height to account for input */}
+    <div className="flex-1 h-[calc(100vh-16rem)] overflow-hidden">
       <ScrollArea 
         ref={scrollRef} 
-        className="h-full pb-20" /* Added bottom padding to prevent message overlap */
+        className="h-full px-4"
         onScrollCapture={handleScroll}
       >
-        <div className="space-y-2 p-4">
-          {messages.map((message) => (
-            <MessageItem
-              key={message.id}
-              id={message.id}
-              content={message.content}
-              created_at={message.created_at}
-              sender={message.sender}
-              media_urls={message.media_urls}
-            />
-          ))}
+        <div className="space-y-4 py-4">
+          <AnimatePresence mode="popLayout">
+            {Object.entries(messageGroups).map(([date, groupMessages]) => (
+              <motion.div
+                key={date}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="space-y-2"
+              >
+                <div className="sticky top-0 z-10 flex items-center justify-center">
+                  <span className="px-2 py-1 text-xs text-muted-foreground bg-background/80 backdrop-blur-sm rounded">
+                    {date}
+                  </span>
+                </div>
+                {groupMessages.map((message) => (
+                  <MessageItem
+                    key={message.id}
+                    id={message.id}
+                    content={message.content}
+                    created_at={message.created_at}
+                    sender={message.sender}
+                    media_urls={message.media_urls}
+                  />
+                ))}
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
       </ScrollArea>
     </div>
   );
 };
-
