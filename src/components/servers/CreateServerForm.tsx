@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Plus } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import type { Server } from "@/types/database";
 
 interface CreateServerFormProps {
   currentUserId: string;
@@ -18,19 +20,43 @@ export const CreateServerForm = ({ currentUserId }: CreateServerFormProps) => {
 
   const createServer = useMutation({
     mutationFn: async ({ name, description }: { name: string; description: string }) => {
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log("[CreateServerForm] Creating server:", { name, description });
       
-      // Mock server creation
-      return {
-        id: Math.random().toString(),
-        name,
-        description,
-        owner_id: currentUserId,
-        is_private: false,
-        member_count: 1,
-        avatar_url: null
-      };
+      const { data, error } = await supabase
+        .from('servers')
+        .insert([
+          {
+            name,
+            description,
+            owner_id: currentUserId,
+            is_private: false,
+            member_count: 1,
+          }
+        ])
+        .select()
+        .single();
+        
+      if (error) {
+        console.error("[CreateServerForm] Error creating server:", error);
+        throw error;
+      }
+      
+      // Also create server_members entry for the owner
+      const { error: memberError } = await supabase
+        .from('server_members')
+        .insert([
+          {
+            server_id: data.id,
+            user_id: currentUserId,
+          }
+        ]);
+        
+      if (memberError) {
+        console.error("[CreateServerForm] Error adding owner as member:", memberError);
+        throw memberError;
+      }
+
+      return data as Server;
     },
     onSuccess: () => {
       setNewServerName("");
@@ -39,7 +65,8 @@ export const CreateServerForm = ({ currentUserId }: CreateServerFormProps) => {
       toast.success("Server created successfully!");
     },
     onError: (error: Error) => {
-      toast.error(error.message);
+      console.error("[CreateServerForm] Mutation error:", error);
+      toast.error("Failed to create server: " + error.message);
     }
   });
 
