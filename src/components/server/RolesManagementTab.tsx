@@ -24,6 +24,7 @@ import type { Server, Role } from "@/types/database";
 import { RoleListItem } from "./roles/RoleList";
 import { RoleEditor } from "./roles/RoleEditor";
 import { RoleMemberList } from "./roles/RoleMemberList";
+import { RoleHierarchy } from "./roles/RoleHierarchy";
 
 interface RolesManagementTabProps {
   server: Server;
@@ -285,30 +286,15 @@ export const RolesManagementTab = ({ server }: RolesManagementTabProps) => {
       </div>
 
       <div className="grid grid-cols-12 gap-6">
-        <div className="col-span-4 border rounded-lg">
-          <ScrollArea className="h-[600px]">
-            <div className="p-4 space-y-2">
-              <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragEnd={handleDragEnd}
-              >
-                <SortableContext
-                  items={roles?.map(role => role.id) ?? []}
-                  strategy={verticalListSortingStrategy}
-                >
-                  {roles?.map((role) => (
-                    <RoleListItem
-                      key={role.id}
-                      role={role}
-                      isSelected={selectedRoleId === role.id}
-                      onClick={() => setSelectedRoleId(role.id)}
-                    />
-                  ))}
-                </SortableContext>
-              </DndContext>
-            </div>
-          </ScrollArea>
+        <div className="col-span-4 space-y-4">
+          <RoleHierarchy
+            serverId={server.id}
+            selectedRoleId={selectedRoleId}
+            onSelectRole={setSelectedRoleId}
+          />
+          <p className="text-sm text-muted-foreground text-center">
+            Drag roles to reorder them. Higher roles can manage lower roles.
+          </p>
         </div>
 
         {selectedRole && (

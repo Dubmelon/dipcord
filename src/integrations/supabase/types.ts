@@ -1057,6 +1057,7 @@ export type Database = {
           permissions: string[]
           permissions_v2: Json
           position: number
+          read_message_history: boolean | null
           server_id: string
           updated_at: string
         }
@@ -1073,6 +1074,7 @@ export type Database = {
           permissions?: string[]
           permissions_v2?: Json
           position?: number
+          read_message_history?: boolean | null
           server_id: string
           updated_at?: string
         }
@@ -1089,6 +1091,7 @@ export type Database = {
           permissions?: string[]
           permissions_v2?: Json
           position?: number
+          read_message_history?: boolean | null
           server_id?: string
           updated_at?: string
         }
