@@ -71,7 +71,7 @@ const ServerView = () => {
                     animate={{ x: 0, opacity: 1 }}
                     exit={{ x: -300, opacity: 0 }}
                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                    className="fixed md:relative left-0 top-0 h-full z-30 md:w-60 w-56 border-r bg-muted/50 backdrop-blur-sm"
+                    className="fixed md:relative left-0 top-0 h-full z-30 md:w-52 w-52 border-r bg-muted/50 backdrop-blur-sm"
                   >
                     <ChannelList
                       serverId={serverId!}

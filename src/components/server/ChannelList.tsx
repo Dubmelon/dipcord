@@ -141,7 +141,7 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
 
   return (
     <div className="w-full h-full bg-muted/50 backdrop-blur-xl flex flex-col relative">
-      <ScrollArea className="flex-1 pb-14">
+      <ScrollArea className="flex-1 pb-8">
         <div className="p-2 space-y-4">
           {Object.entries(channelsByCategory).map(([category, categoryChannels]) => (
             <div key={category} className="space-y-1">
@@ -193,149 +193,16 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
         </div>
       </ScrollArea>
 
-      {/* Create Channel/Folder Buttons */}
-      <div className="p-2 space-y-2">
-        <Dialog open={isCreatingChannel} onOpenChange={setIsCreatingChannel}>
-          <DialogTrigger asChild>
-            <Button variant="ghost" size="sm" className="w-full justify-start">
-              <Plus className="h-4 w-4 mr-2" />
-              Create Channel
-            </Button>
-          </DialogTrigger>
-
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create Channel</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label>Channel Name</Label>
-                <Input
-                  placeholder="Channel name"
-                  value={newChannelName}
-                  onChange={(e) => setNewChannelName(e.target.value)}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label>Category</Label>
-                <Select
-                  value={newChannelCategory}
-                  onValueChange={(value) => setNewChannelCategory(value as ChannelCategory)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {CHANNEL_CATEGORIES.map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {category.charAt(0).toUpperCase() + category.slice(1)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label>Channel Type</Label>
-                <div className="grid grid-cols-2 gap-2">
-                  {(['text', 'voice', 'forum', 'announcement'] as const).map((type) => (
-                    <Button
-                      key={type}
-                      variant={newChannelType === type ? 'default' : 'outline'}
-                      onClick={() => setNewChannelType(type)}
-                      className="flex items-center justify-center gap-2"
-                    >
-                      {getChannelIcon(type)}
-                      {type.charAt(0).toUpperCase() + type.slice(1)}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-              
-              <Button
-                className="w-full"
-                onClick={() => createChannel.mutate()}
-                disabled={!newChannelName.trim()}
-              >
-                Create Channel
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        <Dialog open={isCreatingFolder} onOpenChange={setIsCreatingFolder}>
-          <DialogTrigger asChild>
-            <Button variant="ghost" size="sm" className="w-full justify-start">
-              <FolderPlus className="h-4 w-4 mr-2" />
-              Create Folder
-            </Button>
-          </DialogTrigger>
-
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create Folder</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label>Folder Name</Label>
-                <Input
-                  placeholder="Folder name"
-                  value={newFolderName}
-                  onChange={(e) => setNewFolderName(e.target.value)}
-                />
-              </div>
-              
-              <Button
-                className="w-full"
-                onClick={() => createFolder.mutate()}
-                disabled={!newFolderName.trim()}
-              >
-                Create Folder
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      {/* User Controls - Fixed at bottom with Discord-like styling */}
-      <div className="absolute bottom-0 left-0 right-0 h-13 px-2 py-2 border-t border-border bg-background/95 backdrop-blur-md">
-        <div className="flex items-center gap-2">
-          <Avatar className="h-8 w-8">
-            <AvatarImage src={currentUser?.avatar_url || ''} />
-            <AvatarFallback>{currentUser?.username?.charAt(0)}</AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">{currentUser?.username}</p>
-            <p className="text-xs text-muted-foreground">Online</p>
-          </div>
-          <div className="flex gap-0.5">
-            <Button
-              variant="ghost"
-              size="icon"
-              className={`h-8 w-8 ${isMuted ? 'text-destructive' : ''}`}
-              onClick={() => setIsMuted(!isMuted)}
-            >
-              <Mic className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className={`h-8 w-8 ${isDeafened ? 'text-destructive' : ''}`}
-              onClick={() => setIsDeafened(!isDeafened)}
-            >
-              <Headphones className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => navigate(`/settings/servers/${serverId}/user`)}
-            >
-              <Settings className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
+      {/* Settings button at the bottom */}
+      <div className="absolute bottom-0 left-0 right-0 px-2 py-2 bg-background/95 backdrop-blur-md">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={() => navigate(`/settings/servers/${serverId}/user`)}
+        >
+          <Settings2 className="h-4 w-4" />
+        </Button>
       </div>
     </div>
   );
