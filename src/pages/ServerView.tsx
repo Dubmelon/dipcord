@@ -55,7 +55,7 @@ const ServerView = () => {
   }
 
   return (
-    <div className="flex fixed inset-0">
+    <div className="flex fixed inset-0 pt-16"> {/* Added pt-16 for Navigation offset */}
       <ServerNavigationSidebar />
       
       <div className="flex flex-1">

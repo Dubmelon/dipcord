@@ -82,14 +82,14 @@ export const ServerContent = ({
         </div>
       ) : (
         <>
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 overflow-hidden pt-14">
             <MessageList 
               messages={messages || []} 
               isLoading={loadingMessages}
               emptyMessage="No messages in this channel yet"
             />
           </div>
-          <div className="p-4 bg-background/80 backdrop-blur-sm border-t">
+          <div className="px-4 py-2 bg-background/80 backdrop-blur-sm border-t">
             <MessageInput channelId={selectedChannel} />
           </div>
         </>
