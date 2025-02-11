@@ -32,6 +32,7 @@ export const ServerMemberList = ({ serverId }: ServerMemberListProps) => {
           role_name,
           role_color,
           role_position,
+          role_icon,
           user:profiles!user_id(
             id,
             username,
@@ -43,6 +44,7 @@ export const ServerMemberList = ({ serverId }: ServerMemberListProps) => {
           )
         `)
         .eq('server_id', serverId)
+        .order('role_position', { ascending: false })
         .order('joined_at', { ascending: true });
 
       if (error) throw error;
@@ -60,7 +62,8 @@ export const ServerMemberList = ({ serverId }: ServerMemberListProps) => {
             id: member.role_id,
             name: member.role_name,
             color: member.role_color,
-            position: member.role_position
+            position: member.role_position,
+            icon: member.role_icon
           }
         }] : []
       }));
@@ -158,10 +161,21 @@ export const ServerMemberList = ({ serverId }: ServerMemberListProps) => {
               <h4 className="text-sm font-semibold mb-2 text-muted-foreground flex items-center gap-2">
                 {group.role ? (
                   <>
-                    {group.role.position > 5 ? <ShieldCheck className="h-4 w-4" /> : <Shield className="h-4 w-4" />}
+                    {group.role.position > 5 ? (
+                      <ShieldCheck className="h-4 w-4" style={{ color: group.role.color || undefined }} />
+                    ) : (
+                      <Shield className="h-4 w-4" style={{ color: group.role.color || undefined }} />
+                    )}
                     <span style={{ color: group.role.color || undefined }}>
                       {group.role.name}
                     </span>
+                    {group.role.icon && (
+                      <img 
+                        src={group.role.icon} 
+                        alt={`${group.role.name} icon`}
+                        className="w-4 h-4 rounded-full"
+                      />
+                    )}
                   </>
                 ) : (
                   <>
@@ -178,7 +192,7 @@ export const ServerMemberList = ({ serverId }: ServerMemberListProps) => {
                     <motion.div
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
-                      className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 group"
+                      className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 group cursor-pointer"
                     >
                       <div className="relative">
                         <Avatar className="h-8 w-8">
