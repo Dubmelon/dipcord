@@ -55,15 +55,15 @@ const ServerView = () => {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="flex fixed inset-0">
       <ServerNavigationSidebar />
       
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex flex-1">
         <Routes>
           <Route path="settings/*" element={<ServerSettings server={server} />} />
           <Route path="user-settings/*" element={<ServerUserSettings />} />
           <Route path="" element={
-            <div className="flex flex-1 overflow-hidden">
+            <div className="flex flex-1">
               <AnimatePresence mode="wait">
                 {sidebarOpen && (
                   <motion.div
@@ -71,7 +71,7 @@ const ServerView = () => {
                     animate={{ x: 0, opacity: 1 }}
                     exit={{ x: -300, opacity: 0 }}
                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                    className="w-60 flex flex-col h-screen overflow-hidden relative z-30"
+                    className="w-60 flex flex-col relative z-30"
                   >
                     <ServerHeader 
                       server={server} 
@@ -92,7 +92,7 @@ const ServerView = () => {
 
               <motion.div
                 layout
-                className="flex-1 flex flex-col overflow-hidden"
+                className="flex-1 flex flex-col"
                 onClick={handleMessageAreaClick}
               >
                 <ServerContent
@@ -105,7 +105,7 @@ const ServerView = () => {
                 />
               </motion.div>
 
-              <div className="hidden lg:block w-60 overflow-hidden">
+              <div className="hidden lg:block w-60">
                 <ServerMemberList serverId={serverId!} />
               </div>
             </div>
