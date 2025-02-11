@@ -85,7 +85,7 @@ export const ServerMemberList = ({ serverId }: ServerMemberListProps) => {
           <div className="space-y-2">
             {onlineMembers.map((member) => (
               <UserContextMenu key={member.id} userId={member.user?.id}>
-                <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 cursor-pointer">
+                <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5">
                   <div className="relative">
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={member.user?.avatar_url || ''} />
@@ -112,7 +112,7 @@ export const ServerMemberList = ({ serverId }: ServerMemberListProps) => {
           <div className="space-y-2">
             {offlineMembers.map((member) => (
               <UserContextMenu key={member.id} userId={member.user?.id}>
-                <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 cursor-pointer">
+                <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5">
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={member.user?.avatar_url || ''} />
                     <AvatarFallback>
