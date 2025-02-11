@@ -81,18 +81,18 @@ export const ServerContent = ({
           <p>{selectedChannelType === 'forum' ? 'Forum' : 'Announcement'} channel functionality coming soon</p>
         </div>
       ) : (
-        <>
-          <div className="flex-1 overflow-hidden">
+        <div className="flex flex-col h-full">
+          <div className="flex-1 overflow-y-auto">
             <MessageList 
               messages={messages || []} 
               isLoading={loadingMessages}
               emptyMessage="No messages in this channel yet"
             />
           </div>
-          <div className="px-4 py-2 bg-background/80 backdrop-blur-sm border-t">
+          <div className="w-full px-4 py-2 bg-background/80 backdrop-blur-sm border-t">
             <MessageInput channelId={selectedChannel} />
           </div>
-        </>
+        </div>
       )}
     </motion.div>
   );
