@@ -19,9 +19,15 @@ export interface Server {
   is_private: boolean;
   member_count: number;
   owner_id: string;
-  settings_id: string;
   created_at: string;
   updated_at: string;
+  // Server settings
+  default_channel_id: string | null;
+  allow_invites: boolean;
+  require_approval: boolean;
+  explicit_content_filter: boolean;
+  default_notification_level: string;
+  verification_level: number;
   // Extended properties
   is_member?: boolean;
   owner?: Profile;

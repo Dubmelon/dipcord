@@ -842,45 +842,67 @@ export type Database = {
       }
       servers: {
         Row: {
+          allow_invites: boolean | null
           banner_url: string | null
           created_at: string
+          default_channel_id: string | null
+          default_notification_level: string | null
           description: string | null
+          explicit_content_filter: boolean | null
           icon_url: string | null
           id: string
           is_private: boolean | null
           member_count: number | null
           name: string
           owner_id: string
-          settings_id: string
+          require_approval: boolean | null
           updated_at: string
+          verification_level: number | null
         }
         Insert: {
+          allow_invites?: boolean | null
           banner_url?: string | null
           created_at?: string
+          default_channel_id?: string | null
+          default_notification_level?: string | null
           description?: string | null
+          explicit_content_filter?: boolean | null
           icon_url?: string | null
           id?: string
           is_private?: boolean | null
           member_count?: number | null
           name: string
           owner_id: string
-          settings_id?: string
+          require_approval?: boolean | null
           updated_at?: string
+          verification_level?: number | null
         }
         Update: {
+          allow_invites?: boolean | null
           banner_url?: string | null
           created_at?: string
+          default_channel_id?: string | null
+          default_notification_level?: string | null
           description?: string | null
+          explicit_content_filter?: boolean | null
           icon_url?: string | null
           id?: string
           is_private?: boolean | null
           member_count?: number | null
           name?: string
           owner_id?: string
-          settings_id?: string
+          require_approval?: boolean | null
           updated_at?: string
+          verification_level?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "servers_default_channel_id_fkey"
+            columns: ["default_channel_id"]
+            isOneToOne: false
+            referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "servers_owner_id_fkey"
             columns: ["owner_id"]
