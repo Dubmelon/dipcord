@@ -851,6 +851,7 @@ export type Database = {
           member_count: number | null
           name: string
           owner_id: string
+          settings_id: string
           updated_at: string
         }
         Insert: {
@@ -863,6 +864,7 @@ export type Database = {
           member_count?: number | null
           name: string
           owner_id: string
+          settings_id?: string
           updated_at?: string
         }
         Update: {
@@ -875,6 +877,7 @@ export type Database = {
           member_count?: number | null
           name?: string
           owner_id?: string
+          settings_id?: string
           updated_at?: string
         }
         Relationships: [

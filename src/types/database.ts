@@ -1,3 +1,4 @@
+
 // Base types
 export interface TurnServer {
   id: string;
@@ -18,6 +19,7 @@ export interface Server {
   is_private: boolean;
   member_count: number;
   owner_id: string;
+  settings_id: string;
   created_at: string;
   updated_at: string;
   // Extended properties

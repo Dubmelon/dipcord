@@ -23,6 +23,7 @@ export const useServerData = (serverId: string | undefined) => {
           icon_url,
           banner_url,
           member_count,
+          settings_id,
           created_at,
           updated_at,
           owner:owner_id (
