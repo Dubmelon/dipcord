@@ -8,13 +8,14 @@ import { ServerContent } from "@/components/server/ServerContent";
 import { ServerMemberList } from "@/components/server/ServerMemberList";
 import { useServerData } from "@/hooks/useServerData";
 import { useChannelData } from "@/hooks/useChannelData";
+import { useIsMobile } from "@/hooks/use-mobile";
 import type { Channel } from "@/types/database";
 
 const ServerView = () => {
   const { serverId } = useParams();
   const [selectedChannel, setSelectedChannel] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const isMobile = window.innerWidth <= 768;
+  const isMobile = useIsMobile();
 
   const { data: server, isLoading: loadingServer } = useServerData(serverId);
   const { channels, isLoading: loadingChannels } = useChannelData(serverId);
@@ -31,7 +32,7 @@ const ServerView = () => {
     if (isMobile) {
       setSidebarOpen(false);
     }
-  }, [iMobile]);
+  }, [isMobile]);
 
   const selectedChannelType = useMemo(() => 
     channels?.find(c => c.id === selectedChannel)?.type,
