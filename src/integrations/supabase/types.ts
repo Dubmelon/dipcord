@@ -861,6 +861,168 @@ export type Database = {
           },
         ]
       }
+      profile_badges: {
+        Row: {
+          awarded_at: string
+          badge_id: string
+          id: string
+          profile_id: string
+        }
+        Insert: {
+          awarded_at?: string
+          badge_id: string
+          id?: string
+          profile_id: string
+        }
+        Update: {
+          awarded_at?: string
+          badge_id?: string
+          id?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_badges_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_badges_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_badges_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles_extended"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profile_connections: {
+        Row: {
+          connected_profile_id: string
+          connection_type: string
+          created_at: string
+          id: string
+          profile_id: string
+        }
+        Insert: {
+          connected_profile_id: string
+          connection_type: string
+          created_at?: string
+          id?: string
+          profile_id: string
+        }
+        Update: {
+          connected_profile_id?: string
+          connection_type?: string
+          created_at?: string
+          id?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_connections_connected_profile_id_fkey"
+            columns: ["connected_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_connections_connected_profile_id_fkey"
+            columns: ["connected_profile_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles_extended"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_connections_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_connections_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles_extended"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profile_server_info: {
+        Row: {
+          id: string
+          joined_at: string
+          nickname: string | null
+          profile_id: string
+          server_avatar_url: string | null
+          server_banner_url: string | null
+          server_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string
+          nickname?: string | null
+          profile_id: string
+          server_avatar_url?: string | null
+          server_banner_url?: string | null
+          server_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string
+          nickname?: string | null
+          profile_id?: string
+          server_avatar_url?: string | null
+          server_banner_url?: string | null
+          server_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_server_info_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_server_info_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles_extended"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_server_info_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "server_stats"
+            referencedColumns: ["server_id"]
+          },
+          {
+            foreignKeyName: "profile_server_info_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "servers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_server_info_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "user_server_list"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           about_markdown: string | null
@@ -871,6 +1033,7 @@ export type Database = {
           created_at: string
           full_name: string | null
           id: string
+          is_admin: boolean | null
           is_online: boolean | null
           last_seen: string | null
           status_emoji: string | null
@@ -888,6 +1051,7 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id: string
+          is_admin?: boolean | null
           is_online?: boolean | null
           last_seen?: string | null
           status_emoji?: string | null
@@ -905,6 +1069,7 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id?: string
+          is_admin?: boolean | null
           is_online?: boolean | null
           last_seen?: string | null
           status_emoji?: string | null
