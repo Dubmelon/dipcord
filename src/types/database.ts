@@ -9,6 +9,13 @@ export interface TurnServer {
   updated_at: string;
 }
 
+export type ServerRegion = 'us-west' | 'us-east' | 'eu-west' | 'eu-central' | 'asia' | 'oceania';
+
+export interface VerificationRequirements {
+  minimum_account_age: number;
+  require_email: boolean;
+}
+
 export interface Server {
   id: string;
   name: string;
@@ -27,9 +34,53 @@ export interface Server {
   explicit_content_filter: boolean;
   default_notification_level: string;
   verification_level: number;
+  // New fields
+  region: ServerRegion;
+  system_channel_id: string | null;
+  rules_channel_id: string | null;
+  community_updates_channel_id: string | null;
+  is_community_enabled: boolean;
+  verification_requirements: VerificationRequirements;
   // Extended properties
   is_member?: boolean;
   owner?: Profile;
+}
+
+export interface ServerEmoji {
+  id: string;
+  server_id: string;
+  name: string;
+  url: string;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  usage_count: number;
+}
+
+export interface AuditLog {
+  id: string;
+  server_id: string;
+  action_type: string;
+  actor_id: string;
+  target_id: string | null;
+  target_type: string;
+  changes: Record<string, any> | null;
+  created_at: string;
+  metadata: Record<string, any> | null;
+  actor?: Profile;
+}
+
+export interface AutomodRule {
+  id: string;
+  server_id: string;
+  name: string;
+  is_enabled: boolean;
+  rule_type: string;
+  conditions: Record<string, any>;
+  actions: Record<string, any>;
+  created_at: string;
+  updated_at: string;
+  created_by: string;
 }
 
 export interface Channel {
@@ -160,6 +211,24 @@ export interface ChannelQueryResult {
 
 export interface MessageQueryResult {
   data: Message[] | null;
+  isLoading: boolean;
+  error: Error | null;
+}
+
+export interface ServerEmojiQueryResult {
+  data: ServerEmoji[] | null;
+  isLoading: boolean;
+  error: Error | null;
+}
+
+export interface AuditLogQueryResult {
+  data: AuditLog[] | null;
+  isLoading: boolean;
+  error: Error | null;
+}
+
+export interface AutomodRuleQueryResult {
+  data: AutomodRule[] | null;
   isLoading: boolean;
   error: Error | null;
 }

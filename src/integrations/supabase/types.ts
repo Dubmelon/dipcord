@@ -9,6 +9,111 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          action_type: string
+          actor_id: string
+          changes: Json | null
+          created_at: string
+          id: string
+          metadata: Json | null
+          server_id: string
+          target_id: string | null
+          target_type: string
+        }
+        Insert: {
+          action_type: string
+          actor_id: string
+          changes?: Json | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          server_id: string
+          target_id?: string | null
+          target_type: string
+        }
+        Update: {
+          action_type?: string
+          actor_id?: string
+          changes?: Json | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          server_id?: string
+          target_id?: string | null
+          target_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audit_logs_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "servers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      automod_rules: {
+        Row: {
+          actions: Json
+          conditions: Json
+          created_at: string
+          created_by: string
+          id: string
+          is_enabled: boolean | null
+          name: string
+          rule_type: string
+          server_id: string
+          updated_at: string
+        }
+        Insert: {
+          actions: Json
+          conditions: Json
+          created_at?: string
+          created_by: string
+          id?: string
+          is_enabled?: boolean | null
+          name: string
+          rule_type: string
+          server_id: string
+          updated_at?: string
+        }
+        Update: {
+          actions?: Json
+          conditions?: Json
+          created_at?: string
+          created_by?: string
+          id?: string
+          is_enabled?: boolean | null
+          name?: string
+          rule_type?: string
+          server_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automod_rules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automod_rules_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "servers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       call_signaling: {
         Row: {
           created_at: string
@@ -671,6 +776,54 @@ export type Database = {
           },
         ]
       }
+      server_emoji: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          name: string
+          server_id: string
+          updated_at: string
+          url: string
+          usage_count: number | null
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          name: string
+          server_id: string
+          updated_at?: string
+          url: string
+          usage_count?: number | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          name?: string
+          server_id?: string
+          updated_at?: string
+          url?: string
+          usage_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "server_emoji_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "server_emoji_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "servers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       server_folder_memberships: {
         Row: {
           created_at: string
@@ -853,6 +1006,7 @@ export type Database = {
         Row: {
           allow_invites: boolean | null
           banner_url: string | null
+          community_updates_channel_id: string | null
           created_at: string
           default_channel_id: string | null
           default_notification_level: string | null
@@ -860,17 +1014,23 @@ export type Database = {
           explicit_content_filter: boolean | null
           icon_url: string | null
           id: string
+          is_community_enabled: boolean | null
           is_private: boolean | null
           member_count: number | null
           name: string
           owner_id: string
+          region: Database["public"]["Enums"]["server_region"] | null
           require_approval: boolean | null
+          rules_channel_id: string | null
+          system_channel_id: string | null
           updated_at: string
           verification_level: number | null
+          verification_requirements: Json | null
         }
         Insert: {
           allow_invites?: boolean | null
           banner_url?: string | null
+          community_updates_channel_id?: string | null
           created_at?: string
           default_channel_id?: string | null
           default_notification_level?: string | null
@@ -878,17 +1038,23 @@ export type Database = {
           explicit_content_filter?: boolean | null
           icon_url?: string | null
           id?: string
+          is_community_enabled?: boolean | null
           is_private?: boolean | null
           member_count?: number | null
           name: string
           owner_id: string
+          region?: Database["public"]["Enums"]["server_region"] | null
           require_approval?: boolean | null
+          rules_channel_id?: string | null
+          system_channel_id?: string | null
           updated_at?: string
           verification_level?: number | null
+          verification_requirements?: Json | null
         }
         Update: {
           allow_invites?: boolean | null
           banner_url?: string | null
+          community_updates_channel_id?: string | null
           created_at?: string
           default_channel_id?: string | null
           default_notification_level?: string | null
@@ -896,15 +1062,27 @@ export type Database = {
           explicit_content_filter?: boolean | null
           icon_url?: string | null
           id?: string
+          is_community_enabled?: boolean | null
           is_private?: boolean | null
           member_count?: number | null
           name?: string
           owner_id?: string
+          region?: Database["public"]["Enums"]["server_region"] | null
           require_approval?: boolean | null
+          rules_channel_id?: string | null
+          system_channel_id?: string | null
           updated_at?: string
           verification_level?: number | null
+          verification_requirements?: Json | null
         }
         Relationships: [
+          {
+            foreignKeyName: "servers_community_updates_channel_id_fkey"
+            columns: ["community_updates_channel_id"]
+            isOneToOne: false
+            referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "servers_default_channel_id_fkey"
             columns: ["default_channel_id"]
@@ -917,6 +1095,20 @@ export type Database = {
             columns: ["owner_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "servers_rules_channel_id_fkey"
+            columns: ["rules_channel_id"]
+            isOneToOne: false
+            referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "servers_system_channel_id_fkey"
+            columns: ["system_channel_id"]
+            isOneToOne: false
+            referencedRelation: "channels"
             referencedColumns: ["id"]
           },
         ]
@@ -1170,6 +1362,13 @@ export type Database = {
         | "message"
         | "join"
         | "leave"
+      server_region:
+        | "us-west"
+        | "us-east"
+        | "eu-west"
+        | "eu-central"
+        | "asia"
+        | "oceania"
     }
     CompositeTypes: {
       [_ in never]: never
