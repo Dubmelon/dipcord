@@ -111,16 +111,31 @@ export const RoleHierarchy = ({ serverId, selectedRoleId, onSelectRole }: RoleHi
 
   const updatePositions = useMutation({
     mutationFn: async (updates: { id: string; position: number }[]) => {
+      // Get existing roles first
+      const { data: existingRoles } = await supabase
+        .from('roles')
+        .select('id, name, server_id')
+        .in('id', updates.map(u => u.id));
+
+      if (!existingRoles) throw new Error('Could not fetch existing roles');
+
+      // Merge existing data with updates
+      const mergedUpdates = updates.map(update => {
+        const existingRole = existingRoles.find(r => r.id === update.id);
+        if (!existingRole) throw new Error(`Role ${update.id} not found`);
+        
+        return {
+          id: update.id,
+          name: existingRole.name,
+          server_id: existingRole.server_id,
+          position: update.position,
+          updated_at: new Date().toISOString()
+        };
+      });
+
       const { error } = await supabase
         .from('roles')
-        .upsert(
-          updates.map(({ id, position }) => ({
-            id,
-            position,
-            server_id: serverId,
-            updated_at: new Date().toISOString()
-          }))
-        );
+        .upsert(mergedUpdates);
 
       if (error) throw error;
     },

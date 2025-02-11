@@ -213,6 +213,7 @@ export interface Role {
     MANAGE_EXPRESSIONS?: boolean;
     VIEW_GUILD_INSIGHTS?: boolean;
     READ_MESSAGE_HISTORY?: boolean;
+    CHANGE_NICKNAME?: boolean;
   };
   is_system: boolean;
   hoist: boolean;
