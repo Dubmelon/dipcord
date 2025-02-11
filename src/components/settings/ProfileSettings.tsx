@@ -23,7 +23,7 @@ export const ProfileSettings = ({ profile, isLoading }: ProfileSettingsProps) =>
   const [fullName, setFullName] = useState(profile?.full_name || "");
   const [bio, setBio] = useState(profile?.bio || "");
   const [aboutMarkdown, setAboutMarkdown] = useState(profile?.about_markdown || "");
-  const [accentColor, setAccentColor] = useState(profile?.accent_color || "");
+  const [accentColor, setAccentColor] = useState(profile?.accent_color || "#000000");
   const [statusEmoji, setStatusEmoji] = useState(profile?.status_emoji || "");
   const [statusText, setStatusText] = useState(profile?.status_text || "");
   const [themePreference, setThemePreference] = useState(profile?.theme_preference || "dark");
@@ -260,3 +260,4 @@ export const ProfileSettings = ({ profile, isLoading }: ProfileSettingsProps) =>
     </Card>
   );
 };
+
