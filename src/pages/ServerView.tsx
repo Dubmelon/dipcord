@@ -62,6 +62,7 @@ const ServerView = () => {
       />
       
       <Routes>
+        <Route path="settings/*" element={<ServerSettings server={server} />} />
         <Route path="" element={
           <div className="flex flex-1 overflow-hidden">
             <AnimatePresence mode="wait">
@@ -103,7 +104,6 @@ const ServerView = () => {
             </div>
           </div>
         } />
-        <Route path="settings" element={<ServerSettings server={server} />} />
       </Routes>
     </div>
   );
