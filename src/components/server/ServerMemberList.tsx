@@ -41,11 +41,11 @@ export const ServerMemberList = ({ serverId }: ServerMemberListProps) => {
       const { data: serverMembers, error } = await supabase
         .from('server_members')
         .select(`
-          id as server_member_id,
+          id,
           user_id,
           nickname,
           role_id,
-          user:user_id (
+          user:profiles!user_id(
             id,
             username,
             avatar_url
@@ -54,7 +54,15 @@ export const ServerMemberList = ({ serverId }: ServerMemberListProps) => {
         .eq('server_id', serverId);
 
       if (error) throw error;
-      return serverMembers as ServerMemberWithUser[];
+      
+      // Transform the data to match ServerMemberWithUser type
+      return (serverMembers || []).map(member => ({
+        server_member_id: member.id,
+        user_id: member.user_id,
+        nickname: member.nickname,
+        role_id: member.role_id,
+        user: member.user
+      })) as ServerMemberWithUser[];
     }
   });
 
