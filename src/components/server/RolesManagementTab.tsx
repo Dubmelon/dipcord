@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -316,6 +315,7 @@ export const RolesManagementTab = ({ server }: RolesManagementTabProps) => {
           <div className="col-span-8 border rounded-lg p-6 space-y-6">
             <RoleEditor
               role={selectedRole}
+              serverId={server.id}
               onUpdateRole={updateRole.mutate}
               onDeleteRole={() => deleteRole.mutate(selectedRole.id)}
               onIconUpload={handleIconUpload}

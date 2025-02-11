@@ -2,13 +2,16 @@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Trash2 } from "lucide-react";
 import { PermissionSection } from "../permissions/PermissionSection";
 import { PERMISSIONS, PERMISSION_CATEGORIES } from "@/types/permissions";
+import { ChannelPermissionOverrides } from "./ChannelPermissionOverrides";
 import type { Role } from "@/types/database";
 
 interface RoleEditorProps {
   role: Role;
+  serverId: string;
   onUpdateRole: (updates: Partial<Role>) => void;
   onDeleteRole: () => void;
   onIconUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
@@ -18,6 +21,7 @@ interface RoleEditorProps {
 
 export const RoleEditor = ({
   role,
+  serverId,
   onUpdateRole,
   onDeleteRole,
   onIconUpload,
@@ -94,25 +98,39 @@ export const RoleEditor = ({
 
       <Separator />
 
-      <div className="space-y-6">
-        {Object.entries(PERMISSION_CATEGORIES).map(([category, label]) => (
-          <div key={category} className="space-y-4">
-            <h3 className="font-semibold">{label}</h3>
-            <PermissionSection
-              permissions={groupedPermissions[category] || []}
-              selectedPermissions={role.permissions_v2}
-              onTogglePermission={(permissionId, value) => {
-                const newPermissions = {
-                  ...role.permissions_v2,
-                  [permissionId]: value
-                };
-                onUpdateRole({ permissions_v2: newPermissions });
-              }}
-              isDisabled={role.is_system}
-            />
-          </div>
-        ))}
-      </div>
+      <Tabs defaultValue="permissions" className="w-full">
+        <TabsList>
+          <TabsTrigger value="permissions">Permissions</TabsTrigger>
+          <TabsTrigger value="channel-overrides">Channel Overrides</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="permissions" className="space-y-6">
+          {Object.entries(PERMISSION_CATEGORIES).map(([category, label]) => (
+            <div key={category} className="space-y-4">
+              <h3 className="font-semibold">{label}</h3>
+              <PermissionSection
+                permissions={groupedPermissions[category] || []}
+                selectedPermissions={role.permissions_v2}
+                onTogglePermission={(permissionId, value) => {
+                  const newPermissions = {
+                    ...role.permissions_v2,
+                    [permissionId]: value
+                  };
+                  onUpdateRole({ permissions_v2: newPermissions });
+                }}
+                isDisabled={role.is_system}
+              />
+            </div>
+          ))}
+        </TabsContent>
+
+        <TabsContent value="channel-overrides">
+          <ChannelPermissionOverrides 
+            serverId={serverId}
+            role={role}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
