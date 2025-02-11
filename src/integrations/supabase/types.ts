@@ -52,6 +52,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "audit_logs_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles_extended"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "audit_logs_server_id_fkey"
             columns: ["server_id"]
             isOneToOne: false
@@ -63,6 +70,13 @@ export type Database = {
             columns: ["server_id"]
             isOneToOne: false
             referencedRelation: "servers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audit_logs_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "user_server_list"
             referencedColumns: ["id"]
           },
         ]
@@ -113,6 +127,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "automod_rules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles_extended"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "automod_rules_server_id_fkey"
             columns: ["server_id"]
             isOneToOne: false
@@ -124,6 +145,13 @@ export type Database = {
             columns: ["server_id"]
             isOneToOne: false
             referencedRelation: "servers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automod_rules_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "user_server_list"
             referencedColumns: ["id"]
           },
         ]
@@ -186,10 +214,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "call_signaling_receiver_id_fkey"
+            columns: ["receiver_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles_extended"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "call_signaling_sender_id_fkey"
             columns: ["sender_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "call_signaling_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles_extended"
             referencedColumns: ["id"]
           },
         ]
@@ -267,6 +309,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "comment_reactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles_extended"
+            referencedColumns: ["id"]
+          },
         ]
       }
       comments: {
@@ -325,6 +374,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles_extended"
+            referencedColumns: ["id"]
+          },
         ]
       }
       direct_messages: {
@@ -370,10 +426,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "direct_messages_receiver_id_fkey"
+            columns: ["receiver_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles_extended"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "direct_messages_sender_id_fkey"
             columns: ["sender_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "direct_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles_extended"
             referencedColumns: ["id"]
           },
         ]
@@ -406,10 +476,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "follows_follower_id_fkey"
+            columns: ["follower_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles_extended"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "follows_following_id_fkey"
             columns: ["following_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "follows_following_id_fkey"
+            columns: ["following_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles_extended"
             referencedColumns: ["id"]
           },
         ]
@@ -446,6 +530,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles_extended"
             referencedColumns: ["id"]
           },
         ]
@@ -499,6 +590,13 @@ export type Database = {
             columns: ["uploader_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "media_assets_uploader_id_fkey"
+            columns: ["uploader_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles_extended"
             referencedColumns: ["id"]
           },
         ]
@@ -558,6 +656,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles_extended"
+            referencedColumns: ["id"]
+          },
         ]
       }
       notification_settings: {
@@ -565,6 +670,7 @@ export type Database = {
           created_at: string
           id: string
           is_muted: boolean | null
+          notification_level: string | null
           target_id: string
           target_type: string
           updated_at: string
@@ -574,6 +680,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_muted?: boolean | null
+          notification_level?: string | null
           target_id: string
           target_type: string
           updated_at?: string
@@ -583,6 +690,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_muted?: boolean | null
+          notification_level?: string | null
           target_id?: string
           target_type?: string
           updated_at?: string
@@ -627,6 +735,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles_extended"
             referencedColumns: ["id"]
           },
         ]
@@ -683,6 +798,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "posts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles_extended"
             referencedColumns: ["id"]
           },
         ]
@@ -756,6 +878,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "rate_limits_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles_extended"
+            referencedColumns: ["id"]
+          },
         ]
       }
       reports: {
@@ -801,10 +930,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "reports_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles_extended"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "reports_resolved_by_fkey"
             columns: ["resolved_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles_extended"
             referencedColumns: ["id"]
           },
         ]
@@ -864,6 +1007,13 @@ export type Database = {
             referencedRelation: "servers"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "roles_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "user_server_list"
+            referencedColumns: ["id"]
+          },
         ]
       }
       server_bans: {
@@ -903,6 +1053,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "server_bans_moderator_id_fkey"
+            columns: ["moderator_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles_extended"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "server_bans_server_id_fkey"
             columns: ["server_id"]
             isOneToOne: false
@@ -917,10 +1074,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "server_bans_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "user_server_list"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "server_bans_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "server_bans_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles_extended"
             referencedColumns: ["id"]
           },
         ]
@@ -965,6 +1136,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "server_emoji_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles_extended"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "server_emoji_server_id_fkey"
             columns: ["server_id"]
             isOneToOne: false
@@ -976,6 +1154,13 @@ export type Database = {
             columns: ["server_id"]
             isOneToOne: false
             referencedRelation: "servers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "server_emoji_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "user_server_list"
             referencedColumns: ["id"]
           },
         ]
@@ -1011,6 +1196,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "server_folder_memberships_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "user_server_list"
+            referencedColumns: ["folder_id"]
+          },
+          {
             foreignKeyName: "server_folder_memberships_server_id_fkey"
             columns: ["server_id"]
             isOneToOne: false
@@ -1022,6 +1214,13 @@ export type Database = {
             columns: ["server_id"]
             isOneToOne: false
             referencedRelation: "servers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "server_folder_memberships_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "user_server_list"
             referencedColumns: ["id"]
           },
         ]
@@ -1108,6 +1307,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "server_invites_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles_extended"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "server_invites_role_id_fkey"
             columns: ["role_id"]
             isOneToOne: false
@@ -1126,6 +1332,13 @@ export type Database = {
             columns: ["server_id"]
             isOneToOne: false
             referencedRelation: "servers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "server_invites_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "user_server_list"
             referencedColumns: ["id"]
           },
         ]
@@ -1171,10 +1384,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "server_members_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "user_server_list"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "server_members_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "server_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles_extended"
             referencedColumns: ["id"]
           },
         ]
@@ -1275,6 +1502,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "servers_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles_extended"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "servers_rules_channel_id_fkey"
             columns: ["rules_channel_id"]
             isOneToOne: false
@@ -1332,6 +1566,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles_extended"
+            referencedColumns: ["id"]
+          },
         ]
       }
       threads: {
@@ -1380,6 +1621,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "threads_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles_extended"
+            referencedColumns: ["id"]
+          },
         ]
       }
       user_badges: {
@@ -1414,6 +1662,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_badges_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles_extended"
             referencedColumns: ["id"]
           },
         ]
@@ -1457,6 +1712,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "user_connections_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles_extended"
+            referencedColumns: ["id"]
+          },
         ]
       }
       user_roles: {
@@ -1491,6 +1753,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_roles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles_extended"
             referencedColumns: ["id"]
           },
         ]
@@ -1534,6 +1803,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "user_settings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "user_profiles_extended"
+            referencedColumns: ["id"]
+          },
         ]
       }
       user_status: {
@@ -1570,6 +1846,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: true
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_status_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "user_profiles_extended"
             referencedColumns: ["id"]
           },
         ]
@@ -1617,6 +1900,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "voice_channel_participants_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles_extended"
+            referencedColumns: ["id"]
+          },
         ]
       }
       voip_sessions: {
@@ -1661,6 +1951,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "voip_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles_extended"
+            referencedColumns: ["id"]
+          },
         ]
       }
     }
@@ -1693,10 +1990,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "server_members_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "user_server_list"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "server_members_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "server_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles_extended"
             referencedColumns: ["id"]
           },
           {
@@ -1718,6 +2029,104 @@ export type Database = {
           server_name: string | null
         }
         Relationships: []
+      }
+      user_profiles_extended: {
+        Row: {
+          avatar_url: string | null
+          badges: Json | null
+          bio: string | null
+          connections: Json | null
+          created_at: string | null
+          custom_status: string | null
+          font_size: string | null
+          full_name: string | null
+          id: string | null
+          is_online: boolean | null
+          last_seen: string | null
+          message_display: string | null
+          status_type: string | null
+          theme: string | null
+          updated_at: string | null
+          username: string | null
+        }
+        Relationships: []
+      }
+      user_server_list: {
+        Row: {
+          allow_invites: boolean | null
+          banner_url: string | null
+          community_updates_channel_id: string | null
+          created_at: string | null
+          default_channel_id: string | null
+          default_notification_level: string | null
+          description: string | null
+          explicit_content_filter: boolean | null
+          folder_color: string | null
+          folder_id: string | null
+          folder_name: string | null
+          icon_url: string | null
+          id: string | null
+          is_community_enabled: boolean | null
+          is_expanded: boolean | null
+          is_muted: boolean | null
+          is_private: boolean | null
+          member_count: number | null
+          name: string | null
+          notification_level: string | null
+          owner_id: string | null
+          region: Database["public"]["Enums"]["server_region"] | null
+          require_approval: boolean | null
+          rules_channel_id: string | null
+          server_position: number | null
+          system_channel_id: string | null
+          updated_at: string | null
+          verification_level: number | null
+          verification_requirements: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "servers_community_updates_channel_id_fkey"
+            columns: ["community_updates_channel_id"]
+            isOneToOne: false
+            referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "servers_default_channel_id_fkey"
+            columns: ["default_channel_id"]
+            isOneToOne: false
+            referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "servers_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "servers_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles_extended"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "servers_rules_channel_id_fkey"
+            columns: ["rules_channel_id"]
+            isOneToOne: false
+            referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "servers_system_channel_id_fkey"
+            columns: ["system_channel_id"]
+            isOneToOne: false
+            referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Functions: {
