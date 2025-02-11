@@ -1,4 +1,6 @@
 
+import type { Role } from "./database";
+
 export type PermissionCategory = 
   | 'general' 
   | 'membership' 

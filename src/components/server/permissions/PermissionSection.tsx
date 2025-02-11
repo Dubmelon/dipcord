@@ -22,7 +22,7 @@ export const PermissionSection = ({
     <div className="space-y-4">
       {permissions.map((permission) => (
         <div
-          key={permission.id}
+          key={String(permission.id)}
           className="flex items-start justify-between space-x-4"
         >
           <div className="space-y-1">
@@ -42,8 +42,8 @@ export const PermissionSection = ({
             </p>
           </div>
           <Switch
-            checked={selectedPermissions[permission.id] || false}
-            onCheckedChange={(checked) => onTogglePermission(permission.id, checked)}
+            checked={selectedPermissions[String(permission.id)] || false}
+            onCheckedChange={(checked) => onTogglePermission(String(permission.id), checked)}
             disabled={isDisabled}
           />
         </div>

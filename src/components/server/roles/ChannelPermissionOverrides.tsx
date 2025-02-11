@@ -4,8 +4,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
 import { ChevronRight, Hash, Volume2 } from "lucide-react";
 import type { Channel, Role } from "@/types/database";
 import { PERMISSIONS, PERMISSION_CATEGORIES } from "@/types/permissions";
@@ -14,6 +12,16 @@ import { cn } from "@/lib/utils";
 interface ChannelPermissionOverridesProps {
   serverId: string;
   role: Role;
+}
+
+interface ChannelOverride {
+  id: string;
+  channel_id: string;
+  role_id: string;
+  allow_permissions: Record<string, boolean>;
+  deny_permissions: Record<string, boolean>;
+  created_at: string;
+  updated_at: string;
 }
 
 export const ChannelPermissionOverrides = ({ serverId, role }: ChannelPermissionOverridesProps) => {
@@ -43,7 +51,7 @@ export const ChannelPermissionOverrides = ({ serverId, role }: ChannelPermission
         .eq('role_id', role.id);
 
       if (error) throw error;
-      return data;
+      return data as ChannelOverride[];
     }
   });
 
@@ -54,7 +62,8 @@ export const ChannelPermissionOverrides = ({ serverId, role }: ChannelPermission
         .upsert({
           channel_id: channelId,
           role_id: role.id,
-          permissions
+          allow_permissions: permissions,
+          deny_permissions: {}
         });
 
       if (error) throw error;
@@ -79,7 +88,8 @@ export const ChannelPermissionOverrides = ({ serverId, role }: ChannelPermission
   };
 
   const getChannelOverrides = (channelId: string) => {
-    return overrides?.find(o => o.channel_id === channelId)?.permissions || {};
+    const override = overrides?.find(o => o.channel_id === channelId);
+    return override ? override.allow_permissions : {};
   };
 
   const handlePermissionToggle = (channelId: string, permissionId: string, value: boolean) => {
@@ -137,12 +147,12 @@ export const ChannelPermissionOverrides = ({ serverId, role }: ChannelPermission
                 const channelOverrides = getChannelOverrides(selectedChannel.id);
 
                 return (
-                  <div key={category} className="space-y-4">
+                  <div key={String(category)} className="space-y-4">
                     <h4 className="font-semibold">{label}</h4>
                     <div className="space-y-4">
                       {categoryPermissions.map((permission) => (
                         <div
-                          key={permission.id}
+                          key={String(permission.id)}
                           className="flex items-start justify-between space-x-4"
                         >
                           <div className="space-y-1">
@@ -152,9 +162,9 @@ export const ChannelPermissionOverrides = ({ serverId, role }: ChannelPermission
                             </p>
                           </div>
                           <Switch
-                            checked={channelOverrides[permission.id] ?? role.permissions_v2[permission.id] ?? false}
+                            checked={channelOverrides[String(permission.id)] ?? role.permissions_v2[permission.id] ?? false}
                             onCheckedChange={(checked) => {
-                              handlePermissionToggle(selectedChannel.id, permission.id, checked);
+                              handlePermissionToggle(selectedChannel.id, String(permission.id), checked);
                             }}
                             disabled={role.is_system}
                           />

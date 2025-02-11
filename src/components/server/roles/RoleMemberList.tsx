@@ -1,10 +1,22 @@
 
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
-import type { ServerMember, Role } from "@/types/database";
+import type { Role } from "@/types/database";
+
+interface ServerMemberWithUser {
+  server_member_id: string;
+  user_id: string;
+  nickname: string | null;
+  role_id: string | null;
+  user: {
+    id: string;
+    username: string;
+    avatar_url: string | null;
+  };
+}
 
 interface RoleMemberListProps {
-  members: ServerMember[];
+  members: ServerMemberWithUser[];
   role: Role;
   onAssignRole: (userId: string, roleId: string) => void;
   isDisabled?: boolean;
