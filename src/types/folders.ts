@@ -2,6 +2,7 @@
 export interface ServerFolder {
   id: string;
   user_id: string;
+  server_id: string | null; // Added server_id field
   name: string;
   color?: string | null;
   position: number;

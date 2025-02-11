@@ -1234,6 +1234,7 @@ export type Database = {
           is_muted: boolean | null
           name: string
           position: number
+          server_id: string | null
           updated_at: string
           user_id: string
         }
@@ -1245,6 +1246,7 @@ export type Database = {
           is_muted?: boolean | null
           name: string
           position?: number
+          server_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -1256,10 +1258,33 @@ export type Database = {
           is_muted?: boolean | null
           name?: string
           position?: number
+          server_id?: string | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "server_folders_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "server_stats"
+            referencedColumns: ["server_id"]
+          },
+          {
+            foreignKeyName: "server_folders_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "servers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "server_folders_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "user_server_list"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       server_invites: {
         Row: {
