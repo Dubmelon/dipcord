@@ -1,6 +1,8 @@
 
 import { Card } from "@/components/ui/card";
 import { ServerCard } from "./ServerCard";
+import { ServerFolder } from "./ServerFolder";
+import { useServerFolders } from "@/hooks/useServerFolders";
 import { Server } from "@/components/dashboard/types";
 
 interface ServerListProps {
@@ -10,7 +12,9 @@ interface ServerListProps {
 }
 
 export const ServerList = ({ servers, currentUserId, isLoading }: ServerListProps) => {
-  if (isLoading) {
+  const { folders, loadingFolders } = useServerFolders(currentUserId);
+
+  if (isLoading || loadingFolders) {
     return (
       <div className="grid gap-4 md:grid-cols-2">
         {[1, 2, 3, 4].map((i) => (
@@ -36,15 +40,35 @@ export const ServerList = ({ servers, currentUserId, isLoading }: ServerListProp
     );
   }
 
+  // Get servers that aren't in any folder
+  const unfolderedServers = servers.filter(server => 
+    !folders?.some(folder => 
+      folder.memberships.some(membership => membership.server_id === server.id)
+    )
+  );
+
   return (
-    <div className="grid gap-4 md:grid-cols-2">
-      {servers?.map((server) => (
-        <ServerCard 
-          key={server.id} 
-          server={server} 
+    <div className="space-y-6">
+      {folders?.map((folder) => (
+        <ServerFolder 
+          key={folder.id}
+          folder={folder}
+          servers={servers}
           currentUserId={currentUserId}
         />
       ))}
+      
+      {unfolderedServers.length > 0 && (
+        <div className="grid gap-4 md:grid-cols-2">
+          {unfolderedServers.map((server) => (
+            <ServerCard 
+              key={server.id} 
+              server={server} 
+              currentUserId={currentUserId}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 };
