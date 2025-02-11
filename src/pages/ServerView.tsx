@@ -6,10 +6,10 @@ import { Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ServerContent } from "@/components/server/ServerContent";
 import { ServerMemberList } from "@/components/server/ServerMemberList";
+import { ServerHeader } from "@/components/server/ServerHeader";
 import { useServerData } from "@/hooks/useServerData";
 import { useChannelData } from "@/hooks/useChannelData";
 import { useIsMobile } from "@/hooks/use-mobile";
-import type { Channel } from "@/types/database";
 
 const ServerView = () => {
   const { serverId } = useParams();
@@ -48,44 +48,56 @@ const ServerView = () => {
     );
   }
 
+  if (!server) {
+    return null;
+  }
+
   return (
-    <div className="flex h-[calc(100vh-4rem)] overflow-hidden bg-background/80 backdrop-blur-sm">
-      <AnimatePresence mode="wait">
-        {sidebarOpen && (
-          <motion.div
-            initial={{ x: -300, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: -300, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed md:relative left-0 top-0 h-[calc(100vh-4rem)] z-30 w-72 border-r"
-          >
-            <ChannelList
-              serverId={serverId!}
-              channels={channels}
-              selectedChannel={selectedChannel}
-              onSelectChannel={handleChannelSelect}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+    <div className="flex flex-col h-[calc(100vh-4rem)] overflow-hidden bg-background/80 backdrop-blur-sm">
+      <ServerHeader 
+        server={server} 
+        isMobile={isMobile} 
+        onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} 
+      />
+      
+      <div className="flex flex-1 overflow-hidden">
+        <AnimatePresence mode="wait">
+          {sidebarOpen && (
+            <motion.div
+              initial={{ x: -300, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: -300, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="fixed md:relative left-0 top-0 h-[calc(100vh-4rem)] z-30 w-72 border-r"
+            >
+              <ChannelList
+                serverId={serverId!}
+                channels={channels}
+                selectedChannel={selectedChannel}
+                onSelectChannel={handleChannelSelect}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-      <motion.div
-        layout
-        className="flex-1 flex flex-col h-full relative"
-        onClick={handleMessageAreaClick}
-      >
-        <ServerContent
-          selectedChannel={selectedChannel}
-          selectedChannelType={selectedChannelType}
-          isMobile={isMobile}
-          sidebarOpen={sidebarOpen}
-          setSidebarOpen={setSidebarOpen}
-          serverName={server?.name}
-        />
-      </motion.div>
+        <motion.div
+          layout
+          className="flex-1 flex flex-col h-full relative"
+          onClick={handleMessageAreaClick}
+        >
+          <ServerContent
+            selectedChannel={selectedChannel}
+            selectedChannelType={selectedChannelType}
+            isMobile={isMobile}
+            sidebarOpen={sidebarOpen}
+            setSidebarOpen={setSidebarOpen}
+            serverName={server.name}
+          />
+        </motion.div>
 
-      <div className="hidden lg:block w-60 border-l">
-        <ServerMemberList serverId={serverId!} />
+        <div className="hidden lg:block w-60 border-l">
+          <ServerMemberList serverId={serverId!} />
+        </div>
       </div>
     </div>
   );
