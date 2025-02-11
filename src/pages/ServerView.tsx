@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ServerContent } from "@/components/server/ServerContent";
 import { useServerData } from "@/hooks/useServerData";
 import { useChannelData } from "@/hooks/useChannelData";
+import type { Channel } from "@/types/database";
 
 const ServerView = () => {
   const { serverId } = useParams();
@@ -85,3 +86,4 @@ const ServerView = () => {
 };
 
 export default ServerView;
+
