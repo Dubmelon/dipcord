@@ -103,6 +103,13 @@ export interface Message {
   is_edited: boolean | null;
   created_at: string;
   updated_at: string;
+  // New fields
+  version: number;
+  edit_history: Array<{
+    content: string;
+    edited_at: string;
+  }> | null;
+  search_vector?: any; // tsvector type
   sender?: Profile;
 }
 
@@ -114,6 +121,32 @@ export interface Profile {
   bio: string | null;
   is_online: boolean;
   last_seen: string | null;
+}
+
+// New interface for media assets
+export interface MediaAsset {
+  id: string;
+  uploader_id: string;
+  filename: string;
+  file_size: number;
+  mime_type: string;
+  url: string;
+  metadata: Record<string, any> | null;
+  is_processed: boolean;
+  processing_error: string | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+}
+
+// New interface for rate limits
+export interface RateLimit {
+  id: string;
+  user_id: string;
+  action_type: string;
+  request_count: number;
+  window_start: string;
+  created_at: string;
 }
 
 export interface ServerMember {
@@ -230,6 +263,25 @@ export interface AuditLogQueryResult {
 
 export interface AutomodRuleQueryResult {
   data: AutomodRule[] | null;
+  isLoading: boolean;
+  error: Error | null;
+}
+
+export interface MediaAssetQueryResult {
+  data: MediaAsset[] | null;
+  isLoading: boolean;
+  error: Error | null;
+}
+
+export interface ServerStatsQueryResult {
+  data: {
+    server_id: string;
+    server_name: string;
+    member_count: number;
+    message_count: number;
+    channel_count: number;
+    last_message_at: string;
+  } | null;
   isLoading: boolean;
   error: Error | null;
 }

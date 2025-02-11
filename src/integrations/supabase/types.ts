@@ -55,6 +55,13 @@ export type Database = {
             foreignKeyName: "audit_logs_server_id_fkey"
             columns: ["server_id"]
             isOneToOne: false
+            referencedRelation: "server_stats"
+            referencedColumns: ["server_id"]
+          },
+          {
+            foreignKeyName: "audit_logs_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
             referencedRelation: "servers"
             referencedColumns: ["id"]
           },
@@ -104,6 +111,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automod_rules_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "server_stats"
+            referencedColumns: ["server_id"]
           },
           {
             foreignKeyName: "automod_rules_server_id_fkey"
@@ -412,36 +426,98 @@ export type Database = {
           },
         ]
       }
+      media_assets: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          file_size: number
+          filename: string
+          id: string
+          is_processed: boolean | null
+          metadata: Json | null
+          mime_type: string
+          processing_error: string | null
+          updated_at: string
+          uploader_id: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          file_size: number
+          filename: string
+          id?: string
+          is_processed?: boolean | null
+          metadata?: Json | null
+          mime_type: string
+          processing_error?: string | null
+          updated_at?: string
+          uploader_id: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          file_size?: number
+          filename?: string
+          id?: string
+          is_processed?: boolean | null
+          metadata?: Json | null
+          mime_type?: string
+          processing_error?: string | null
+          updated_at?: string
+          uploader_id?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_assets_uploader_id_fkey"
+            columns: ["uploader_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           channel_id: string
           content: string
           created_at: string
+          edit_history: Json | null
           id: string
           is_edited: boolean | null
           media_urls: string[] | null
+          search_vector: unknown | null
           sender_id: string
           updated_at: string
+          version: number | null
         }
         Insert: {
           channel_id: string
           content: string
           created_at?: string
+          edit_history?: Json | null
           id?: string
           is_edited?: boolean | null
           media_urls?: string[] | null
+          search_vector?: unknown | null
           sender_id: string
           updated_at?: string
+          version?: number | null
         }
         Update: {
           channel_id?: string
           content?: string
           created_at?: string
+          edit_history?: Json | null
           id?: string
           is_edited?: boolean | null
           media_urls?: string[] | null
+          search_vector?: unknown | null
           sender_id?: string
           updated_at?: string
+          version?: number | null
         }
         Relationships: [
           {
@@ -623,6 +699,41 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_limits: {
+        Row: {
+          action_type: string
+          created_at: string
+          id: string
+          request_count: number | null
+          user_id: string
+          window_start: string
+        }
+        Insert: {
+          action_type: string
+          created_at?: string
+          id?: string
+          request_count?: number | null
+          user_id: string
+          window_start?: string
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          id?: string
+          request_count?: number | null
+          user_id?: string
+          window_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rate_limits_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reports: {
         Row: {
           created_at: string
@@ -719,6 +830,13 @@ export type Database = {
             foreignKeyName: "roles_server_id_fkey"
             columns: ["server_id"]
             isOneToOne: false
+            referencedRelation: "server_stats"
+            referencedColumns: ["server_id"]
+          },
+          {
+            foreignKeyName: "roles_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
             referencedRelation: "servers"
             referencedColumns: ["id"]
           },
@@ -759,6 +877,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "server_bans_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "server_stats"
+            referencedColumns: ["server_id"]
           },
           {
             foreignKeyName: "server_bans_server_id_fkey"
@@ -819,6 +944,13 @@ export type Database = {
             foreignKeyName: "server_emoji_server_id_fkey"
             columns: ["server_id"]
             isOneToOne: false
+            referencedRelation: "server_stats"
+            referencedColumns: ["server_id"]
+          },
+          {
+            foreignKeyName: "server_emoji_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
             referencedRelation: "servers"
             referencedColumns: ["id"]
           },
@@ -853,6 +985,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "server_folders"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "server_folder_memberships_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "server_stats"
+            referencedColumns: ["server_id"]
           },
           {
             foreignKeyName: "server_folder_memberships_server_id_fkey"
@@ -955,6 +1094,13 @@ export type Database = {
             foreignKeyName: "server_invites_server_id_fkey"
             columns: ["server_id"]
             isOneToOne: false
+            referencedRelation: "server_stats"
+            referencedColumns: ["server_id"]
+          },
+          {
+            foreignKeyName: "server_invites_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
             referencedRelation: "servers"
             referencedColumns: ["id"]
           },
@@ -986,6 +1132,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "server_members_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "server_stats"
+            referencedColumns: ["server_id"]
+          },
           {
             foreignKeyName: "server_members_server_id_fkey"
             columns: ["server_id"]
@@ -1332,7 +1485,17 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      server_stats: {
+        Row: {
+          channel_count: number | null
+          last_message_at: string | null
+          member_count: number | null
+          message_count: number | null
+          server_id: string | null
+          server_name: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       check_server_member_access: {
