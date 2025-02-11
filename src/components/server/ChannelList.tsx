@@ -140,8 +140,8 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
   }, {} as Record<ChannelCategory, Channel[]>);
 
   return (
-    <div className="w-full h-full bg-muted/50 backdrop-blur-xl flex flex-col">
-      <ScrollArea className="flex-1 pb-16">
+    <div className="w-full h-full bg-muted/50 backdrop-blur-xl flex flex-col relative">
+      <ScrollArea className="flex-1 pb-14">
         <div className="p-2 space-y-4">
           {Object.entries(channelsByCategory).map(([category, categoryChannels]) => (
             <div key={category} className="space-y-1">
@@ -197,7 +197,7 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
       <div className="p-2 space-y-2">
         <Dialog open={isCreatingChannel} onOpenChange={setIsCreatingChannel}>
           <DialogTrigger asChild>
-            <Button variant="ghost" size="sm" className="w-full">
+            <Button variant="ghost" size="sm" className="w-full justify-start">
               <Plus className="h-4 w-4 mr-2" />
               Create Channel
             </Button>
@@ -266,7 +266,7 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
 
         <Dialog open={isCreatingFolder} onOpenChange={setIsCreatingFolder}>
           <DialogTrigger asChild>
-            <Button variant="ghost" size="sm" className="w-full">
+            <Button variant="ghost" size="sm" className="w-full justify-start">
               <FolderPlus className="h-4 w-4 mr-2" />
               Create Folder
             </Button>
@@ -298,9 +298,9 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
         </Dialog>
       </div>
 
-      {/* User Controls - Now absolutely positioned */}
-      <div className="absolute bottom-0 left-0 right-0 p-3 border-t border-border bg-background/50 backdrop-blur-sm">
-        <div className="flex items-center gap-3 mb-2">
+      {/* User Controls - Fixed at bottom with Discord-like styling */}
+      <div className="absolute bottom-0 left-0 right-0 h-13 px-2 py-2 border-t border-border bg-background/95 backdrop-blur-md">
+        <div className="flex items-center gap-2">
           <Avatar className="h-8 w-8">
             <AvatarImage src={currentUser?.avatar_url || ''} />
             <AvatarFallback>{currentUser?.username?.charAt(0)}</AvatarFallback>
@@ -309,31 +309,32 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
             <p className="text-sm font-medium truncate">{currentUser?.username}</p>
             <p className="text-xs text-muted-foreground">Online</p>
           </div>
-        </div>
-        <div className="flex gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            className={`${isMuted ? 'text-destructive' : ''}`}
-            onClick={() => setIsMuted(!isMuted)}
-          >
-            <Mic className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className={`${isDeafened ? 'text-destructive' : ''}`}
-            onClick={() => setIsDeafened(!isDeafened)}
-          >
-            <Headphones className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate(`/settings/servers/${serverId}/user`)}
-          >
-            <Settings className="h-4 w-4" />
-          </Button>
+          <div className="flex gap-0.5">
+            <Button
+              variant="ghost"
+              size="icon"
+              className={`h-8 w-8 ${isMuted ? 'text-destructive' : ''}`}
+              onClick={() => setIsMuted(!isMuted)}
+            >
+              <Mic className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className={`h-8 w-8 ${isDeafened ? 'text-destructive' : ''}`}
+              onClick={() => setIsDeafened(!isDeafened)}
+            >
+              <Headphones className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => navigate(`/settings/servers/${serverId}/user`)}
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>
