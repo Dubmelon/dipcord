@@ -38,13 +38,13 @@ export const ServerMemberList = ({ serverId }: ServerMemberListProps) => {
   const { data: members } = useQuery({
     queryKey: ['server-members', serverId],
     queryFn: async () => {
-      const { data: serverMembers, error } = await supabase
+      // First get server members with profiles
+      const { data: serverMembers, error: membersError } = await supabase
         .from('server_members')
         .select(`
           id,
           user_id,
           nickname,
-          role_id,
           user:profiles!user_id(
             id,
             username,
@@ -53,14 +53,23 @@ export const ServerMemberList = ({ serverId }: ServerMemberListProps) => {
         `)
         .eq('server_id', serverId);
 
-      if (error) throw error;
-      
-      // Transform the data to match ServerMemberWithUser type
+      if (membersError) throw membersError;
+
+      // Then get user roles for these members
+      const { data: memberRoles, error: rolesError } = await supabase
+        .from('server_member_roles')
+        .select('server_member_id, role_id')
+        .eq('server_id', serverId)
+        .in('user_id', serverMembers.map(m => m.user_id));
+
+      if (rolesError) throw rolesError;
+
+      // Combine the data
       return (serverMembers || []).map(member => ({
         server_member_id: member.id,
         user_id: member.user_id,
         nickname: member.nickname,
-        role_id: member.role_id,
+        role_id: memberRoles?.find(r => r.server_member_id === member.id)?.role_id || null,
         user: member.user
       })) as ServerMemberWithUser[];
     }
