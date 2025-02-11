@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,6 +31,8 @@ export const ServerMemberList = ({ serverId }: ServerMemberListProps) => {
             id,
             username,
             avatar_url,
+            full_name,
+            bio,
             is_online,
             last_seen
           ),
@@ -48,7 +49,7 @@ export const ServerMemberList = ({ serverId }: ServerMemberListProps) => {
         .order('joined_at', { ascending: true });
 
       if (error) throw error;
-      return serverMembers as ServerMember[];
+      return serverMembers as unknown as ServerMember[];
     },
     staleTime: 0,
     refetchOnMount: true

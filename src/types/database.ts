@@ -14,6 +14,7 @@ export type ServerRegion = 'us-west' | 'us-east' | 'eu-west' | 'eu-central' | 'a
 export interface VerificationRequirements {
   minimum_account_age: number;
   require_email: boolean;
+  [key: string]: any; // Add index signature for Json compatibility
 }
 
 export interface Server {

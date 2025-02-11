@@ -1,13 +1,7 @@
 
-export interface Profile {
-  id: string;
-  username: string;
-  avatar_url: string | null;
-  full_name: string | null;
-  bio: string | null;
-  is_online?: boolean;
-  last_seen?: string;
-}
+import type { Profile as DatabaseProfile } from "./database";
+
+export type Profile = DatabaseProfile;
 
 export interface ProfileResponse {
   data: Profile | null;
