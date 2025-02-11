@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -260,4 +259,3 @@ export const ProfileSettings = ({ profile, isLoading }: ProfileSettingsProps) =>
     </Card>
   );
 };
-
