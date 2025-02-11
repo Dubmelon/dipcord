@@ -27,6 +27,8 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { PERMISSIONS, PERMISSION_CATEGORIES } from "@/types/permissions";
+import { PermissionSection } from "./permissions/PermissionSection";
 
 interface RolesManagementTabProps {
   server: Server;
@@ -376,6 +378,14 @@ export const RolesManagementTab = ({ server }: RolesManagementTabProps) => {
     updateRole.mutate({ permissions_v2: newPermissions });
   };
 
+  const groupedPermissions = PERMISSIONS.reduce((acc, permission) => {
+    if (!acc[permission.category]) {
+      acc[permission.category] = [];
+    }
+    acc[permission.category].push(permission);
+    return acc;
+  }, {} as Record<string, typeof PERMISSIONS>);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -478,57 +488,23 @@ export const RolesManagementTab = ({ server }: RolesManagementTabProps) => {
 
             <Separator />
 
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Display Role Separately</label>
-                  <Switch
-                    checked={selectedRole.display_separately}
-                    onCheckedChange={(checked) => 
-                      updateRole.mutate({ display_separately: checked })
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Allow Mentions</label>
-                  <Switch
-                    checked={selectedRole.mentionable}
-                    onCheckedChange={(checked) => 
-                      updateRole.mutate({ mentionable: checked })
-                    }
-                  />
-                </div>
-              </div>
-            </div>
-
-            <Separator />
-
             <div className="space-y-6">
-              {permissionGroups.map((group) => (
-                <div key={group.name} className="space-y-4">
-                  <h3 className="font-semibold">{group.name}</h3>
-                  <div className="space-y-2">
-                    {group.permissions.map((permission) => (
-                      <div
-                        key={permission.id}
-                        className="flex items-center justify-between"
-                      >
-                        <div>
-                          <p className="text-sm font-medium">{permission.label}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {permission.description}
-                          </p>
-                        </div>
-                        <Switch
-                          checked={selectedRole.permissions_v2[permission.id]}
-                          onCheckedChange={(checked) => 
-                            updateRolePermission(permission.id, checked)
-                          }
-                          disabled={selectedRole.is_system}
-                        />
-                      </div>
-                    ))}
-                  </div>
+              {Object.entries(PERMISSION_CATEGORIES).map(([category, label]) => (
+                <div key={category} className="space-y-4">
+                  <h3 className="font-semibold">{label}</h3>
+                  <PermissionSection
+                    permissions={groupedPermissions[category] || []}
+                    selectedPermissions={selectedRole.permissions_v2}
+                    onTogglePermission={(permissionId, value) => {
+                      if (!selectedRole) return;
+                      const newPermissions = {
+                        ...selectedRole.permissions_v2,
+                        [permissionId]: value
+                      };
+                      updateRole.mutate({ permissions_v2: newPermissions });
+                    }}
+                    isDisabled={selectedRole.is_system}
+                  />
                 </div>
               ))}
             </div>

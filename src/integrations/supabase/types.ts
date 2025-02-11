@@ -236,6 +236,58 @@ export type Database = {
           },
         ]
       }
+      channel_permission_overrides: {
+        Row: {
+          allow_permissions: Json | null
+          channel_id: string | null
+          created_at: string
+          deny_permissions: Json | null
+          id: string
+          role_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          allow_permissions?: Json | null
+          channel_id?: string | null
+          created_at?: string
+          deny_permissions?: Json | null
+          id?: string
+          role_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          allow_permissions?: Json | null
+          channel_id?: string | null
+          created_at?: string
+          deny_permissions?: Json | null
+          id?: string
+          role_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "channel_permission_overrides_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "channel_permission_overrides_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "channel_permission_overrides_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "server_member_roles"
+            referencedColumns: ["role_id"]
+          },
+        ]
+      }
       channels: {
         Row: {
           category: Database["public"]["Enums"]["channel_category"] | null
