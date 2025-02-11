@@ -31,21 +31,39 @@ export const MessageList = ({
   emptyMessage = "No messages yet"
 }: MessageListProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [shouldScrollToBottom, setShouldScrollToBottom] = useState(true);
+  const lastMessageRef = useRef<string | null>(null);
 
-  const scrollToBottom = () => {
-    if (scrollRef.current && messages.length > 0 && isInitialLoad) {
+  const scrollToBottom = (force = false) => {
+    if (scrollRef.current && (shouldScrollToBottom || force)) {
       const scrollElement = scrollRef.current.querySelector('[data-radix-scroll-area-viewport]');
       if (scrollElement) {
         scrollElement.scrollTop = scrollElement.scrollHeight;
-        setIsInitialLoad(false);
       }
     }
   };
 
+  // Handle initial scroll and new messages
   useEffect(() => {
-    scrollToBottom();
+    if (messages.length > 0) {
+      const lastMessage = messages[messages.length - 1];
+      
+      // If this is a new message, scroll to bottom
+      if (lastMessage.id !== lastMessageRef.current) {
+        scrollToBottom(true);
+        lastMessageRef.current = lastMessage.id;
+      }
+    }
   }, [messages]);
+
+  // Handle scroll events to determine if we should auto-scroll
+  const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
+    if (scrollRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
+      const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
+      setShouldScrollToBottom(isNearBottom);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -64,8 +82,12 @@ export const MessageList = ({
   }
 
   return (
-    <div className="flex-1 h-[calc(100vh-10rem)] overflow-hidden">
-      <ScrollArea ref={scrollRef} className="h-full">
+    <div className="flex-1 h-[calc(100vh-12rem)] overflow-hidden">
+      <ScrollArea 
+        ref={scrollRef} 
+        className="h-full" 
+        onScrollCapture={handleScroll}
+      >
         <div className="space-y-2 p-4">
           {messages.map((message) => (
             <MessageItem

@@ -48,7 +48,7 @@ export const useMessageData = (channelId: string | null) => {
           )
         `)
         .eq('channel_id', channelId)
-        .order('created_at', { ascending: false })
+        .order('created_at', { ascending: true })
         .limit(50);
 
       if (error) {
@@ -75,7 +75,6 @@ export const useMessageData = (channelId: string | null) => {
     }
   });
 
-  // Set up realtime subscription for messages
   useEffect(() => {
     if (!channelId) return;
 
@@ -91,7 +90,8 @@ export const useMessageData = (channelId: string | null) => {
           table: 'messages',
           filter: `channel_id=eq.${channelId}`
         },
-        () => {
+        (payload) => {
+          console.log('[ServerView] Message update received:', payload);
           queryClient.invalidateQueries({ queryKey: ['messages', channelId] });
         }
       )
@@ -105,16 +105,10 @@ export const useMessageData = (channelId: string | null) => {
     };
   }, [channelId, queryClient]);
 
-  // Error handler
-  useEffect(() => {
-    if (error) {
-      console.error('[ServerView] Message data error:', error);
-      toast.error(error instanceof Error ? error.message : "Failed to load messages");
-    }
-  }, [error]);
-
   return {
-    messages,
+    messages: messages?.sort((a, b) => 
+      new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    ),
     isLoading,
     error,
     isError: !!error

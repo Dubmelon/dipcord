@@ -18,6 +18,7 @@ export const ServerMemberList = ({ serverId }: ServerMemberListProps) => {
   const { data: members, isLoading } = useQuery({
     queryKey: ['server-members', serverId],
     queryFn: async () => {
+      console.log('[ServerMemberList] Fetching members');
       const { data, error } = await supabase
         .from('server_members')
         .select(`
@@ -41,7 +42,11 @@ export const ServerMemberList = ({ serverId }: ServerMemberListProps) => {
   });
 
   useEffect(() => {
-    // Subscribe to realtime changes for server members
+    if (!serverId) return;
+
+    console.log('[ServerMemberList] Setting up realtime subscriptions');
+
+    // Subscribe to changes in server_members table
     const membersChannel = supabase
       .channel(`server-members-${serverId}`)
       .on(
@@ -52,13 +57,14 @@ export const ServerMemberList = ({ serverId }: ServerMemberListProps) => {
           table: 'server_members',
           filter: `server_id=eq.${serverId}`,
         },
-        () => {
+        (payload) => {
+          console.log('[ServerMemberList] Server member change:', payload);
           queryClient.invalidateQueries({ queryKey: ['server-members', serverId] });
         }
       )
       .subscribe();
 
-    // Subscribe to realtime changes for member online status
+    // Subscribe to presence changes for all profiles
     const presenceChannel = supabase
       .channel(`profiles-presence-${serverId}`)
       .on(
@@ -67,19 +73,20 @@ export const ServerMemberList = ({ serverId }: ServerMemberListProps) => {
           event: '*',
           schema: 'public',
           table: 'profiles',
-          filter: `id=in.(${members?.map(m => m.user?.id).join(',')})`,
         },
-        () => {
+        (payload) => {
+          console.log('[ServerMemberList] Profile presence change:', payload);
           queryClient.invalidateQueries({ queryKey: ['server-members', serverId] });
         }
       )
       .subscribe();
 
     return () => {
+      console.log('[ServerMemberList] Cleaning up subscriptions');
       supabase.removeChannel(membersChannel);
       supabase.removeChannel(presenceChannel);
     };
-  }, [serverId, queryClient, members]);
+  }, [serverId, queryClient]);
 
   if (isLoading) {
     return (
