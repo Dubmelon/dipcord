@@ -349,6 +349,36 @@ export type Database = {
           },
         ]
       }
+      notification_settings: {
+        Row: {
+          created_at: string
+          id: string
+          is_muted: boolean | null
+          target_id: string
+          target_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_muted?: boolean | null
+          target_id: string
+          target_type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_muted?: boolean | null
+          target_id?: string
+          target_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           content: string
@@ -634,6 +664,81 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      server_folder_memberships: {
+        Row: {
+          created_at: string
+          folder_id: string
+          id: string
+          position: number
+          server_id: string
+        }
+        Insert: {
+          created_at?: string
+          folder_id: string
+          id?: string
+          position?: number
+          server_id: string
+        }
+        Update: {
+          created_at?: string
+          folder_id?: string
+          id?: string
+          position?: number
+          server_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "server_folder_memberships_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "server_folders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "server_folder_memberships_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "servers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      server_folders: {
+        Row: {
+          color: string | null
+          created_at: string
+          id: string
+          is_expanded: boolean | null
+          is_muted: boolean | null
+          name: string
+          position: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          is_expanded?: boolean | null
+          is_muted?: boolean | null
+          name: string
+          position?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          is_expanded?: boolean | null
+          is_muted?: boolean | null
+          name?: string
+          position?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       server_invites: {
         Row: {
