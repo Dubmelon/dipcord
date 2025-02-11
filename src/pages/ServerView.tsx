@@ -71,7 +71,7 @@ const ServerView = () => {
                     animate={{ x: 0, opacity: 1 }}
                     exit={{ x: -300, opacity: 0 }}
                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                    className="w-60 relative z-30 flex flex-col"
+                    className="w-60 relative z-30 flex flex-col max-h-screen"
                   >
                     <ServerHeader 
                       server={server} 

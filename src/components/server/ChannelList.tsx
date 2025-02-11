@@ -1,6 +1,4 @@
-
 import { useState } from "react";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { ChannelCategory } from "./channel/ChannelCategory";
@@ -40,7 +38,6 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
     }));
   };
 
-  // Group channels by their category
   const channelsByCategory = (channels || []).reduce((acc, channel) => {
     const category = channel.category ?? 'general';
     if (!acc[category]) {
@@ -51,8 +48,8 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
   }, {} as Record<ChannelCategoryType, Channel[]>);
 
   return (
-    <div className="w-full h-full flex flex-col relative bg-muted/50 backdrop-blur-xl">
-      <div className="flex-1 overflow-y-auto">
+    <div className="w-full h-full flex flex-col bg-muted/50 backdrop-blur-xl">
+      <div className="flex-1 overflow-y-auto min-h-0">
         <div className="p-2 space-y-2">
           {Object.entries(channelsByCategory).map(([category, categoryChannels]) => (
             <ChannelCategory
@@ -67,8 +64,9 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
           ))}
         </div>
       </div>
-
-      <UserControls serverId={serverId} currentUser={currentUser} />
+      <div className="mt-auto">
+        <UserControls serverId={serverId} currentUser={currentUser} />
+      </div>
     </div>
   );
 };

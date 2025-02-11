@@ -59,7 +59,7 @@ export const ServerContent = ({
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="flex-1 flex flex-col h-full relative"
+      className="flex flex-col h-full relative min-h-0"
     >
       {isMobile && !sidebarOpen && (
         <Button
@@ -82,7 +82,7 @@ export const ServerContent = ({
         </div>
       ) : (
         <>
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 overflow-hidden min-h-0">
             <MessageList 
               messages={messages || []} 
               isLoading={loadingMessages}
