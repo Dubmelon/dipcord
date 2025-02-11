@@ -15,8 +15,14 @@ export const useProfile = (userId: string | undefined) => {
           id,
           username,
           avatar_url,
+          banner_url,
           full_name,
           bio,
+          about_markdown,
+          accent_color,
+          status_emoji,
+          status_text,
+          theme_preference,
           is_online,
           last_seen
         `)
@@ -43,8 +49,14 @@ export const useProfiles = (userIds: string[] | undefined) => {
           id,
           username,
           avatar_url,
+          banner_url,
           full_name,
           bio,
+          about_markdown,
+          accent_color,
+          status_emoji,
+          status_text,
+          theme_preference,
           is_online,
           last_seen
         `)
