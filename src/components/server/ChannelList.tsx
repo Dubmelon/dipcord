@@ -21,7 +21,7 @@ import { Input } from "@/components/ui/input";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -110,8 +110,10 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
     show: { opacity: 1, x: 0 }
   };
 
+  // Group channels by their category, defaulting to 'general' if not specified
   const channelsByCategory = channels?.reduce((acc, channel) => {
-    const category = channel.category || 'general';
+    // Using type assertion since we know the database has this column
+    const category = (channel as any).category || 'general';
     if (!acc[category]) {
       acc[category] = [];
     }
