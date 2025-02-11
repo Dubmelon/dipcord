@@ -17,7 +17,12 @@ export const useNotificationSettings = (userId: string | undefined) => {
         .select('*')
         .eq('user_id', userId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching notification settings:', error);
+        toast.error('Failed to load notification settings');
+        throw error;
+      }
+      
       return data as NotificationSetting[];
     },
     enabled: !!userId
@@ -51,7 +56,11 @@ export const useNotificationSettings = (userId: string | undefined) => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating notification settings:', error);
+        throw error;
+      }
+      
       return data;
     },
     onSuccess: () => {
