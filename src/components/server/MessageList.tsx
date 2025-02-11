@@ -43,12 +43,10 @@ export const MessageList = ({
     }
   };
 
-  // Handle initial scroll and new messages
   useEffect(() => {
     if (messages.length > 0) {
       const lastMessage = messages[messages.length - 1];
       
-      // If this is a new message, scroll to bottom
       if (lastMessage.id !== lastMessageRef.current) {
         scrollToBottom(true);
         lastMessageRef.current = lastMessage.id;
@@ -56,7 +54,6 @@ export const MessageList = ({
     }
   }, [messages]);
 
-  // Handle scroll events to determine if we should auto-scroll
   const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
     if (scrollRef.current) {
       const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
@@ -82,10 +79,10 @@ export const MessageList = ({
   }
 
   return (
-    <div className="flex-1 h-[calc(100vh-12rem)] overflow-hidden">
+    <div className="flex-1 h-[calc(100vh-16rem)] overflow-hidden"> {/* Adjusted height to account for input */}
       <ScrollArea 
         ref={scrollRef} 
-        className="h-full" 
+        className="h-full pb-20" /* Added bottom padding to prevent message overlap */
         onScrollCapture={handleScroll}
       >
         <div className="space-y-2 p-4">

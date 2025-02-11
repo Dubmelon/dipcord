@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -39,14 +38,13 @@ export const ServerMemberList = ({ serverId }: ServerMemberListProps) => {
       if (error) throw error;
       return data as ServerMember[];
     },
+    staleTime: 0, // Force refresh on every mount
+    refetchOnMount: true // Always refetch when component mounts
   });
 
   useEffect(() => {
-    if (!serverId) return;
-
     console.log('[ServerMemberList] Setting up realtime subscriptions');
 
-    // Subscribe to changes in server_members table
     const membersChannel = supabase
       .channel(`server-members-${serverId}`)
       .on(
@@ -64,7 +62,6 @@ export const ServerMemberList = ({ serverId }: ServerMemberListProps) => {
       )
       .subscribe();
 
-    // Subscribe to presence changes for all profiles
     const presenceChannel = supabase
       .channel(`profiles-presence-${serverId}`)
       .on(
@@ -102,7 +99,6 @@ export const ServerMemberList = ({ serverId }: ServerMemberListProps) => {
   return (
     <ScrollArea className="h-[calc(100vh-4rem)]">
       <div className="p-4 space-y-6">
-        {/* Online Members */}
         <div>
           <h4 className="text-sm font-semibold mb-2 text-muted-foreground">
             Online — {onlineMembers.length}
@@ -129,7 +125,6 @@ export const ServerMemberList = ({ serverId }: ServerMemberListProps) => {
           </div>
         </div>
 
-        {/* Offline Members */}
         <div>
           <h4 className="text-sm font-semibold mb-2 text-muted-foreground">
             Offline — {offlineMembers.length}
