@@ -8,6 +8,7 @@ import { ChevronRight, Hash, Volume2 } from "lucide-react";
 import type { Channel, Role } from "@/types/database";
 import { PERMISSIONS, PERMISSION_CATEGORIES } from "@/types/permissions";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface ChannelPermissionOverridesProps {
   serverId: string;
