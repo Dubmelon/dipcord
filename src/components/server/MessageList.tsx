@@ -4,7 +4,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2 } from "lucide-react";
 import { MessageItem } from "./message/MessageItem";
 import { motion, AnimatePresence } from "framer-motion";
-import { useVirtualizer } from "@tanstack/react-virtual";
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
 
@@ -21,11 +20,6 @@ interface Message {
   media_urls: string[] | null;
 }
 
-interface MessageGroup {
-  date: string;
-  messages: Message[];
-}
-
 interface MessageListProps {
   messages: Message[];
   isLoading?: boolean;
@@ -37,34 +31,9 @@ export const MessageList = ({
   isLoading = false,
   emptyMessage = "No messages yet"
 }: MessageListProps) => {
-  const parentRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [shouldScrollToBottom, setShouldScrollToBottom] = useState(true);
   const lastMessageRef = useRef<string | null>(null);
-
-  const messageGroups = useMemo(() => {
-    console.log('[MessageList] Recalculating message groups');
-    const groups = messages.reduce((acc, message) => {
-      const date = new Date(message.created_at).toLocaleDateString();
-      if (!acc[date]) {
-        acc[date] = [];
-      }
-      acc[date].push(message);
-      return acc;
-    }, {} as Record<string, Message[]>);
-
-    return Object.entries(groups).map(([date, messages]) => ({
-      date,
-      messages
-    }));
-  }, [messages]);
-
-  const virtualizer = useVirtualizer({
-    count: messageGroups.length,
-    getScrollElement: () => scrollRef.current?.querySelector('[data-radix-scroll-area-viewport]') ?? null,
-    estimateSize: useCallback(() => 100, []), // Estimate average height of a message group
-    overscan: 5, // Number of items to render outside of the viewport
-  });
 
   const scrollToBottom = useCallback((force = false) => {
     if (scrollRef.current && (shouldScrollToBottom || force)) {
@@ -93,6 +62,18 @@ export const MessageList = ({
       setShouldScrollToBottom(isNearBottom);
     }
   }, []);
+
+  const messageGroups = useMemo(() => {
+    console.log('[MessageList] Recalculating message groups');
+    return messages.reduce((groups, message) => {
+      const date = new Date(message.created_at).toLocaleDateString();
+      if (!groups[date]) {
+        groups[date] = [];
+      }
+      groups[date].push(message);
+      return groups;
+    }, {} as Record<string, Message[]>);
+  }, [messages]);
 
   if (isLoading) {
     return (
@@ -124,36 +105,22 @@ export const MessageList = ({
       className="h-full px-4"
       onScrollCapture={handleScroll}
     >
-      <div 
-        ref={parentRef}
-        className="py-4 space-y-4"
-        style={{
-          height: `${virtualizer.getTotalSize()}px`,
-          width: '100%',
-          position: 'relative',
-        }}
-      >
-        {virtualizer.getVirtualItems().map((virtualRow) => {
-          const group = messageGroups[virtualRow.index];
-          return (
+      <div className="py-4 space-y-4">
+        <AnimatePresence mode="popLayout">
+          {Object.entries(messageGroups).map(([date, groupMessages]) => (
             <motion.div
-              key={group.date}
+              key={date}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="space-y-2 absolute w-full"
-              style={{
-                top: 0,
-                transform: `translateY(${virtualRow.start}px)`,
-                paddingBottom: '1rem',
-              }}
+              className="space-y-2"
             >
               <div className="sticky top-0 z-10 flex items-center justify-center">
                 <span className="px-2 py-1 text-xs text-muted-foreground bg-background/80 backdrop-blur-sm rounded">
-                  {group.date}
+                  {date}
                 </span>
               </div>
-              {group.messages.map((message) => (
+              {groupMessages.map((message) => (
                 <MessageItem
                   key={message.id}
                   id={message.id}
@@ -164,8 +131,8 @@ export const MessageList = ({
                 />
               ))}
             </motion.div>
-          );
-        })}
+          ))}
+        </AnimatePresence>
       </div>
     </ScrollArea>
   );
