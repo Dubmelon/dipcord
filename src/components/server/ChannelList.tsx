@@ -2,7 +2,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import { 
   Plus, 
   Hash, 
@@ -19,6 +18,7 @@ import {
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -40,13 +40,17 @@ interface CategoryState {
   [key: string]: boolean;
 }
 
+type ChannelCategory = "text" | "voice" | "announcement" | "general";
+
+const CHANNEL_CATEGORIES: ChannelCategory[] = ["general", "text", "voice", "announcement"];
+
 export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChannel }: ChannelListProps) => {
   const [isCreatingChannel, setIsCreatingChannel] = useState(false);
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [newChannelName, setNewChannelName] = useState("");
   const [newFolderName, setNewFolderName] = useState("");
   const [newChannelType, setNewChannelType] = useState<Channel['type']>('text');
-  const [newChannelCategory, setNewChannelCategory] = useState("general");
+  const [newChannelCategory, setNewChannelCategory] = useState<ChannelCategory>("general");
   const [expandedCategories, setExpandedCategories] = useState<CategoryState>({ general: true });
   const [isMuted, setIsMuted] = useState(false);
   const [isDeafened, setIsDeafened] = useState(false);
@@ -58,14 +62,12 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
     mutationFn: async () => {
       const { error } = await supabase
         .from('channels')
-        .insert([
-          {
-            server_id: serverId,
-            name: newChannelName,
-            type: newChannelType,
-            category: newChannelCategory
-          },
-        ]);
+        .insert({
+          server_id: serverId,
+          name: newChannelName,
+          type: newChannelType,
+          category: newChannelCategory
+        });
       
       if (error) throw error;
     },
@@ -256,11 +258,21 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
             
             <div className="space-y-2">
               <Label>Category</Label>
-              <Input
-                placeholder="Category name"
+              <Select
                 value={newChannelCategory}
-                onChange={(e) => setNewChannelCategory(e.target.value)}
-              />
+                onValueChange={(value) => setNewChannelCategory(value as ChannelCategory)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CHANNEL_CATEGORIES.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category.charAt(0).toUpperCase() + category.slice(1)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             
             <div className="space-y-2">
