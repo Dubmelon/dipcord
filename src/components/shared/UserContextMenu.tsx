@@ -9,9 +9,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 interface UserContextMenuProps {
   userId: string;
   children: React.ReactNode;
+  isEnabled?: boolean;
 }
 
-export const UserContextMenu = ({ userId, children }: UserContextMenuProps) => {
+export const UserContextMenu = ({ userId, children, isEnabled = true }: UserContextMenuProps) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const { data: profile, isLoading } = useProfile(userId);
 
@@ -19,10 +20,14 @@ export const UserContextMenu = ({ userId, children }: UserContextMenuProps) => {
     return <Skeleton className="w-full h-full" />;
   }
 
+  if (!isEnabled) {
+    return <>{children}</>;
+  }
+
   return (
     <>
       <ContextMenu>
-        <ContextMenuTrigger>
+        <ContextMenuTrigger asChild>
           {children}
         </ContextMenuTrigger>
         <ContextMenuContent className="bg-[#403E43] border-[#33C3F0]/20 text-white">
