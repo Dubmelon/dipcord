@@ -1,14 +1,11 @@
+
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, GripVertical, Settings, Shield } from "lucide-react";
-import type { Server, Role } from "@/types/database";
+import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import {
   DndContext,
@@ -20,104 +17,27 @@ import {
   DragEndEvent
 } from "@dnd-kit/core";
 import {
-  arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
-  useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import { PERMISSIONS, PERMISSION_CATEGORIES } from "@/types/permissions";
-import { PermissionSection } from "./permissions/PermissionSection";
+import type { Server, Role } from "@/types/database";
+import { RoleListItem } from "./roles/RoleList";
+import { RoleEditor } from "./roles/RoleEditor";
+import { RoleMemberList } from "./roles/RoleMemberList";
 
 interface RolesManagementTabProps {
   server: Server;
 }
 
-interface PermissionGroup {
-  name: string;
-  permissions: Array<{
-    id: keyof Role["permissions_v2"];
-    label: string;
-    description: string;
-  }>;
-}
-
-const permissionGroups: PermissionGroup[] = [
-  {
-    name: "General Permissions",
-    permissions: [
-      { id: "ADMINISTRATOR", label: "Administrator", description: "Full access to all settings and features" },
-      { id: "VIEW_AUDIT_LOG", label: "View Audit Log", description: "View server audit logs" },
-      { id: "MANAGE_SERVER", label: "Manage Server", description: "Edit server settings" },
-      { id: "MANAGE_ROLES", label: "Manage Roles", description: "Create and edit roles" },
-    ]
-  },
-  {
-    name: "Membership Permissions",
-    permissions: [
-      { id: "KICK_MEMBERS", label: "Kick Members", description: "Remove members from the server" },
-      { id: "BAN_MEMBERS", label: "Ban Members", description: "Ban members from the server" },
-      { id: "MODERATE_MEMBERS", label: "Moderate Members", description: "Timeout members and manage nicknames" },
-    ]
-  },
-  {
-    name: "Channel Permissions",
-    permissions: [
-      { id: "MANAGE_CHANNELS", label: "Manage Channels", description: "Create and edit channels" },
-      { id: "VIEW_CHANNELS", label: "View Channels", description: "View channels in the server" },
-      { id: "MANAGE_WEBHOOKS", label: "Manage Webhooks", description: "Create and edit webhooks" },
-    ]
-  },
+const predefinedColors = [
+  '#99AAB5', '#1ABC9C', '#2ECC71', '#3498DB', '#9B59B6',
+  '#E91E63', '#F1C40F', '#E67E22', '#E74C3C', '#95A5A6'
 ];
-
-const SortableRoleItem = ({ role, isSelected, onClick }: { 
-  role: Role; 
-  isSelected: boolean;
-  onClick: () => void;
-}) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-  } = useSortable({ id: role.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer hover:bg-accent ${
-        isSelected ? 'bg-accent' : ''
-      }`}
-      onClick={onClick}
-      {...attributes}
-    >
-      <div {...listeners} className="cursor-grab">
-        <GripVertical className="w-4 h-4 text-muted-foreground" />
-      </div>
-      <div
-        className="w-3 h-3 rounded-full"
-        style={{ backgroundColor: role.color || '#99AAB5' }}
-      />
-      <span className="flex-1">{role.name}</span>
-      {role.is_system && (
-        <Shield className="w-4 h-4 text-blue-500" />
-      )}
-    </div>
-  );
-};
 
 export const RolesManagementTab = ({ server }: RolesManagementTabProps) => {
   const queryClient = useQueryClient();
   const [selectedRoleId, setSelectedRoleId] = useState<string | null>(null);
-  const [colorPickerOpen, setColorPickerOpen] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -192,62 +112,6 @@ export const RolesManagementTab = ({ server }: RolesManagementTabProps) => {
     }
   });
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    
-    if (!over || active.id === over.id || !roles) {
-      return;
-    }
-
-    const oldIndex = roles.findIndex(role => role.id === active.id);
-    const newIndex = roles.findIndex(role => role.id === over.id);
-    
-    const newRoles = arrayMove(roles, oldIndex, newIndex);
-    const updates = newRoles.map((role, index) => ({
-      id: role.id,
-      position: newRoles.length - index - 1
-    }));
-
-    updateRolePositions.mutate(updates);
-  };
-
-  const predefinedColors = [
-    '#99AAB5', '#1ABC9C', '#2ECC71', '#3498DB', '#9B59B6',
-    '#E91E63', '#F1C40F', '#E67E22', '#E74C3C', '#95A5A6'
-  ];
-
-  const selectRoleColor = (color: string) => {
-    if (selectedRole) {
-      updateRole.mutate({ color });
-    }
-  };
-
-  const handleIconUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (!event.target.files || !event.target.files[0] || !selectedRole) return;
-    
-    const file = event.target.files[0];
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${server.id}/role-icons/${selectedRole.id}.${fileExt}`;
-
-    try {
-      const { error: uploadError } = await supabase.storage
-        .from('server-assets')
-        .upload(fileName, file, { upsert: true });
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('server-assets')
-        .getPublicUrl(fileName);
-
-      updateRole.mutate({ icon: publicUrl });
-      toast.success('Role icon updated');
-    } catch (error) {
-      toast.error('Failed to upload role icon');
-      console.error('Error uploading role icon:', error);
-    }
-  };
-
   const createRole = useMutation({
     mutationFn: async () => {
       const defaultPermissions: Role['permissions_v2'] = {
@@ -255,23 +119,15 @@ export const RolesManagementTab = ({ server }: RolesManagementTabProps) => {
         VIEW_CHANNELS: true,
         EMBED_LINKS: true,
         ATTACH_FILES: true,
-        MANAGE_CHANNELS: false,
-        MANAGE_ROLES: false,
-        KICK_MEMBERS: false,
-        BAN_MEMBERS: false,
-        MANAGE_MESSAGES: false,
-        MANAGE_WEBHOOKS: false,
-        MANAGE_SERVER: false,
+        READ_MESSAGE_HISTORY: true,
+        ADD_REACTIONS: true,
+        USE_EXTERNAL_EMOJIS: true,
+        CONNECT: true,
+        SPEAK: true,
+        USE_VAD: true,
+        STREAM: true,
         CREATE_INVITES: true,
-        MENTION_ROLES: true,
-        CREATE_INSTANT_INVITE: true,
         CHANGE_NICKNAME: true,
-        MANAGE_NICKNAMES: false,
-        MANAGE_EMOJIS: false,
-        ADMINISTRATOR: false,
-        VIEW_AUDIT_LOG: false,
-        VIEW_SERVER_INSIGHTS: false,
-        MODERATE_MEMBERS: false
       };
 
       const { data, error } = await supabase
@@ -321,6 +177,26 @@ export const RolesManagementTab = ({ server }: RolesManagementTabProps) => {
     }
   });
 
+  const deleteRole = useMutation({
+    mutationFn: async (roleId: string) => {
+      const { error } = await supabase
+        .from('roles')
+        .delete()
+        .eq('id', roleId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['server-roles', server.id] });
+      setSelectedRoleId(null);
+      toast.success('Role deleted successfully');
+    },
+    onError: (error) => {
+      toast.error('Failed to delete role');
+      console.error('Error deleting role:', error);
+    }
+  });
+
   const assignRole = useMutation({
     mutationFn: async ({ userId, roleId }: { userId: string; roleId: string }) => {
       const { error } = await supabase
@@ -342,49 +218,59 @@ export const RolesManagementTab = ({ server }: RolesManagementTabProps) => {
     }
   });
 
-  const deleteRole = useMutation({
-    mutationFn: async (roleId: string) => {
-      const { error } = await supabase
-        .from('roles')
-        .delete()
-        .eq('id', roleId);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['server-roles', server.id] });
-      setSelectedRoleId(null);
-      toast.success('Role deleted successfully');
-    },
-    onError: (error) => {
-      toast.error('Failed to delete role');
-      console.error('Error deleting role:', error);
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (!over || active.id === over.id || !roles) {
+      return;
     }
-  });
+
+    const oldIndex = roles.findIndex(role => role.id === active.id);
+    const newIndex = roles.findIndex(role => role.id === over.id);
+    
+    const newRoles = [...roles];
+    const [movedRole] = newRoles.splice(oldIndex, 1);
+    newRoles.splice(newIndex, 0, movedRole);
+    
+    const updates = newRoles.map((role, index) => ({
+      id: role.id,
+      position: newRoles.length - index - 1
+    }));
+
+    updateRolePositions.mutate(updates);
+  };
+
+  const handleIconUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.files || !event.target.files[0] || !selectedRoleId) return;
+    
+    const file = event.target.files[0];
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${server.id}/role-icons/${selectedRoleId}.${fileExt}`;
+
+    try {
+      const { error: uploadError } = await supabase.storage
+        .from('server-assets')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('server-assets')
+        .getPublicUrl(fileName);
+
+      updateRole.mutate({ icon: publicUrl });
+      toast.success('Role icon updated');
+    } catch (error) {
+      toast.error('Failed to upload role icon');
+      console.error('Error uploading role icon:', error);
+    }
+  };
 
   if (isLoading) {
     return <div>Loading roles...</div>;
   }
 
   const selectedRole = roles?.find(role => role.id === selectedRoleId);
-
-  const updateRolePermission = (permissionId: keyof Role["permissions_v2"], value: boolean) => {
-    if (!selectedRole) return;
-
-    const newPermissions = {
-      ...selectedRole.permissions_v2,
-      [permissionId]: value
-    };
-    updateRole.mutate({ permissions_v2: newPermissions });
-  };
-
-  const groupedPermissions = PERMISSIONS.reduce((acc, permission) => {
-    if (!acc[permission.category]) {
-      acc[permission.category] = [];
-    }
-    acc[permission.category].push(permission);
-    return acc;
-  }, {} as Record<string, typeof PERMISSIONS>);
 
   return (
     <div className="space-y-6">
@@ -413,7 +299,7 @@ export const RolesManagementTab = ({ server }: RolesManagementTabProps) => {
                   strategy={verticalListSortingStrategy}
                 >
                   {roles?.map((role) => (
-                    <SortableRoleItem
+                    <RoleListItem
                       key={role.id}
                       role={role}
                       isSelected={selectedRoleId === role.id}
@@ -428,117 +314,23 @@ export const RolesManagementTab = ({ server }: RolesManagementTabProps) => {
 
         {selectedRole && (
           <div className="col-span-8 border rounded-lg p-6 space-y-6">
-            <div className="flex items-center justify-between">
-              <Input
-                value={selectedRole.name}
-                onChange={(e) => updateRole.mutate({ name: e.target.value })}
-                className="max-w-xs"
-              />
-              <div className="flex items-center gap-4">
-                <div className="flex flex-col items-center gap-2">
-                  <label className="text-sm font-medium">Role Color</label>
-                  <div className="flex flex-wrap gap-2 max-w-[200px]">
-                    {predefinedColors.map((color) => (
-                      <button
-                        key={color}
-                        className="w-6 h-6 rounded-full border border-border hover:opacity-80 transition-opacity"
-                        style={{ backgroundColor: color }}
-                        onClick={() => selectRoleColor(color)}
-                      />
-                    ))}
-                  </div>
-                </div>
-                <div className="flex flex-col items-center gap-2">
-                  <label className="text-sm font-medium">Role Icon</label>
-                  <div className="flex items-center gap-2">
-                    {selectedRole.icon && (
-                      <img
-                        src={selectedRole.icon}
-                        alt="Role icon"
-                        className="w-8 h-8 rounded-full"
-                      />
-                    )}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => document.getElementById('icon-upload')?.click()}
-                    >
-                      Upload Icon
-                    </Button>
-                    <input
-                      id="icon-upload"
-                      type="file"
-                      className="hidden"
-                      accept="image/*"
-                      onChange={handleIconUpload}
-                    />
-                  </div>
-                </div>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => deleteRole.mutate(selectedRole.id)}
-                  disabled={deleteRole.isPending || selectedRole.is_system}
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Delete Role
-                </Button>
-              </div>
-            </div>
+            <RoleEditor
+              role={selectedRole}
+              onUpdateRole={updateRole.mutate}
+              onDeleteRole={() => deleteRole.mutate(selectedRole.id)}
+              onIconUpload={handleIconUpload}
+              predefinedColors={predefinedColors}
+              isDeleting={deleteRole.isPending}
+            />
 
             <Separator />
 
-            <div className="space-y-6">
-              {Object.entries(PERMISSION_CATEGORIES).map(([category, label]) => (
-                <div key={category} className="space-y-4">
-                  <h3 className="font-semibold">{label}</h3>
-                  <PermissionSection
-                    permissions={groupedPermissions[category] || []}
-                    selectedPermissions={selectedRole.permissions_v2}
-                    onTogglePermission={(permissionId, value) => {
-                      if (!selectedRole) return;
-                      const newPermissions = {
-                        ...selectedRole.permissions_v2,
-                        [permissionId]: value
-                      };
-                      updateRole.mutate({ permissions_v2: newPermissions });
-                    }}
-                    isDisabled={selectedRole.is_system}
-                  />
-                </div>
-              ))}
-            </div>
-
-            <Separator />
-
-            <div className="space-y-4">
-              <h3 className="font-semibold">Members with this role</h3>
-              <ScrollArea className="h-[200px] border rounded-lg p-4">
-                {serverMembers?.map((member) => (
-                  <div 
-                    key={member.server_member_id}
-                    className="flex items-center justify-between py-2"
-                  >
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-accent" />
-                      <span>{member.user?.username || 'Unknown User'}</span>
-                    </div>
-                    <Switch
-                      checked={member.role_id === selectedRole.id}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          assignRole.mutate({
-                            userId: member.user_id,
-                            roleId: selectedRole.id
-                          });
-                        }
-                      }}
-                      disabled={selectedRole.is_system}
-                    />
-                  </div>
-                ))}
-              </ScrollArea>
-            </div>
+            <RoleMemberList
+              members={serverMembers || []}
+              role={selectedRole}
+              onAssignRole={(userId, roleId) => assignRole.mutate({ userId, roleId })}
+              isDisabled={assignRole.isPending}
+            />
           </div>
         )}
       </div>
