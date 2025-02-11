@@ -88,12 +88,13 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
     mutationFn: async () => {
       const { error } = await supabase
         .from('server_folders')
-        .insert([
-          {
-            name: newFolderName,
-            user_id: currentUser?.id,
-          },
-        ]);
+        .insert({
+          name: newFolderName,
+          user_id: currentUser?.id,
+          server_id: serverId,
+          is_expanded: true,
+          position: 0
+        });
       
       if (error) throw error;
     },
@@ -129,24 +130,9 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
     }));
   };
 
-  const container = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const item = {
-    hidden: { opacity: 0, x: -20 },
-    show: { opacity: 1, x: 0 }
-  };
-
-  // Group channels by their category, defaulting to 'general' if not specified
+  // Group channels by their category
   const channelsByCategory = channels?.reduce((acc, channel) => {
-    const category = (channel as any).category || 'general';
+    const category = channel.category || 'general';
     if (!acc[category]) {
       acc[category] = [];
     }
@@ -154,27 +140,10 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
     return acc;
   }, {} as Record<string, Channel[]>) || {};
 
-  const handleServerSettings = () => {
-    navigate(`/settings/servers/${serverId}`);
-  };
-
   return (
     <div className="w-60 h-full bg-muted/80 backdrop-blur-xl flex flex-col">
-      {/* Server Header */}
-      <div className="flex items-center justify-between p-4 border-b border-border cursor-pointer hover:bg-accent/50 transition-colors"
-           onClick={handleServerSettings}>
-        <h2 className="text-lg font-bold truncate">Server Settings</h2>
-        <Settings2 className="h-4 w-4" />
-      </div>
-
-      {/* Channel List */}
       <ScrollArea className="flex-1">
-        <motion.div 
-          variants={container}
-          initial="hidden"
-          animate="show"
-          className="p-2"
-        >
+        <div className="p-2">
           {Object.entries(channelsByCategory).map(([category, categoryChannels]) => (
             <div key={category} className="mb-4">
               <button
@@ -191,19 +160,21 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
                 </span>
               </button>
 
-              <AnimatePresence mode="wait">
+              <AnimatePresence initial={false}>
                 {expandedCategories[category] && (
                   <motion.div
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.2 }}
-                    className="ml-2 space-y-1"
+                    className="ml-2 space-y-1 overflow-hidden"
                   >
                     {categoryChannels.map((channel) => (
                       <motion.button
                         key={channel.id}
-                        variants={item}
+                        initial={{ x: -20, opacity: 0 }}
+                        animate={{ x: 0, opacity: 1 }}
+                        exit={{ x: -20, opacity: 0 }}
                         onClick={() => onSelectChannel(channel.id)}
                         className={`w-full p-2 flex items-center space-x-2 rounded-lg transition-all ${
                           selectedChannel === channel.id 
@@ -220,117 +191,115 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
               </AnimatePresence>
             </div>
           ))}
-        </motion.div>
+        </div>
       </ScrollArea>
 
-      {/* Create Channel Button */}
-      <Dialog open={isCreatingChannel} onOpenChange={setIsCreatingChannel}>
-        <Dialog open={isCreatingFolder} onOpenChange={setIsCreatingFolder}>
-          <div className="p-2 space-y-2">
-            <DialogTrigger asChild>
-              <Button variant="ghost" size="sm" className="w-full">
-                <Plus className="h-4 w-4 mr-2" />
-                Create Channel
-              </Button>
-            </DialogTrigger>
-            <DialogTrigger asChild>
-              <Button variant="ghost" size="sm" className="w-full">
-                <FolderPlus className="h-4 w-4 mr-2" />
-                Create Folder
-              </Button>
-            </DialogTrigger>
-          </div>
-        </Dialog>
-
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Create Channel</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Channel Name</Label>
-              <Input
-                placeholder="Channel name"
-                value={newChannelName}
-                onChange={(e) => setNewChannelName(e.target.value)}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Category</Label>
-              <Select
-                value={newChannelCategory}
-                onValueChange={(value) => setNewChannelCategory(value as ChannelCategory)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CHANNEL_CATEGORIES.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category.charAt(0).toUpperCase() + category.slice(1)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Channel Type</Label>
-              <div className="grid grid-cols-2 gap-2">
-                {(['text', 'voice', 'forum', 'announcement'] as const).map((type) => (
-                  <Button
-                    key={type}
-                    variant={newChannelType === type ? 'default' : 'outline'}
-                    onClick={() => setNewChannelType(type)}
-                    className="flex items-center justify-center gap-2"
-                  >
-                    {getChannelIcon(type)}
-                    {type.charAt(0).toUpperCase() + type.slice(1)}
-                  </Button>
-                ))}
-              </div>
-            </div>
-            
-            <Button
-              className="w-full"
-              onClick={() => createChannel.mutate()}
-              disabled={!newChannelName.trim()}
-            >
+      {/* Create Channel/Folder Buttons */}
+      <div className="p-2 space-y-2">
+        <Dialog open={isCreatingChannel} onOpenChange={setIsCreatingChannel}>
+          <DialogTrigger asChild>
+            <Button variant="ghost" size="sm" className="w-full">
+              <Plus className="h-4 w-4 mr-2" />
               Create Channel
             </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+          </DialogTrigger>
 
-      {/* Create Folder Dialog */}
-      <Dialog open={isCreatingFolder} onOpenChange={setIsCreatingFolder}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Create Folder</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Folder Name</Label>
-              <Input
-                placeholder="Folder name"
-                value={newFolderName}
-                onChange={(e) => setNewFolderName(e.target.value)}
-              />
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create Channel</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Channel Name</Label>
+                <Input
+                  placeholder="Channel name"
+                  value={newChannelName}
+                  onChange={(e) => setNewChannelName(e.target.value)}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label>Category</Label>
+                <Select
+                  value={newChannelCategory}
+                  onValueChange={(value) => setNewChannelCategory(value as ChannelCategory)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CHANNEL_CATEGORIES.map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category.charAt(0).toUpperCase() + category.slice(1)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label>Channel Type</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {(['text', 'voice', 'forum', 'announcement'] as const).map((type) => (
+                    <Button
+                      key={type}
+                      variant={newChannelType === type ? 'default' : 'outline'}
+                      onClick={() => setNewChannelType(type)}
+                      className="flex items-center justify-center gap-2"
+                    >
+                      {getChannelIcon(type)}
+                      {type.charAt(0).toUpperCase() + type.slice(1)}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+              
+              <Button
+                className="w-full"
+                onClick={() => createChannel.mutate()}
+                disabled={!newChannelName.trim()}
+              >
+                Create Channel
+              </Button>
             </div>
-            
-            <Button
-              className="w-full"
-              onClick={() => createFolder.mutate()}
-              disabled={!newFolderName.trim()}
-            >
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={isCreatingFolder} onOpenChange={setIsCreatingFolder}>
+          <DialogTrigger asChild>
+            <Button variant="ghost" size="sm" className="w-full">
+              <FolderPlus className="h-4 w-4 mr-2" />
               Create Folder
             </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+          </DialogTrigger>
 
-      {/* User Controls Panel */}
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create Folder</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Folder Name</Label>
+                <Input
+                  placeholder="Folder name"
+                  value={newFolderName}
+                  onChange={(e) => setNewFolderName(e.target.value)}
+                />
+              </div>
+              
+              <Button
+                className="w-full"
+                onClick={() => createFolder.mutate()}
+                disabled={!newFolderName.trim()}
+              >
+                Create Folder
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {/* User Controls */}
       <div className="p-4 border-t border-border bg-background/50">
         <div className="flex items-center gap-3 mb-2">
           <Avatar className="h-8 w-8">
@@ -362,7 +331,7 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate('/settings')}
+            onClick={() => navigate(`/settings/servers/${serverId}/user`)}
           >
             <Settings className="h-4 w-4" />
           </Button>

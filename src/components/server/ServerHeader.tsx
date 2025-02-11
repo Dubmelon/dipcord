@@ -1,6 +1,6 @@
 
 import { motion } from "framer-motion";
-import { Bell, Search, Settings } from "lucide-react";
+import { Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ServerBanner } from "./ServerBanner";
 import { ServerQuickActions } from "./ServerQuickActions";
