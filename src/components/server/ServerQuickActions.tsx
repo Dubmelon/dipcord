@@ -1,7 +1,7 @@
 
 import { Bell, Menu, Search, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   Popover,
   PopoverContent,
@@ -20,13 +20,13 @@ interface ServerQuickActionsProps {
 
 export const ServerQuickActions = ({ isMobile, onToggleSidebar }: ServerQuickActionsProps) => {
   const navigate = useNavigate();
+  const { serverId } = useParams();
   const { toast } = useToast();
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // For now just show a toast that search is not implemented
     toast({
       title: "Search",
       description: `Searching for "${searchQuery}"...`,
@@ -37,7 +37,7 @@ export const ServerQuickActions = ({ isMobile, onToggleSidebar }: ServerQuickAct
   };
 
   const handleSettingsClick = () => {
-    navigate("settings");
+    navigate(`/servers/${serverId}/settings`);
   };
 
   return (
@@ -58,7 +58,12 @@ export const ServerQuickActions = ({ isMobile, onToggleSidebar }: ServerQuickAct
           </PopoverContent>
         </Popover>
 
-        <Button variant="ghost" size="icon" onClick={handleSettingsClick}>
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={handleSettingsClick}
+          title="Server Settings"
+        >
           <Settings className="h-4 w-4" />
         </Button>
 
