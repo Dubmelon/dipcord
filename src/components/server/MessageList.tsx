@@ -1,5 +1,5 @@
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2 } from "lucide-react";
 import { MessageItem } from "./message/MessageItem";
@@ -35,14 +35,14 @@ export const MessageList = ({
   const [shouldScrollToBottom, setShouldScrollToBottom] = useState(true);
   const lastMessageRef = useRef<string | null>(null);
 
-  const scrollToBottom = (force = false) => {
+  const scrollToBottom = useCallback((force = false) => {
     if (scrollRef.current && (shouldScrollToBottom || force)) {
       const scrollElement = scrollRef.current.querySelector('[data-radix-scroll-area-viewport]');
       if (scrollElement) {
         scrollElement.scrollTop = scrollElement.scrollHeight;
       }
     }
-  };
+  }, [shouldScrollToBottom]);
 
   useEffect(() => {
     if (messages.length > 0) {
@@ -53,15 +53,27 @@ export const MessageList = ({
         lastMessageRef.current = lastMessage.id;
       }
     }
-  }, [messages]);
+  }, [messages, scrollToBottom]);
 
-  const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
+  const handleScroll = useCallback((event: React.UIEvent<HTMLDivElement>) => {
     if (scrollRef.current) {
       const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
       const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
       setShouldScrollToBottom(isNearBottom);
     }
-  };
+  }, []);
+
+  const messageGroups = useMemo(() => {
+    console.log('[MessageList] Recalculating message groups');
+    return messages.reduce((groups, message) => {
+      const date = new Date(message.created_at).toLocaleDateString();
+      if (!groups[date]) {
+        groups[date] = [];
+      }
+      groups[date].push(message);
+      return groups;
+    }, {} as Record<string, Message[]>);
+  }, [messages]);
 
   if (isLoading) {
     return (
@@ -86,15 +98,6 @@ export const MessageList = ({
       </motion.div>
     );
   }
-
-  const messageGroups = messages.reduce((groups, message) => {
-    const date = new Date(message.created_at).toLocaleDateString();
-    if (!groups[date]) {
-      groups[date] = [];
-    }
-    groups[date].push(message);
-    return groups;
-  }, {} as Record<string, Message[]>);
 
   return (
     <ScrollArea 

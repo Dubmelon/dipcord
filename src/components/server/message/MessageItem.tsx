@@ -1,6 +1,6 @@
 
 import { format } from "date-fns";
-import { useState } from "react";
+import { useState, memo } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Lock } from "lucide-react";
@@ -28,7 +28,7 @@ interface MessageItemProps {
   isDelivered?: boolean;
 }
 
-export const MessageItem = ({ 
+const MessageItemComponent = ({ 
   content, 
   created_at, 
   sender, 
@@ -107,3 +107,18 @@ export const MessageItem = ({
     </>
   );
 };
+
+export const MessageItem = memo(MessageItemComponent, (prevProps, nextProps) => {
+  return (
+    prevProps.content === nextProps.content &&
+    prevProps.created_at === nextProps.created_at &&
+    prevProps.isRead === nextProps.isRead &&
+    prevProps.isDelivered === nextProps.isDelivered &&
+    prevProps.sender?.id === nextProps.sender?.id &&
+    prevProps.sender?.username === nextProps.sender?.username &&
+    prevProps.sender?.avatar_url === nextProps.sender?.avatar_url &&
+    prevProps.sender?.is_online === nextProps.sender?.is_online &&
+    JSON.stringify(prevProps.media_urls) === JSON.stringify(nextProps.media_urls)
+  );
+});
+
