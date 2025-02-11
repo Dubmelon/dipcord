@@ -115,6 +115,7 @@ const SortableRoleItem = ({ role, isSelected, onClick }: {
 export const RolesManagementTab = ({ server }: RolesManagementTabProps) => {
   const queryClient = useQueryClient();
   const [selectedRoleId, setSelectedRoleId] = useState<string | null>(null);
+  const [colorPickerOpen, setColorPickerOpen] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -133,7 +134,10 @@ export const RolesManagementTab = ({ server }: RolesManagementTabProps) => {
         .order('position', { ascending: false });
 
       if (error) throw error;
-      return data as Array<Role & { permissions_v2: Role['permissions_v2'] }>;
+      return data.map(role => ({
+        ...role,
+        permissions_v2: role.permissions_v2 as Role['permissions_v2']
+      }));
     }
   });
 
@@ -164,11 +168,15 @@ export const RolesManagementTab = ({ server }: RolesManagementTabProps) => {
     mutationFn: async (updates: { id: string; position: number }[]) => {
       const { error } = await supabase
         .from('roles')
-        .upsert(updates.map(({ id, position }) => ({
-          id,
-          position,
-          updated_at: new Date().toISOString()
-        })));
+        .upsert(
+          updates.map(({ id, position }) => ({
+            id,
+            position,
+            server_id: server.id,
+            updated_at: new Date().toISOString(),
+            name: roles?.find(r => r.id === id)?.name || 'Unknown Role'
+          }))
+        );
 
       if (error) throw error;
     },
@@ -195,10 +203,47 @@ export const RolesManagementTab = ({ server }: RolesManagementTabProps) => {
     const newRoles = arrayMove(roles, oldIndex, newIndex);
     const updates = newRoles.map((role, index) => ({
       id: role.id,
-      position: newRoles.length - index - 1 // Reverse order for hierarchy
+      position: newRoles.length - index - 1
     }));
 
     updateRolePositions.mutate(updates);
+  };
+
+  const predefinedColors = [
+    '#99AAB5', '#1ABC9C', '#2ECC71', '#3498DB', '#9B59B6',
+    '#E91E63', '#F1C40F', '#E67E22', '#E74C3C', '#95A5A6'
+  ];
+
+  const selectRoleColor = (color: string) => {
+    if (selectedRole) {
+      updateRole.mutate({ color });
+    }
+  };
+
+  const handleIconUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.files || !event.target.files[0] || !selectedRole) return;
+    
+    const file = event.target.files[0];
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${server.id}/role-icons/${selectedRole.id}.${fileExt}`;
+
+    try {
+      const { error: uploadError } = await supabase.storage
+        .from('server-assets')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('server-assets')
+        .getPublicUrl(fileName);
+
+      updateRole.mutate({ icon: publicUrl });
+      toast.success('Role icon updated');
+    } catch (error) {
+      toast.error('Failed to upload role icon');
+      console.error('Error uploading role icon:', error);
+    }
   };
 
   const createRole = useMutation({
@@ -379,15 +424,56 @@ export const RolesManagementTab = ({ server }: RolesManagementTabProps) => {
                 onChange={(e) => updateRole.mutate({ name: e.target.value })}
                 className="max-w-xs"
               />
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => deleteRole.mutate(selectedRole.id)}
-                disabled={deleteRole.isPending || selectedRole.is_system}
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Delete Role
-              </Button>
+              <div className="flex items-center gap-4">
+                <div className="flex flex-col items-center gap-2">
+                  <label className="text-sm font-medium">Role Color</label>
+                  <div className="flex flex-wrap gap-2 max-w-[200px]">
+                    {predefinedColors.map((color) => (
+                      <button
+                        key={color}
+                        className="w-6 h-6 rounded-full border border-border hover:opacity-80 transition-opacity"
+                        style={{ backgroundColor: color }}
+                        onClick={() => selectRoleColor(color)}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <div className="flex flex-col items-center gap-2">
+                  <label className="text-sm font-medium">Role Icon</label>
+                  <div className="flex items-center gap-2">
+                    {selectedRole.icon && (
+                      <img
+                        src={selectedRole.icon}
+                        alt="Role icon"
+                        className="w-8 h-8 rounded-full"
+                      />
+                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => document.getElementById('icon-upload')?.click()}
+                    >
+                      Upload Icon
+                    </Button>
+                    <input
+                      id="icon-upload"
+                      type="file"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={handleIconUpload}
+                    />
+                  </div>
+                </div>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => deleteRole.mutate(selectedRole.id)}
+                  disabled={deleteRole.isPending || selectedRole.is_system}
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete Role
+                </Button>
+              </div>
             </div>
 
             <Separator />
