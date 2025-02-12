@@ -1,6 +1,6 @@
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Hash, Volume2, MessageSquare, Megaphone, ChevronRight, ChevronDown, GripVertical } from "lucide-react";
+import { ChevronRight, ChevronDown, Hash, Volume2, MessageSquare, Megaphone } from "lucide-react";
 import type { Channel } from "@/types/database";
 import type { CategoryProps } from "./types";
 import { useSortable } from "@dnd-kit/sortable";
@@ -55,7 +55,7 @@ const SortableChannel = ({ channel, selected, onClick, depth = 0 }: SortableChan
       )}
     >
       <div {...listeners} className="cursor-grab opacity-0 group-hover:opacity-100">
-        <GripVertical className="h-4 w-4" />
+        <ChevronRight className="h-4 w-4" />
       </div>
       <button
         onClick={onClick}
