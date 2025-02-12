@@ -12,7 +12,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { Role } from "@/types/database";
+import { Badge } from "@/components/ui/badge";
 
 interface ServerMemberListProps {
   serverId: string;
@@ -27,6 +27,7 @@ interface ServerMemberWithRole {
   role_color: string | null;
   role_icon: string | null;
   role_position: number | null;
+  permissions_v2: Record<string, boolean>;
   user: {
     id: string;
     username: string;
@@ -35,9 +36,11 @@ interface ServerMemberWithRole {
 }
 
 export const ServerMemberList = ({ serverId }: ServerMemberListProps) => {
-  const { data: members } = useQuery({
+  const { data: members, isLoading } = useQuery({
     queryKey: ['server-members', serverId],
     queryFn: async () => {
+      console.log('[ServerMemberList] Fetching members for server:', serverId);
+      
       const { data: serverMembers, error } = await supabase
         .from('server_member_roles')
         .select(`
@@ -49,6 +52,7 @@ export const ServerMemberList = ({ serverId }: ServerMemberListProps) => {
           role_color,
           role_icon,
           role_position,
+          permissions_v2,
           user:profiles!user_id(
             id,
             username,
@@ -59,9 +63,15 @@ export const ServerMemberList = ({ serverId }: ServerMemberListProps) => {
         .order('role_position', { ascending: false })
         .order('nickname');
 
-      if (error) throw error;
+      if (error) {
+        console.error('[ServerMemberList] Error fetching members:', error);
+        throw error;
+      }
+
+      console.log('[ServerMemberList] Fetched members:', serverMembers);
       return serverMembers as ServerMemberWithRole[];
-    }
+    },
+    staleTime: 1000 * 60, // 1 minute
   });
 
   // Group members by role
@@ -73,6 +83,22 @@ export const ServerMemberList = ({ serverId }: ServerMemberListProps) => {
     acc[roleName].push(member);
     return acc;
   }, {} as Record<string, ServerMemberWithRole[]>);
+
+  if (isLoading) {
+    return (
+      <div className="p-4">
+        <h2 className="font-semibold text-lg mb-4">Members</h2>
+        <div className="space-y-2">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="animate-pulse flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-accent" />
+              <div className="h-4 w-24 bg-accent rounded" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   const roleGroups = membersByRole ? Object.entries(membersByRole) : [];
 
@@ -105,7 +131,7 @@ export const ServerMemberList = ({ serverId }: ServerMemberListProps) => {
                         <div className="flex-1 text-left">
                           <div className="flex items-center gap-2">
                             <span 
-                              className="font-medium"
+                              className="font-medium truncate"
                               style={{ 
                                 color: member.role_color || undefined 
                               }}
@@ -116,18 +142,23 @@ export const ServerMemberList = ({ serverId }: ServerMemberListProps) => {
                               <TooltipProvider>
                                 <Tooltip>
                                   <TooltipTrigger>
-                                    <img 
-                                      src={member.role_icon} 
-                                      alt={`${member.role_name} icon`}
-                                      className="w-4 h-4 rounded-full"
-                                    />
+                                    <Badge 
+                                      variant="outline"
+                                      className="h-5 px-2 text-xs"
+                                      style={{ 
+                                        borderColor: member.role_color || undefined,
+                                        color: member.role_color || undefined 
+                                      }}
+                                    >
+                                      {member.role_name}
+                                    </Badge>
                                   </TooltipTrigger>
                                   <TooltipContent>
                                     <div className="flex items-center gap-2">
                                       <img 
                                         src={member.role_icon} 
                                         alt={`${member.role_name} icon`}
-                                        className="w-6 h-6 rounded-full"
+                                        className="w-4 h-4 rounded-full"
                                       />
                                       <span className="font-semibold" style={{ color: member.role_color || undefined }}>
                                         {member.role_name}
@@ -138,6 +169,11 @@ export const ServerMemberList = ({ serverId }: ServerMemberListProps) => {
                               </TooltipProvider>
                             )}
                           </div>
+                          {member.nickname && (
+                            <p className="text-xs text-muted-foreground truncate">
+                              {member.user?.username}
+                            </p>
+                          )}
                         </div>
                       </button>
                     </UserContextMenu>
