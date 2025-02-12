@@ -8,9 +8,11 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogTrigger,
+  DialogFooter,
 } from '@/components/ui/dialog';
-import { Folder, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useServerFolders } from '@/hooks/useServerFolders';
 
 interface ServerFolderManagementProps {
@@ -20,7 +22,7 @@ interface ServerFolderManagementProps {
 export const ServerFolderManagement = ({ userId }: ServerFolderManagementProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
-  const { folders, createFolder, loadingFolders } = useServerFolders(userId);
+  const { folders, createFolder } = useServerFolders(userId);
 
   const handleCreateFolder = async () => {
     if (!newFolderName.trim()) return;
@@ -48,8 +50,11 @@ export const ServerFolderManagement = ({ userId }: ServerFolderManagementProps) 
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Create Server Folder</DialogTitle>
+          <DialogDescription>
+            Create a new folder to organize your servers
+          </DialogDescription>
         </DialogHeader>
-        <div className="space-y-4">
+        <div className="space-y-4 py-4">
           <div className="space-y-2">
             <Label htmlFor="folderName">Folder Name</Label>
             <Input
@@ -59,14 +64,21 @@ export const ServerFolderManagement = ({ userId }: ServerFolderManagementProps) 
               onChange={(e) => setNewFolderName(e.target.value)}
             />
           </div>
+        </div>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => setIsOpen(false)}
+          >
+            Cancel
+          </Button>
           <Button
             onClick={handleCreateFolder}
             disabled={!newFolderName.trim() || createFolder.isPending}
-            className="w-full"
           >
             {createFolder.isPending ? 'Creating...' : 'Create Folder'}
           </Button>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

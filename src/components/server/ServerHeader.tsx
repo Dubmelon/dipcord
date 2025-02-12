@@ -5,6 +5,18 @@ import { Button } from "@/components/ui/button";
 import { ServerBanner } from "./ServerBanner";
 import { ServerQuickActions } from "./ServerQuickActions";
 import { ServerStatusBar } from "./ServerStatusBar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import type { Server } from "@/types/database";
 
 interface ServerHeaderProps {
@@ -14,6 +26,34 @@ interface ServerHeaderProps {
 }
 
 export const ServerHeader = ({ server, isMobile, onToggleSidebar }: ServerHeaderProps) => {
+  const { currentUser } = useAuth();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const isOwner = currentUser?.id === server.owner_id;
+
+  const leaveServer = useMutation({
+    mutationFn: async () => {
+      if (!currentUser?.id) throw new Error("Not authenticated");
+      
+      const { error } = await supabase
+        .from('server_members')
+        .delete()
+        .eq('server_id', server.id)
+        .eq('user_id', currentUser.id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['servers'] });
+      toast.success("Left server successfully");
+      navigate('/servers');
+    },
+    onError: (error) => {
+      console.error('Error leaving server:', error);
+      toast.error("Failed to leave server");
+    }
+  });
+
   return (
     <div className="relative w-full">
       <ServerBanner url={server.banner_url} serverName={server.name} />
@@ -42,7 +82,36 @@ export const ServerHeader = ({ server, isMobile, onToggleSidebar }: ServerHeader
               </div>
             </motion.div>
 
-            <ServerQuickActions isMobile={isMobile} onToggleSidebar={onToggleSidebar} />
+            <div className="flex items-center gap-2">
+              <ServerQuickActions isMobile={isMobile} onToggleSidebar={onToggleSidebar} />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <Settings className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {isOwner ? (
+                    <DropdownMenuItem onClick={() => navigate(`/servers/${server.id}/settings`)}>
+                      Server Settings
+                    </DropdownMenuItem>
+                  ) : (
+                    <>
+                      <DropdownMenuItem onClick={() => navigate(`/servers/${server.id}/user-settings`)}>
+                        User Settings
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem 
+                        onClick={() => leaveServer.mutate()}
+                        className="text-red-600 focus:text-red-600"
+                      >
+                        Leave Server
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
           <ServerStatusBar server={server} />
         </div>
