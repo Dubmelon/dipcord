@@ -9,9 +9,15 @@ export const useSendMessage = () => {
 
   return useMutation({
     mutationFn: async (message: MessageInput) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
       const { error } = await supabase
         .from('messages')
-        .insert([message]);
+        .insert({
+          ...message,
+          sender_id: user.id
+        });
 
       if (error) throw error;
     },
