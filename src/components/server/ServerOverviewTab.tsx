@@ -11,10 +11,24 @@ import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { Loader2, Trash2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export const ServerOverviewTab = ({ server }: ServerSettingsProps) => {
   const { currentUser } = useAuth();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const isOwner = currentUser?.id === server.owner_id;
   
   // Local state for form values
@@ -45,6 +59,26 @@ export const ServerOverviewTab = ({ server }: ServerSettingsProps) => {
     onError: (error) => {
       console.error('Error updating server settings:', error);
       toast.error("Failed to update server settings");
+    }
+  });
+
+  const deleteServer = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from('servers')
+        .delete()
+        .eq('id', server.id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['servers'] });
+      toast.success("Server deleted successfully");
+      navigate('/servers');
+    },
+    onError: (error) => {
+      console.error('Error deleting server:', error);
+      toast.error("Failed to delete server");
     }
   });
 
@@ -146,13 +180,51 @@ export const ServerOverviewTab = ({ server }: ServerSettingsProps) => {
             />
           </div>
 
-          <Button 
-            onClick={handleSave}
-            disabled={!isOwner || updateServerSettings.isPending}
-            className="w-full mt-4"
-          >
-            Save Changes
-          </Button>
+          <div className="flex justify-between items-center pt-4">
+            {isOwner && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive">
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete Server
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action cannot be undone. This will permanently delete your
+                      server and remove all associated data.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => deleteServer.mutate()}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      {deleteServer.isPending ? (
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      ) : (
+                        "Delete Server"
+                      )}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+
+            <Button 
+              onClick={handleSave}
+              disabled={!isOwner || updateServerSettings.isPending}
+              className="ml-auto"
+            >
+              {updateServerSettings.isPending && (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              )}
+              Save Changes
+            </Button>
+          </div>
         </div>
       </div>
     </div>

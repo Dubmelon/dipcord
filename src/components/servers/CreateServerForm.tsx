@@ -22,7 +22,8 @@ export const CreateServerForm = ({ currentUserId }: CreateServerFormProps) => {
     mutationFn: async ({ name, description }: { name: string; description: string }) => {
       console.log("[CreateServerForm] Creating server:", { name, description });
       
-      const { data, error } = await supabase
+      // First create the server
+      const { data: serverData, error: serverError } = await supabase
         .from('servers')
         .insert([
           {
@@ -30,23 +31,23 @@ export const CreateServerForm = ({ currentUserId }: CreateServerFormProps) => {
             description,
             owner_id: currentUserId,
             is_private: false,
-            member_count: 1,
+            member_count: 1, // Just the owner initially
           }
         ])
         .select()
         .single();
         
-      if (error) {
-        console.error("[CreateServerForm] Error creating server:", error);
-        throw error;
+      if (serverError) {
+        console.error("[CreateServerForm] Error creating server:", serverError);
+        throw serverError;
       }
-      
-      // Also create server_members entry for the owner
+
+      // Add the owner as a member
       const { error: memberError } = await supabase
         .from('server_members')
         .insert([
           {
-            server_id: data.id,
+            server_id: serverData.id,
             user_id: currentUserId,
           }
         ]);
@@ -56,7 +57,7 @@ export const CreateServerForm = ({ currentUserId }: CreateServerFormProps) => {
         throw memberError;
       }
 
-      return data as Server;
+      return serverData as Server;
     },
     onSuccess: () => {
       setNewServerName("");
