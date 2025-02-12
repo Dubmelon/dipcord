@@ -15,10 +15,44 @@ interface ProfileViewProps {
   onClose?: () => void;
 }
 
+type FriendRequestStatus = 'none' | 'pending_sent' | 'pending_received' | 'accepted' | 'rejected';
+
 export const ProfileView = ({ userId, onClose }: ProfileViewProps) => {
   const queryClient = useQueryClient();
   const [isFollowing, setIsFollowing] = useState(false);
   const { data: profile, isLoading } = useProfile(userId);
+
+  // Query friend request status
+  const { data: friendRequestStatus = 'none', isLoading: isFriendStatusLoading } = useQuery({
+    queryKey: ['friend-request-status', userId],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return 'none';
+
+      const { data: sentRequest } = await supabase
+        .from('friend_requests')
+        .select('status')
+        .eq('sender_id', user.id)
+        .eq('receiver_id', userId)
+        .maybeSingle();
+
+      const { data: receivedRequest } = await supabase
+        .from('friend_requests')
+        .select('status')
+        .eq('sender_id', userId)
+        .eq('receiver_id', user.id)
+        .maybeSingle();
+
+      if (sentRequest) {
+        return sentRequest.status === 'pending' ? 'pending_sent' : sentRequest.status;
+      }
+      if (receivedRequest) {
+        return receivedRequest.status === 'pending' ? 'pending_received' : receivedRequest.status;
+      }
+      return 'none';
+    },
+    enabled: !!userId,
+  });
 
   const { data: followStatus } = useQuery({
     queryKey: ['follow-status', userId],
@@ -40,6 +74,41 @@ export const ProfileView = ({ userId, onClose }: ProfileViewProps) => {
       return !!data;
     },
     enabled: !!userId,
+  });
+
+  const friendRequestMutation = useMutation({
+    mutationFn: async ({ action }: { action: 'send' | 'accept' | 'reject' }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      if (action === 'send') {
+        const { error } = await supabase
+          .from('friend_requests')
+          .insert([{ sender_id: user.id, receiver_id: userId }]);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('friend_requests')
+          .update({ status: action === 'accept' ? 'accepted' : 'rejected' })
+          .eq('sender_id', userId)
+          .eq('receiver_id', user.id)
+          .eq('status', 'pending');
+        if (error) throw error;
+      }
+    },
+    onSuccess: (_, { action }) => {
+      queryClient.invalidateQueries({ queryKey: ['friend-request-status', userId] });
+      toast.success(
+        action === 'send' 
+          ? "Friend request sent!" 
+          : action === 'accept'
+          ? "Friend request accepted!"
+          : "Friend request rejected"
+      );
+    },
+    onError: (error: Error) => {
+      toast.error(`Error: ${error.message}`);
+    }
   });
 
   const followMutation = useMutation({
@@ -83,6 +152,64 @@ export const ProfileView = ({ userId, onClose }: ProfileViewProps) => {
       </div>
     );
   }
+
+  const renderFriendRequestButton = () => {
+    if (isFriendStatusLoading) {
+      return (
+        <Button disabled className="flex-1 h-8 text-sm font-medium">
+          Loading...
+        </Button>
+      );
+    }
+
+    switch (friendRequestStatus) {
+      case 'pending_sent':
+        return (
+          <Button 
+            disabled
+            className="flex-1 h-8 text-sm font-medium bg-[#1e1f22] text-[#dbdee1]"
+          >
+            Friend Request Sent
+          </Button>
+        );
+      case 'pending_received':
+        return (
+          <div className="flex gap-2 flex-1">
+            <Button 
+              onClick={() => friendRequestMutation.mutate({ action: 'accept' })}
+              className="flex-1 h-8 text-sm font-medium bg-[#248046] hover:bg-[#1a6334] text-white"
+            >
+              Accept
+            </Button>
+            <Button 
+              onClick={() => friendRequestMutation.mutate({ action: 'reject' })}
+              className="flex-1 h-8 text-sm font-medium bg-[#ed4245] hover:bg-[#a12d2f] text-white"
+            >
+              Reject
+            </Button>
+          </div>
+        );
+      case 'accepted':
+        return (
+          <Button 
+            disabled
+            className="flex-1 h-8 text-sm font-medium bg-[#248046] text-white"
+          >
+            Friends
+          </Button>
+        );
+      case 'rejected':
+      case 'none':
+        return (
+          <Button 
+            onClick={() => friendRequestMutation.mutate({ action: 'send' })}
+            className="flex-1 h-8 text-sm font-medium bg-[#248046] hover:bg-[#1a6334] text-white"
+          >
+            Add Friend
+          </Button>
+        );
+    }
+  };
 
   return (
     <div className="w-[300px] bg-[#232428] text-white rounded-lg overflow-hidden">
@@ -170,6 +297,7 @@ export const ProfileView = ({ userId, onClose }: ProfileViewProps) => {
 
         {/* Action Buttons */}
         <div className="flex gap-2 mt-3">
+          {renderFriendRequestButton()}
           <Button 
             onClick={() => followMutation.mutate()}
             className={cn(
@@ -181,13 +309,9 @@ export const ProfileView = ({ userId, onClose }: ProfileViewProps) => {
           >
             {isFollowing ? "Unfollow" : "Follow"}
           </Button>
-          <Button 
-            className="flex-1 h-8 text-sm font-medium bg-[#1e1f22] hover:bg-[#2b2d31] text-[#dbdee1]"
-          >
-            Block
-          </Button>
         </div>
       </div>
     </div>
   );
 };
+
