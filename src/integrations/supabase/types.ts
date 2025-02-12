@@ -1179,6 +1179,7 @@ export type Database = {
           banner_url: string | null
           bio: string | null
           created_at: string
+          custom_status: Json | null
           full_name: string | null
           id: string
           is_admin: boolean | null
@@ -1186,8 +1187,11 @@ export type Database = {
           last_seen: string | null
           mutual_friends_count: number | null
           mutual_servers_count: number | null
+          notification_preferences: Json | null
+          settings: Json | null
           status_emoji: string | null
           status_text: string | null
+          theme_color: string | null
           theme_preference: string | null
           updated_at: string
           username: string
@@ -1200,6 +1204,7 @@ export type Database = {
           banner_url?: string | null
           bio?: string | null
           created_at?: string
+          custom_status?: Json | null
           full_name?: string | null
           id: string
           is_admin?: boolean | null
@@ -1207,8 +1212,11 @@ export type Database = {
           last_seen?: string | null
           mutual_friends_count?: number | null
           mutual_servers_count?: number | null
+          notification_preferences?: Json | null
+          settings?: Json | null
           status_emoji?: string | null
           status_text?: string | null
+          theme_color?: string | null
           theme_preference?: string | null
           updated_at?: string
           username: string
@@ -1221,6 +1229,7 @@ export type Database = {
           banner_url?: string | null
           bio?: string | null
           created_at?: string
+          custom_status?: Json | null
           full_name?: string | null
           id?: string
           is_admin?: boolean | null
@@ -1228,8 +1237,11 @@ export type Database = {
           last_seen?: string | null
           mutual_friends_count?: number | null
           mutual_servers_count?: number | null
+          notification_preferences?: Json | null
+          settings?: Json | null
           status_emoji?: string | null
           status_text?: string | null
+          theme_color?: string | null
           theme_preference?: string | null
           updated_at?: string
           username?: string
