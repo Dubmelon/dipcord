@@ -295,6 +295,7 @@ export type Database = {
           description: string | null
           id: string
           name: string
+          parent_id: string | null
           position: number | null
           server_id: string
           type: Database["public"]["Enums"]["channel_type"]
@@ -306,6 +307,7 @@ export type Database = {
           description?: string | null
           id?: string
           name: string
+          parent_id?: string | null
           position?: number | null
           server_id: string
           type: Database["public"]["Enums"]["channel_type"]
@@ -317,12 +319,21 @@ export type Database = {
           description?: string | null
           id?: string
           name?: string
+          parent_id?: string | null
           position?: number | null
           server_id?: string
           type?: Database["public"]["Enums"]["channel_type"]
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "channels_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       comment_reactions: {
         Row: {
