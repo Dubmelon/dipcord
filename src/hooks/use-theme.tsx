@@ -1,5 +1,5 @@
 
-import { createContext, useContext, useEffect, useState, useCallback } from "react";
+import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 
 type Theme = "light" | "dark" | "halloween" | "halloween-dark" | "froggy" | "froggy-dark";
 
@@ -28,10 +28,12 @@ export function ThemeProvider({
   ...props
 }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(
-    () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
+    () => (localStorage?.getItem(storageKey) as Theme) || defaultTheme
   );
 
   const updateTheme = useCallback((newTheme: Theme) => {
+    if (typeof window === 'undefined') return;
+
     const root = window.document.documentElement;
     
     // Remove all theme classes
@@ -44,7 +46,7 @@ export function ThemeProvider({
     // Add new theme class
     root.classList.add(newTheme);
     
-    localStorage.setItem(storageKey, newTheme);
+    localStorage?.setItem(storageKey, newTheme);
   }, [storageKey]);
 
   useEffect(() => {
