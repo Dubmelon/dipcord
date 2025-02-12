@@ -60,11 +60,6 @@ export const useServerFolders = (userId: string | undefined) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['server-folders'] });
-      toast.success('Folder created successfully');
-    },
-    onError: (error) => {
-      console.error('Error creating folder:', error);
-      toast.error('Failed to create folder');
     }
   });
 
@@ -82,11 +77,6 @@ export const useServerFolders = (userId: string | undefined) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['server-folders'] });
-      toast.success('Folder updated successfully');
-    },
-    onError: (error) => {
-      console.error('Error updating folder:', error);
-      toast.error('Failed to update folder');
     }
   });
 
@@ -101,23 +91,24 @@ export const useServerFolders = (userId: string | undefined) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['server-folders'] });
-      toast.success('Folder deleted successfully');
-    },
-    onError: (error) => {
-      console.error('Error deleting folder:', error);
-      toast.error('Failed to delete folder');
     }
   });
 
   const addServerToFolder = useMutation({
-    mutationFn: async ({ folderId, serverId }: { folderId: string; serverId: string }) => {
+    mutationFn: async ({ folderId, serverId, position = 0 }: { folderId: string; serverId: string; position?: number }) => {
+      // First remove from any existing folders
+      await supabase
+        .from('server_folder_memberships')
+        .delete()
+        .eq('server_id', serverId);
+
       const { data, error } = await supabase
         .from('server_folder_memberships')
         .insert([
           {
             folder_id: folderId,
             server_id: serverId,
-            position: 0
+            position
           }
         ])
         .select()
@@ -128,11 +119,20 @@ export const useServerFolders = (userId: string | undefined) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['server-folders'] });
-      toast.success('Server added to folder');
+    }
+  });
+
+  const removeServerFromFolder = useMutation({
+    mutationFn: async (serverId: string) => {
+      const { error } = await supabase
+        .from('server_folder_memberships')
+        .delete()
+        .eq('server_id', serverId);
+
+      if (error) throw error;
     },
-    onError: (error) => {
-      console.error('Error adding server to folder:', error);
-      toast.error('Failed to add server to folder');
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['server-folders'] });
     }
   });
 
@@ -142,6 +142,7 @@ export const useServerFolders = (userId: string | undefined) => {
     createFolder,
     updateFolder,
     deleteFolder,
-    addServerToFolder
+    addServerToFolder,
+    removeServerFromFolder
   };
 };
