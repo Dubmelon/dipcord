@@ -46,7 +46,7 @@ export const ServerFolder = ({ folder, servers, currentUserId }: ServerFolderPro
 
   return (
     <div ref={setNodeRef} style={style} {...attributes} className="space-y-2">
-      <FolderContextMenu folderId={folder.id} folderName={folder.name}>
+      <FolderContextMenu folderId={folder.id} folderName={folder.name} userId={currentUserId}>
         <Button
           variant="ghost"
           className="w-full flex items-center justify-between p-2 hover:bg-accent/50"

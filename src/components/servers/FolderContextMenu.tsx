@@ -22,12 +22,13 @@ interface FolderContextMenuProps {
   children: React.ReactNode;
   folderId: string;
   folderName: string;
+  userId: string;
 }
 
-export const FolderContextMenu = ({ children, folderId, folderName }: FolderContextMenuProps) => {
+export const FolderContextMenu = ({ children, folderId, folderName, userId }: FolderContextMenuProps) => {
   const [isRenameOpen, setIsRenameOpen] = useState(false);
   const [newName, setNewName] = useState(folderName);
-  const { updateFolder, deleteFolder } = useServerFolders();
+  const { updateFolder, deleteFolder } = useServerFolders(userId);
 
   const handleRename = async () => {
     await updateFolder.mutateAsync({
