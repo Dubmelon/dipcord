@@ -20,6 +20,7 @@ import {
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
+  arrayMove
 } from "@dnd-kit/sortable";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -69,19 +70,30 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
       return;
     }
 
-    const activeChannel = channels.find(c => c.id === active.id);
-    const overChannel = channels.find(c => c.id === over.id);
+    const oldIndex = channels.findIndex(c => c.id === active.id);
+    const newIndex = channels.findIndex(c => c.id === over.id);
+    
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const activeChannel = channels[oldIndex];
+    const overChannel = channels[newIndex];
     
     if (!activeChannel || !overChannel) return;
 
     try {
+      // Calculate new positions for affected channels
+      const updatedChannels = arrayMove(channels, oldIndex, newIndex);
+      const updates = updatedChannels.map((channel, index) => ({
+        id: channel.id,
+        position: index,
+        category: channel.category,
+        parent_id: channel.parent_id
+      }));
+
+      // Update all affected channel positions in a single batch
       const { error } = await supabase
         .from('channels')
-        .update({ 
-          position: overChannel.position,
-          parent_id: overChannel.parent_id 
-        })
-        .eq('id', activeChannel.id);
+        .upsert(updates, { onConflict: 'id' });
 
       if (error) throw error;
 
@@ -94,15 +106,25 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
     }
   };
 
-  // Organize channels into a hierarchy
+  // Organize channels into a hierarchy and sort by position
   const organizeChannels = (channels: Channel[]) => {
-    const rootChannels = channels.filter(c => !c.parent_id);
-    const childChannels = channels.filter(c => c.parent_id);
+    // Sort channels by position
+    const sortedChannels = [...channels].sort((a, b) => {
+      const posA = a.position ?? 0;
+      const posB = b.position ?? 0;
+      return posA - posB;
+    });
+
+    const rootChannels = sortedChannels.filter(c => !c.parent_id);
+    const childChannels = sortedChannels.filter(c => c.parent_id);
     
     const channelMap = new Map<string, Channel[]>();
     
     rootChannels.forEach(channel => {
-      const children = childChannels.filter(c => c.parent_id === channel.id);
+      const children = childChannels
+        .filter(c => c.parent_id === channel.id)
+        .sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+      
       if (children.length > 0) {
         channelMap.set(channel.id, children);
       }
