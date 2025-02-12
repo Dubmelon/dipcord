@@ -1170,6 +1170,59 @@ export type Database = {
           },
         ]
       }
+      profile_settings_history: {
+        Row: {
+          changed_by: string | null
+          changes: Json
+          created_at: string
+          id: string
+          profile_id: string | null
+        }
+        Insert: {
+          changed_by?: string | null
+          changes: Json
+          created_at?: string
+          id?: string
+          profile_id?: string | null
+        }
+        Update: {
+          changed_by?: string | null
+          changes?: Json
+          created_at?: string
+          id?: string
+          profile_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_settings_history_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_settings_history_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles_extended"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_settings_history_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_settings_history_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles_extended"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           about_markdown: string | null
