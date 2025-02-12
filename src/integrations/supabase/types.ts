@@ -844,6 +844,7 @@ export type Database = {
           created_at: string
           id: string
           is_read: boolean | null
+          notification_type: Database["public"]["Enums"]["notification_type"]
           reference_id: string | null
           title: string
           type: string
@@ -854,6 +855,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_read?: boolean | null
+          notification_type?: Database["public"]["Enums"]["notification_type"]
           reference_id?: string | null
           title: string
           type: string
@@ -864,6 +866,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_read?: boolean | null
+          notification_type?: Database["public"]["Enums"]["notification_type"]
           reference_id?: string | null
           title?: string
           type?: string
@@ -1831,6 +1834,56 @@ export type Database = {
             columns: ["server_id"]
             isOneToOne: false
             referencedRelation: "user_server_list"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      server_member_roles_junction: {
+        Row: {
+          created_at: string | null
+          id: string
+          role_id: string
+          server_member_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role_id: string
+          server_member_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role_id?: string
+          server_member_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "server_member_roles_junction_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "server_member_roles_junction_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "server_member_roles"
+            referencedColumns: ["role_id"]
+          },
+          {
+            foreignKeyName: "server_member_roles_junction_server_member_id_fkey"
+            columns: ["server_member_id"]
+            isOneToOne: false
+            referencedRelation: "server_member_roles"
+            referencedColumns: ["server_member_id"]
+          },
+          {
+            foreignKeyName: "server_member_roles_junction_server_member_id_fkey"
+            columns: ["server_member_id"]
+            isOneToOne: false
+            referencedRelation: "server_members"
             referencedColumns: ["id"]
           },
         ]
