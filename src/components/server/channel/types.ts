@@ -12,7 +12,8 @@ export interface CategoryState {
   [key: string]: boolean;
 }
 
-export type ChannelCategory = 'general' | 'text' | 'voice' | 'announcement';
+// Changed from enum to string type since categories are now user-defined
+export type ChannelCategory = string;
 
 export interface CategoryProps {
   category: string;

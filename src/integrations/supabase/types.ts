@@ -290,7 +290,7 @@ export type Database = {
       }
       channels: {
         Row: {
-          category: Database["public"]["Enums"]["channel_category"] | null
+          category: string | null
           created_at: string
           description: string | null
           id: string
@@ -302,7 +302,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          category?: Database["public"]["Enums"]["channel_category"] | null
+          category?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -314,7 +314,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          category?: Database["public"]["Enums"]["channel_category"] | null
+          category?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -2640,7 +2640,6 @@ export type Database = {
       }
     }
     Enums: {
-      channel_category: "general" | "text" | "voice" | "announcement"
       channel_type: "text" | "voice" | "forum" | "announcement"
       content_type: "post" | "comment" | "message"
       notification_type:
