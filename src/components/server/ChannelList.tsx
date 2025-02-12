@@ -85,9 +85,13 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
       const updatedChannels = arrayMove(channels, oldIndex, newIndex);
       const updates = updatedChannels.map((channel, index) => ({
         id: channel.id,
+        name: channel.name,
+        type: channel.type,
+        server_id: channel.server_id,
         position: index,
         category: channel.category,
-        parent_id: channel.parent_id
+        parent_id: channel.parent_id,
+        description: channel.description
       }));
 
       // Update all affected channel positions in a single batch
