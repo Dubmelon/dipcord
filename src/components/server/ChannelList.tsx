@@ -30,7 +30,11 @@ export const ChannelList = ({ serverId, channels = [], selectedChannel, onSelect
   const { currentUser } = useAuth();
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -59,25 +63,21 @@ export const ChannelList = ({ serverId, channels = [], selectedChannel, onSelect
       const updatedChannels = arrayMove(channels, oldIndex, newIndex);
       const updates = updatedChannels.map((channel, index) => ({
         id: channel.id,
-        name: channel.name,
-        type: channel.type,
-        server_id: channel.server_id,
-        position: index,
-        category: channel.category,
-        parent_id: channel.parent_id,
-        description: channel.description
+        position: index
       }));
 
       const { error } = await supabase
         .from('channels')
-        .upsert(updates);
+        .upsert(updates, {
+          onConflict: 'id'
+        });
 
       if (error) throw error;
 
-      toast.success("Channel position updated");
+      toast.success("Channel order updated");
     } catch (error) {
-      console.error('[ChannelList] Error updating channel position:', error);
-      toast.error("Failed to update channel position");
+      console.error('[ChannelList] Error updating channel positions:', error);
+      toast.error("Failed to update channel order");
     }
   };
 

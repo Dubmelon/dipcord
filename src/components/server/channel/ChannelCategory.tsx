@@ -11,10 +11,11 @@ interface SortableChannelProps {
   channel: Channel;
   selected: boolean;
   onClick: () => void;
+  serverId: string;
   depth?: number;
 }
 
-const SortableChannel = ({ channel, selected, onClick, depth = 0 }: SortableChannelProps) => {
+const SortableChannel = ({ channel, selected, onClick, serverId, depth = 0 }: SortableChannelProps) => {
   const {
     attributes,
     listeners,
@@ -86,6 +87,7 @@ export const ChannelCategory = ({
           channel={channel}
           selected={selectedChannel === channel.id}
           onClick={() => onSelectChannel(channel.id)}
+          serverId={channel.server_id}
           depth={depth}
         />
         {children.map(child => renderChannel(child, depth + 1))}
