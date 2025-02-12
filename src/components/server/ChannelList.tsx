@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
@@ -24,6 +23,11 @@ import {
 } from "@dnd-kit/sortable";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, FolderPlus, Hash, Volume2, Megaphone } from "lucide-react";
 
 export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChannel }: ChannelListProps) => {
   const [isCreatingChannel, setIsCreatingChannel] = useState(false);
@@ -55,6 +59,30 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
     setIsCreatingFolder(false);
     setNewFolderName("");
   });
+
+  const handleCreateChannel = () => {
+    if (!newChannelName.trim()) {
+      toast.error("Channel name is required");
+      return;
+    }
+
+    createChannel.mutate({
+      name: newChannelName.trim(),
+      type: newChannelType,
+      category: newChannelCategory
+    });
+  };
+
+  const handleCreateFolder = () => {
+    if (!newFolderName.trim()) {
+      toast.error("Folder name is required");
+      return;
+    }
+
+    createFolder.mutate({
+      name: newFolderName.trim()
+    });
+  };
 
   const toggleCategory = (category: string) => {
     setExpandedCategories(prev => ({
@@ -148,8 +176,123 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
     return acc;
   }, {} as Record<ChannelCategoryType, Channel[]>);
 
+  const getChannelTypeIcon = (type: Channel['type']) => {
+    switch (type) {
+      case 'text':
+        return <Hash className="h-4 w-4" />;
+      case 'voice':
+        return <Volume2 className="h-4 w-4" />;
+      case 'announcement':
+        return <Megaphone className="h-4 w-4" />;
+      default:
+        return <Hash className="h-4 w-4" />;
+    }
+  };
+
   return (
     <div className="flex flex-col h-full bg-muted/50 backdrop-blur-xl">
+      <div className="p-2 flex gap-2">
+        <Dialog open={isCreatingChannel} onOpenChange={setIsCreatingChannel}>
+          <DialogTrigger asChild>
+            <Button variant="outline" size="sm" className="flex-1">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Channel
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create Channel</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Input
+                  placeholder="Channel name"
+                  value={newChannelName}
+                  onChange={(e) => setNewChannelName(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Select value={newChannelType} onValueChange={(value: Channel['type']) => setNewChannelType(value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Channel type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="text">
+                      <div className="flex items-center">
+                        <Hash className="h-4 w-4 mr-2" />
+                        Text Channel
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="voice">
+                      <div className="flex items-center">
+                        <Volume2 className="h-4 w-4 mr-2" />
+                        Voice Channel
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="announcement">
+                      <div className="flex items-center">
+                        <Megaphone className="h-4 w-4 mr-2" />
+                        Announcement Channel
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Select value={newChannelCategory} onValueChange={(value: ChannelCategoryType) => setNewChannelCategory(value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="general">General</SelectItem>
+                    <SelectItem value="text">Text</SelectItem>
+                    <SelectItem value="voice">Voice</SelectItem>
+                    <SelectItem value="announcement">Announcement</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button 
+                onClick={handleCreateChannel} 
+                disabled={createChannel.isPending || !newChannelName.trim()}
+                className="w-full"
+              >
+                {createChannel.isPending ? "Creating..." : "Create Channel"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={isCreatingFolder} onOpenChange={setIsCreatingFolder}>
+          <DialogTrigger asChild>
+            <Button variant="outline" size="sm" className="flex-1">
+              <FolderPlus className="h-4 w-4 mr-2" />
+              Add Folder
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create Folder</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Input
+                  placeholder="Folder name"
+                  value={newFolderName}
+                  onChange={(e) => setNewFolderName(e.target.value)}
+                />
+              </div>
+              <Button 
+                onClick={handleCreateFolder} 
+                disabled={createFolder.isPending || !newFolderName.trim()}
+                className="w-full"
+              >
+                {createFolder.isPending ? "Creating..." : "Create Folder"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+
       <div className="overflow-y-auto flex-1">
         <div className="p-2 space-y-2">
           <DndContext
