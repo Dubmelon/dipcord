@@ -1,6 +1,7 @@
 
 import { motion } from "framer-motion";
 import type { Server } from "@/types/database";
+import { format } from "date-fns";
 
 interface ServerStatusBarProps {
   server: Server;
@@ -17,7 +18,7 @@ export const ServerStatusBar = ({ server }: ServerStatusBarProps) => {
         <span className="w-2 h-2 rounded-full bg-green-500" />
         Online
       </span>
-      <span>Created {new Date(server.created_at).toLocaleDateString()}</span>
+      <span>Created {format(new Date(server.created_at), "MMM d, yyyy")}</span>
     </motion.div>
   );
 };
