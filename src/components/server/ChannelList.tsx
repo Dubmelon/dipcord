@@ -25,7 +25,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChannel }: ChannelListProps) => {
+export const ChannelList = ({ serverId, channels = [], selectedChannel, onSelectChannel }: ChannelListProps) => {
   const [expandedCategories, setExpandedCategories] = useState<CategoryState>({ general: true });
   const { currentUser } = useAuth();
 
@@ -59,12 +59,18 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
       const updatedChannels = arrayMove(channels, oldIndex, newIndex);
       const updates = updatedChannels.map((channel, index) => ({
         id: channel.id,
+        name: channel.name,
+        type: channel.type,
+        server_id: channel.server_id,
         position: index,
+        category: channel.category,
+        parent_id: channel.parent_id,
+        description: channel.description
       }));
 
       const { error } = await supabase
         .from('channels')
-        .upsert(updates, { onConflict: 'id' });
+        .upsert(updates);
 
       if (error) throw error;
 
@@ -76,7 +82,7 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
   };
 
   // Organize channels into categories
-  const channelsByCategory = (channels || []).reduce((acc, channel) => {
+  const channelsByCategory = channels.reduce((acc, channel) => {
     const category = channel.category ?? 'general';
     if (!acc[category]) {
       acc[category] = [];
@@ -87,20 +93,18 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
 
   // Create a map of parent channels to their children
   const channelMap = new Map<string, Channel[]>();
-  if (channels) {
-    const rootChannels = channels.filter(c => !c.parent_id);
-    const childChannels = channels.filter(c => c.parent_id);
+  const rootChannels = channels.filter(c => !c.parent_id);
+  const childChannels = channels.filter(c => c.parent_id);
+  
+  rootChannels.forEach(channel => {
+    const children = childChannels
+      .filter(c => c.parent_id === channel.id)
+      .sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
     
-    rootChannels.forEach(channel => {
-      const children = childChannels
-        .filter(c => c.parent_id === channel.id)
-        .sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
-      
-      if (children.length > 0) {
-        channelMap.set(channel.id, children);
-      }
-    });
-  }
+    if (children.length > 0) {
+      channelMap.set(channel.id, children);
+    }
+  });
 
   return (
     <div className="flex flex-col h-full bg-muted/50 backdrop-blur-xl">
@@ -116,7 +120,7 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
             onDragEnd={handleDragEnd}
           >
             <SortableContext
-              items={channels?.map(channel => channel.id) || []}
+              items={channels.map(channel => channel.id)}
               strategy={verticalListSortingStrategy}
             >
               {Object.entries(channelsByCategory).map(([category, categoryChannels]) => (
@@ -129,15 +133,6 @@ export const ChannelList = ({ serverId, channels, selectedChannel, onSelectChann
                   isExpanded={expandedCategories[category]}
                   onToggle={() => toggleCategory(category)}
                   childChannels={channelMap}
-                  renderChannel={(channel) => (
-                    <ChannelItem
-                      key={channel.id}
-                      channel={channel}
-                      isSelected={selectedChannel === channel.id}
-                      onSelect={() => onSelectChannel(channel.id)}
-                      serverId={serverId}
-                    />
-                  )}
                 />
               ))}
             </SortableContext>

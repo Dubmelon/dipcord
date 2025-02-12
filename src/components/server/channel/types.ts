@@ -14,8 +14,6 @@ export interface CategoryState {
 
 export type ChannelCategory = 'general' | 'text' | 'voice' | 'announcement';
 
-export const CHANNEL_CATEGORIES: ChannelCategory[] = ['general', 'text', 'voice', 'announcement'];
-
 export interface CategoryProps {
   category: string;
   channels: Channel[];
@@ -23,7 +21,7 @@ export interface CategoryProps {
   onSelectChannel: (channelId: string) => void;
   isExpanded: boolean;
   onToggle: () => void;
-  childChannels?: Map<string, Channel[]>;
+  childChannels: Map<string, Channel[]>;
 }
 
 export interface UserControlsProps {
