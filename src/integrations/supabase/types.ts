@@ -2687,6 +2687,12 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      create_default_server_roles: {
+        Args: {
+          server_id: string
+        }
+        Returns: undefined
+      }
       generate_invite_code: {
         Args: Record<PropertyKey, never>
         Returns: string
