@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { X, MoreHorizontal, Users, Hash, Music } from "lucide-react";
 import { toast } from "sonner";
 import { useProfile } from "@/hooks/useProfile";
-import type { Profile } from "@/types/profile";
 import { cn } from "@/lib/utils";
 
 interface ProfileViewProps {
@@ -21,7 +20,6 @@ export const ProfileView = ({ userId, onClose }: ProfileViewProps) => {
   const [isFollowing, setIsFollowing] = useState(false);
   const { data: profile, isLoading } = useProfile(userId);
 
-  // Query friend request status
   const { data: friendRequestStatus = 'none', isLoading: isFriendStatusLoading } = useQuery({
     queryKey: ['friend-request-status', userId],
     queryFn: async () => {
@@ -146,7 +144,7 @@ export const ProfileView = ({ userId, onClose }: ProfileViewProps) => {
 
   if (isLoading || !profile) {
     return (
-      <div className="flex items-center justify-center h-[400px] w-[300px]">
+      <div className="flex items-center justify-center h-[400px] w-[300px] bg-[#1A1F2C] rounded-lg">
         <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full" />
       </div>
     );
@@ -211,58 +209,51 @@ export const ProfileView = ({ userId, onClose }: ProfileViewProps) => {
   };
 
   return (
-    <div className="w-[300px] bg-[#232428] text-white rounded-lg overflow-hidden">
-      {/* Header */}
-      <div className="relative h-[60px] bg-[#1e1f22]">
+    <div className="w-[300px] bg-[#1A1F2C] text-white rounded-lg overflow-hidden shadow-xl border border-[#403E43]/20">
+      <div className="relative h-[60px] bg-[#221F26]">
         <div className="absolute top-2 right-2 flex gap-1">
           <button 
             onClick={onClose}
-            className="p-1 hover:bg-white/10 rounded-full transition-colors"
+            className="p-1 hover:bg-white/5 rounded-full transition-colors"
           >
-            <X className="h-5 w-5" />
+            <X className="h-5 w-5 text-[#C8C8C9]" />
           </button>
-          <button className="p-1 hover:bg-white/10 rounded-full transition-colors">
-            <MoreHorizontal className="h-5 w-5" />
+          <button className="p-1 hover:bg-white/5 rounded-full transition-colors">
+            <MoreHorizontal className="h-5 w-5 text-[#C8C8C9]" />
           </button>
         </div>
       </div>
 
-      {/* Profile Content */}
       <div className="px-4 pb-4">
-        {/* Avatar */}
         <div className="relative -mt-[40px] mb-3">
-          <Avatar className="h-[80px] w-[80px] border-[6px] border-[#232428]">
+          <Avatar className="h-[80px] w-[80px] border-[6px] border-[#1A1F2C] ring-2 ring-[#403E43]/20">
             <AvatarImage src={profile.avatar_url || ''} />
-            <AvatarFallback className="text-2xl bg-[#2b2d31]">
+            <AvatarFallback className="text-2xl bg-[#221F26] text-[#9b87f5]">
               {profile.username?.[0]?.toUpperCase()}
             </AvatarFallback>
           </Avatar>
           {profile.is_online && (
-            <div className="absolute bottom-1 right-1 h-4 w-4 rounded-full bg-green-500 border-[3px] border-[#232428]" />
+            <div className="absolute bottom-1 right-1 h-4 w-4 rounded-full bg-[#9b87f5] border-[3px] border-[#1A1F2C]" />
           )}
         </div>
 
-        {/* User Info */}
         <div className="space-y-1">
-          <h2 className="text-xl font-semibold">{profile.username}</h2>
-          <p className="text-sm text-[#949ba4]">@{profile.username}</p>
+          <h2 className="text-xl font-semibold text-[#C8C8C9]">{profile.username}</h2>
+          <p className="text-sm text-[#8A898C]">@{profile.username}</p>
         </div>
 
-        {/* Divider */}
-        <div className="h-[1px] bg-[#3f4147] my-3" />
+        <div className="h-[1px] bg-[#403E43]/30 my-3" />
 
-        {/* About Me */}
         {profile.bio && (
           <div className="mb-3">
-            <h3 className="text-xs font-semibold uppercase text-[#949ba4] mb-1">About Me</h3>
-            <p className="text-sm text-[#dbdee1]">{profile.bio}</p>
+            <h3 className="text-xs font-semibold uppercase text-[#8A898C] mb-1">About Me</h3>
+            <p className="text-sm text-[#C8C8C9]">{profile.bio}</p>
           </div>
         )}
 
-        {/* Member Since */}
         <div className="mb-3">
-          <h3 className="text-xs font-semibold uppercase text-[#949ba4] mb-1">Member Since</h3>
-          <p className="text-sm text-[#dbdee1]">
+          <h3 className="text-xs font-semibold uppercase text-[#8A898C] mb-1">Member Since</h3>
+          <p className="text-sm text-[#C8C8C9]">
             {new Date(profile.created_at).toLocaleDateString('en-US', {
               year: 'numeric',
               month: 'short',
@@ -271,8 +262,7 @@ export const ProfileView = ({ userId, onClose }: ProfileViewProps) => {
           </p>
         </div>
 
-        {/* Mutual Info */}
-        <div className="flex items-center gap-2 text-sm text-[#949ba4] mb-3">
+        <div className="flex items-center gap-2 text-sm text-[#8A898C] mb-3">
           <Users className="h-4 w-4" />
           <span>{profile.mutual_friends_count || 0} Mutual Friends</span>
           <span>•</span>
@@ -280,30 +270,28 @@ export const ProfileView = ({ userId, onClose }: ProfileViewProps) => {
           <span>{profile.mutual_servers_count || 0} Mutual Servers</span>
         </div>
 
-        {/* Activity Status */}
         {profile.activity_status?.text && (
-          <div className="mt-3 p-3 bg-[#1e1f22] rounded-[4px]">
-            <div className="flex items-center gap-2 text-sm text-[#dbdee1] mb-2">
-              <Music className="h-4 w-4 text-[#248046]" />
-              <span className="text-[#248046]">{profile.activity_status.type}</span>
+          <div className="mt-3 p-3 bg-[#221F26] rounded-lg border border-[#403E43]/20">
+            <div className="flex items-center gap-2 text-sm text-[#C8C8C9] mb-2">
+              <Music className="h-4 w-4 text-[#9b87f5]" />
+              <span className="text-[#9b87f5]">{profile.activity_status.type}</span>
             </div>
-            <p className="text-sm text-[#dbdee1]">{profile.activity_status.text}</p>
+            <p className="text-sm text-[#C8C8C9]">{profile.activity_status.text}</p>
             {profile.activity_status.emoji && (
               <span className="text-sm">{profile.activity_status.emoji}</span>
             )}
           </div>
         )}
 
-        {/* Action Buttons */}
         <div className="flex gap-2 mt-3">
           {renderFriendRequestButton()}
           <Button 
             onClick={() => followMutation.mutate()}
             className={cn(
-              "flex-1 h-8 text-sm font-medium",
+              "flex-1 h-8 text-sm font-medium transition-colors",
               isFollowing 
-                ? "bg-[#1e1f22] hover:bg-[#2b2d31] text-[#dbdee1]" 
-                : "bg-[#248046] hover:bg-[#1a6334] text-white"
+                ? "bg-[#221F26] hover:bg-[#403E43]/20 text-[#C8C8C9]" 
+                : "bg-[#9b87f5] hover:bg-[#9b87f5]/80 text-white"
             )}
           >
             {isFollowing ? "Unfollow" : "Follow"}

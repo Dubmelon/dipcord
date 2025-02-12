@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ProfileView } from "@/components/profile/ProfileView";
 import { useProfile } from "@/hooks/useProfile";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -25,17 +25,18 @@ export const UserContextMenu = ({ userId, children, isEnabled = true }: UserCont
 
   return (
     <>
-      <div onClick={() => setIsProfileOpen(true)} className="cursor-pointer">
+      <div 
+        onClick={() => setIsProfileOpen(true)} 
+        className="cursor-pointer hover:opacity-80 transition-opacity"
+      >
         {children}
       </div>
       
       <Dialog open={isProfileOpen} onOpenChange={setIsProfileOpen}>
-        <DialogContent>
-          <DialogTitle>User Profile</DialogTitle>
-          <ProfileView userId={userId} />
+        <DialogContent className="p-0 border-none bg-transparent max-w-[300px]">
+          <ProfileView userId={userId} onClose={() => setIsProfileOpen(false)} />
         </DialogContent>
       </Dialog>
     </>
   );
 };
-
