@@ -23,6 +23,25 @@ export interface Profile {
   about_markdown: string | null;
   accent_color: string | null;
   theme_preference: string | null;
+  notification_preferences: {
+    push: boolean;
+    email: boolean;
+  } | null;
+  settings: {
+    privacy: {
+      showOnlineStatus: boolean;
+      allowFriendRequests: boolean;
+    };
+    appearance: {
+      theme: 'dark' | 'light';
+      fontSize: 'small' | 'medium' | 'large';
+      messageDisplay: 'cozy' | 'compact';
+    };
+    notifications: {
+      sounds: boolean;
+      desktop: boolean;
+    };
+  } | null;
 }
 
 export interface ProfileResponse {
@@ -42,4 +61,34 @@ export interface ProfileUpdate {
   status_emoji?: string;
   status_text?: string;
   theme_preference?: 'dark' | 'light';
+  notification_preferences?: {
+    push: boolean;
+    email: boolean;
+  };
+  settings?: {
+    privacy: {
+      showOnlineStatus: boolean;
+      allowFriendRequests: boolean;
+    };
+    appearance: {
+      theme: 'dark' | 'light';
+      fontSize: 'small' | 'medium' | 'large';
+      messageDisplay: 'cozy' | 'compact';
+    };
+    notifications: {
+      sounds: boolean;
+      desktop: boolean;
+    };
+  };
+}
+
+export interface ProfileSettingsHistory {
+  id: string;
+  profile_id: string;
+  changed_by: string;
+  changes: {
+    old_settings: Profile['settings'];
+    new_settings: Profile['settings'];
+  };
+  created_at: string;
 }

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import type { ProfileUpdate } from "@/types/profile";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ProfileSettingsProps {
   profile: any;
@@ -29,6 +32,30 @@ export const ProfileSettings = ({ profile, isLoading }: ProfileSettingsProps) =>
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  
+  // New state for settings
+  const [settings, setSettings] = useState(profile?.settings || {
+    privacy: {
+      showOnlineStatus: true,
+      allowFriendRequests: true
+    },
+    appearance: {
+      theme: 'dark',
+      fontSize: 'medium',
+      messageDisplay: 'cozy'
+    },
+    notifications: {
+      sounds: true,
+      desktop: true
+    }
+  });
+
+  const [notificationPreferences, setNotificationPreferences] = useState(
+    profile?.notification_preferences || {
+      push: true,
+      email: true
+    }
+  );
 
   const updateProfileMutation = useMutation({
     mutationFn: async (updates: ProfileUpdate) => {
@@ -95,6 +122,8 @@ export const ProfileSettings = ({ profile, isLoading }: ProfileSettingsProps) =>
         status_emoji: statusEmoji,
         status_text: statusText,
         theme_preference: themePreference as 'dark' | 'light',
+        settings,
+        notification_preferences: notificationPreferences,
         ...(avatarUrl && { avatar_url: avatarUrl }),
         ...(bannerUrl && { banner_url: bannerUrl })
       });
@@ -235,20 +264,163 @@ export const ProfileSettings = ({ profile, isLoading }: ProfileSettingsProps) =>
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="themePreference">Theme Preference</Label>
-            <Select 
-              value={themePreference} 
-              onValueChange={(value) => setThemePreference(value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select theme" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="dark">Dark</SelectItem>
-                <SelectItem value="light">Light</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Privacy Settings</h3>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="showOnlineStatus">Show Online Status</Label>
+                <Switch
+                  id="showOnlineStatus"
+                  checked={settings.privacy.showOnlineStatus}
+                  onCheckedChange={(checked) => 
+                    setSettings({
+                      ...settings,
+                      privacy: { ...settings.privacy, showOnlineStatus: checked }
+                    })
+                  }
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="allowFriendRequests">Allow Friend Requests</Label>
+                <Switch
+                  id="allowFriendRequests"
+                  checked={settings.privacy.allowFriendRequests}
+                  onCheckedChange={(checked) => 
+                    setSettings({
+                      ...settings,
+                      privacy: { ...settings.privacy, allowFriendRequests: checked }
+                    })
+                  }
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Appearance Settings</h3>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="theme">Theme</Label>
+                <Select 
+                  value={settings.appearance.theme} 
+                  onValueChange={(value: 'dark' | 'light') => 
+                    setSettings({
+                      ...settings,
+                      appearance: { ...settings.appearance, theme: value }
+                    })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select theme" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="dark">Dark</SelectItem>
+                    <SelectItem value="light">Light</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="fontSize">Font Size</Label>
+                <Select 
+                  value={settings.appearance.fontSize} 
+                  onValueChange={(value: 'small' | 'medium' | 'large') => 
+                    setSettings({
+                      ...settings,
+                      appearance: { ...settings.appearance, fontSize: value }
+                    })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select font size" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="small">Small</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="large">Large</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="messageDisplay">Message Display</Label>
+                <Select 
+                  value={settings.appearance.messageDisplay} 
+                  onValueChange={(value: 'cozy' | 'compact') => 
+                    setSettings({
+                      ...settings,
+                      appearance: { ...settings.appearance, messageDisplay: value }
+                    })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select message display" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="cozy">Cozy</SelectItem>
+                    <SelectItem value="compact">Compact</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Notification Settings</h3>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="soundNotifications">Sound Notifications</Label>
+                <Switch
+                  id="soundNotifications"
+                  checked={settings.notifications.sounds}
+                  onCheckedChange={(checked) => 
+                    setSettings({
+                      ...settings,
+                      notifications: { ...settings.notifications, sounds: checked }
+                    })
+                  }
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="desktopNotifications">Desktop Notifications</Label>
+                <Switch
+                  id="desktopNotifications"
+                  checked={settings.notifications.desktop}
+                  onCheckedChange={(checked) => 
+                    setSettings({
+                      ...settings,
+                      notifications: { ...settings.notifications, desktop: checked }
+                    })
+                  }
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="pushNotifications">Push Notifications</Label>
+                <Switch
+                  id="pushNotifications"
+                  checked={notificationPreferences.push}
+                  onCheckedChange={(checked) => 
+                    setNotificationPreferences({
+                      ...notificationPreferences,
+                      push: checked
+                    })
+                  }
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="emailNotifications">Email Notifications</Label>
+                <Switch
+                  id="emailNotifications"
+                  checked={notificationPreferences.email}
+                  onCheckedChange={(checked) => 
+                    setNotificationPreferences({
+                      ...notificationPreferences,
+                      email: checked
+                    })
+                  }
+                />
+              </div>
+            </div>
           </div>
 
           <Button type="submit" disabled={isUploading}>

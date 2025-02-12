@@ -23,6 +23,8 @@ export const useProfile = (userId: string | undefined) => {
           status_emoji,
           status_text,
           theme_preference,
+          notification_preferences,
+          settings,
           is_online,
           last_seen
         `)
@@ -34,6 +36,32 @@ export const useProfile = (userId: string | undefined) => {
       return data as Profile;
     },
     enabled: !!userId,
+  });
+};
+
+export const useProfileSettingsHistory = (profileId: string | undefined) => {
+  return useQuery({
+    queryKey: ['profile-settings-history', profileId],
+    queryFn: async () => {
+      if (!profileId) return [];
+      
+      const { data, error } = await supabase
+        .from('profile_settings_history')
+        .select(`
+          id,
+          profile_id,
+          changed_by,
+          changes,
+          created_at
+        `)
+        .eq('profile_id', profileId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      return data;
+    },
+    enabled: !!profileId,
   });
 };
 
@@ -57,6 +85,8 @@ export const useProfiles = (userIds: string[] | undefined) => {
           status_emoji,
           status_text,
           theme_preference,
+          notification_preferences,
+          settings,
           is_online,
           last_seen
         `)
