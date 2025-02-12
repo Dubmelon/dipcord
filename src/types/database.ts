@@ -91,6 +91,8 @@ export interface Channel {
   description: string | null;
   type: 'text' | 'voice' | 'forum' | 'announcement';
   category: 'general' | 'text' | 'voice' | 'announcement' | null;
+  position: number | null;
+  parent_id: string | null;
   created_at: string;
   updated_at: string;
 }
