@@ -64,12 +64,38 @@ export const ServerOverviewTab = ({ server }: ServerSettingsProps) => {
 
   const deleteServer = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase
+      // First delete any folder memberships for this server
+      const { error: folderMembershipError } = await supabase
+        .from('server_folder_memberships')
+        .delete()
+        .eq('server_id', server.id);
+
+      if (folderMembershipError) {
+        console.error('Error deleting folder memberships:', folderMembershipError);
+        throw folderMembershipError;
+      }
+
+      // Then delete server folders
+      const { error: folderError } = await supabase
+        .from('server_folders')
+        .delete()
+        .eq('server_id', server.id);
+
+      if (folderError) {
+        console.error('Error deleting server folders:', folderError);
+        throw folderError;
+      }
+
+      // Finally delete the server itself
+      const { error: serverError } = await supabase
         .from('servers')
         .delete()
         .eq('id', server.id);
 
-      if (error) throw error;
+      if (serverError) {
+        console.error('Error deleting server:', serverError);
+        throw serverError;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['servers'] });
