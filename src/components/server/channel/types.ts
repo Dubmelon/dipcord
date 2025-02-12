@@ -27,7 +27,6 @@ export interface CategoryProps {
 }
 
 export interface UserControlsProps {
-  serverId: string;
   currentUser: {
     id?: string;
     username?: string;
