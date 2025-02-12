@@ -23,6 +23,7 @@ export interface CategoryProps {
   onSelectChannel: (channelId: string) => void;
   isExpanded: boolean;
   onToggle: () => void;
+  childChannels?: Map<string, Channel[]>;
 }
 
 export interface UserControlsProps {
