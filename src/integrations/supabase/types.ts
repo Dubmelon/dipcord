@@ -333,6 +333,27 @@ export type Database = {
             referencedRelation: "channels"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_server_id"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "server_stats"
+            referencedColumns: ["server_id"]
+          },
+          {
+            foreignKeyName: "fk_server_id"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "servers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_server_id"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "user_server_list"
+            referencedColumns: ["id"]
+          },
         ]
       }
       comment_reactions: {
@@ -1681,6 +1702,27 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_server_id"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "server_stats"
+            referencedColumns: ["server_id"]
+          },
+          {
+            foreignKeyName: "fk_server_id"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "servers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_server_id"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "user_server_list"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "server_folders_server_id_fkey"
             columns: ["server_id"]
