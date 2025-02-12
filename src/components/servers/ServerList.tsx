@@ -4,6 +4,8 @@ import { ServerCard } from "./ServerCard";
 import { ServerFolder } from "./ServerFolder";
 import { useServerFolders } from "@/hooks/useServerFolders";
 import { Server } from "@/components/dashboard/types";
+import { DndContext, DragEndEvent, closestCenter } from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 
 interface ServerListProps {
   servers: Server[];
@@ -12,7 +14,23 @@ interface ServerListProps {
 }
 
 export const ServerList = ({ servers, currentUserId, isLoading }: ServerListProps) => {
-  const { folders, loadingFolders } = useServerFolders(currentUserId);
+  const { folders, loadingFolders, addServerToFolder } = useServerFolders(currentUserId);
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (!over || !active.data.current) return;
+
+    if (over.data.current?.type === 'folder') {
+      const serverId = active.id as string;
+      const folderId = over.id as string;
+      
+      await addServerToFolder.mutateAsync({
+        serverId,
+        folderId
+      });
+    }
+  };
 
   if (isLoading || loadingFolders) {
     return (
@@ -48,27 +66,31 @@ export const ServerList = ({ servers, currentUserId, isLoading }: ServerListProp
   );
 
   return (
-    <div className="space-y-6">
-      {folders?.map((folder) => (
-        <ServerFolder 
-          key={folder.id}
-          folder={folder}
-          servers={servers}
-          currentUserId={currentUserId}
-        />
-      ))}
-      
-      {unfolderedServers.length > 0 && (
-        <div className="grid gap-4 md:grid-cols-2">
-          {unfolderedServers.map((server) => (
-            <ServerCard 
-              key={server.id} 
-              server={server} 
+    <DndContext onDragEnd={handleDragEnd} collisionDetection={closestCenter}>
+      <div className="space-y-6">
+        <SortableContext items={folders?.map(f => f.id) ?? []} strategy={verticalListSortingStrategy}>
+          {folders?.map((folder) => (
+            <ServerFolder 
+              key={folder.id}
+              folder={folder}
+              servers={servers}
               currentUserId={currentUserId}
             />
           ))}
-        </div>
-      )}
-    </div>
+        </SortableContext>
+        
+        {unfolderedServers.length > 0 && (
+          <div className="grid gap-4 md:grid-cols-2">
+            {unfolderedServers.map((server) => (
+              <ServerCard 
+                key={server.id} 
+                server={server} 
+                currentUserId={currentUserId}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </DndContext>
   );
 };
