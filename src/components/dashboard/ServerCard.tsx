@@ -19,12 +19,11 @@ export const ServerCard = ({ server, currentUserId }: ServerCardProps) => {
   const navigate = useNavigate();
   const [isJoining, setIsJoining] = useState(false);
   const isOwner = server.owner_id === currentUserId;
-  const isMember = server.is_member;
 
   const handleJoinServer = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent navigation when clicking join button
     
-    if (isJoining || isMember) return;
+    if (isJoining) return;
     
     try {
       setIsJoining(true);
@@ -51,7 +50,7 @@ export const ServerCard = ({ server, currentUserId }: ServerCardProps) => {
   };
 
   const handleClick = () => {
-    if (isMember) {
+    if (server.is_member) {
       navigate(`/servers/${server.id}`);
     }
   };
@@ -64,7 +63,7 @@ export const ServerCard = ({ server, currentUserId }: ServerCardProps) => {
       onClick={handleClick}
       className={cn(
         "group relative flex flex-col p-6 rounded-lg bg-card hover:bg-accent/10 transition-all duration-200",
-        isMember && "cursor-pointer"
+        server.is_member && "cursor-pointer"
       )}
     >
       <div className="flex items-start gap-4">
@@ -102,7 +101,7 @@ export const ServerCard = ({ server, currentUserId }: ServerCardProps) => {
             </span>
             {isOwner ? (
               <span className="text-sm text-primary">Owner</span>
-            ) : isMember ? (
+            ) : server.is_member ? (
               <span className="text-sm text-muted-foreground">Member</span>
             ) : (
               <Button 

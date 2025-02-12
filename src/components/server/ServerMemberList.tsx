@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -27,7 +26,6 @@ interface ServerMemberWithRole {
   role_color: string | null;
   role_icon: string | null;
   role_position: number | null;
-  permissions_v2: Record<string, boolean>;
   user: {
     id: string;
     username: string;
@@ -35,7 +33,7 @@ interface ServerMemberWithRole {
   };
 }
 
-export const ServerMemberList = ({ serverId }: ServerMemberListProps) => {
+export const ServerMemberList = ({ serverId }: { serverId: string }) => {
   const { data: members, isLoading } = useQuery({
     queryKey: ['server-members', serverId],
     queryFn: async () => {
@@ -52,7 +50,6 @@ export const ServerMemberList = ({ serverId }: ServerMemberListProps) => {
           role_color,
           role_icon,
           role_position,
-          permissions_v2,
           user:profiles!user_id(
             id,
             username,
