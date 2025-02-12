@@ -1,10 +1,12 @@
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { ChannelCategory } from "./channel/ChannelCategory";
 import { UserControls } from "./channel/UserControls";
 import { CreateChannelDialog } from "./channel/CreateChannelDialog";
-import { ChannelItem } from "./channel/ChannelItem";
+import { Button } from "@/components/ui/button";
+import { Settings2 } from "lucide-react";
 import type { Channel } from "@/types/database";
 import type { ChannelListProps, CategoryState } from "./channel/types";
 import {
@@ -28,6 +30,7 @@ import { toast } from "sonner";
 export const ChannelList = ({ serverId, channels = [], selectedChannel, onSelectChannel, isAdmin }: ChannelListProps) => {
   const [expandedCategories, setExpandedCategories] = useState<CategoryState>({ general: true });
   const { currentUser } = useAuth();
+  const navigate = useNavigate();
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -62,7 +65,6 @@ export const ChannelList = ({ serverId, channels = [], selectedChannel, onSelect
     try {
       const updatedChannels = arrayMove(channels, oldIndex, newIndex);
       
-      // Only update the position while preserving all required fields
       const updates = updatedChannels.map((channel, index) => ({
         id: channel.id,
         name: channel.name,
@@ -147,7 +149,19 @@ export const ChannelList = ({ serverId, channels = [], selectedChannel, onSelect
           </DndContext>
         </div>
       </div>
-      <UserControls serverId={serverId} currentUser={currentUser} />
+
+      <div className="border-t border-border">
+        <UserControls currentUser={currentUser} />
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full flex items-center gap-2 rounded-none py-3"
+          onClick={() => navigate(`/servers/${serverId}/user-settings`)}
+        >
+          <Settings2 className="h-4 w-4" />
+          User Settings
+        </Button>
+      </div>
     </div>
   );
 };

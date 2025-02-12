@@ -1,15 +1,13 @@
 
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Mic, Headphones, Settings2 } from "lucide-react";
+import { Mic, Headphones } from "lucide-react";
 import type { UserControlsProps } from "./types";
 
-export const UserControls = ({ serverId, currentUser }: UserControlsProps) => {
+export const UserControls = ({ currentUser }: UserControlsProps) => {
   const [isMuted, setIsMuted] = useState(false);
   const [isDeafened, setIsDeafened] = useState(false);
-  const navigate = useNavigate();
 
   return (
     <div className="mt-auto border-t border-border bg-background/95 backdrop-blur-md p-2">
@@ -38,14 +36,6 @@ export const UserControls = ({ serverId, currentUser }: UserControlsProps) => {
             onClick={() => setIsDeafened(!isDeafened)}
           >
             <Headphones className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => navigate(`/settings/servers/${serverId}/user`)}
-          >
-            <Settings2 className="h-4 w-4" />
           </Button>
         </div>
       </div>
