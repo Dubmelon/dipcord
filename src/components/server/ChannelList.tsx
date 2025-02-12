@@ -63,14 +63,17 @@ export const ChannelList = ({ serverId, channels = [], selectedChannel, onSelect
       const updatedChannels = arrayMove(channels, oldIndex, newIndex);
       const updates = updatedChannels.map((channel, index) => ({
         id: channel.id,
-        position: index
+        name: channel.name,
+        type: channel.type,
+        server_id: serverId,
+        position: index,
+        category: channel.category || 'general'
       }));
 
       const { error } = await supabase
         .from('channels')
-        .upsert(updates, {
-          onConflict: 'id'
-        });
+        .upsert(updates)
+        .select();
 
       if (error) throw error;
 
