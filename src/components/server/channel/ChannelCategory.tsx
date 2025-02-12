@@ -1,4 +1,3 @@
-
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronRight, ChevronDown, Hash, Volume2, MessageSquare, Megaphone } from "lucide-react";
 import type { Channel } from "@/types/database";
@@ -13,9 +12,10 @@ interface SortableChannelProps {
   onClick: () => void;
   serverId: string;
   depth?: number;
+  isAdmin?: boolean;
 }
 
-const SortableChannel = ({ channel, selected, onClick, serverId, depth = 0 }: SortableChannelProps) => {
+const SortableChannel = ({ channel, selected, onClick, serverId, depth = 0, isAdmin }: SortableChannelProps) => {
   const {
     attributes,
     listeners,
@@ -76,7 +76,8 @@ export const ChannelCategory = ({
   onSelectChannel, 
   isExpanded, 
   onToggle,
-  childChannels
+  childChannels,
+  isAdmin
 }: CategoryProps) => {
   const renderChannel = (channel: Channel, depth = 0) => {
     const children = childChannels?.get(channel.id) || [];
@@ -89,6 +90,7 @@ export const ChannelCategory = ({
           onClick={() => onSelectChannel(channel.id)}
           serverId={channel.server_id}
           depth={depth}
+          isAdmin={isAdmin}
         />
         {children.map(child => renderChannel(child, depth + 1))}
       </div>

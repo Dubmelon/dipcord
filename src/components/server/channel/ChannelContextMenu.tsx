@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { 
@@ -14,10 +14,21 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription
+  DialogDescription,
+  DialogFooter
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Edit, Trash2, MoveVertical } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Channel } from "@/types/database";
@@ -26,11 +37,13 @@ interface ChannelContextMenuProps {
   channel: Channel;
   children: React.ReactNode;
   serverId: string;
+  isAdmin?: boolean;
 }
 
-export const ChannelContextMenu = ({ channel, children, serverId }: ChannelContextMenuProps) => {
+export const ChannelContextMenu = ({ channel, children, serverId, isAdmin = false }: ChannelContextMenuProps) => {
   const queryClient = useQueryClient();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [newName, setNewName] = useState(channel.name);
 
   const handleDeleteChannel = async () => {
@@ -44,6 +57,7 @@ export const ChannelContextMenu = ({ channel, children, serverId }: ChannelConte
 
       queryClient.invalidateQueries({ queryKey: ['channels', serverId] });
       toast.success("Channel deleted successfully");
+      setIsDeleteDialogOpen(false);
     } catch (error) {
       console.error('[ChannelContextMenu] Error deleting channel:', error);
       toast.error("Failed to delete channel");
@@ -73,10 +87,17 @@ export const ChannelContextMenu = ({ channel, children, serverId }: ChannelConte
     }
   };
 
+  const handleClick = useCallback((e: React.MouseEvent) => {
+    if ((e.ctrlKey || e.metaKey) && isAdmin) {
+      e.preventDefault();
+      setIsDeleteDialogOpen(true);
+    }
+  }, [isAdmin]);
+
   return (
     <>
       <ContextMenu>
-        <ContextMenuTrigger className="w-full">
+        <ContextMenuTrigger className="w-full" onClick={handleClick}>
           {children}
         </ContextMenuTrigger>
         <ContextMenuContent>
@@ -88,14 +109,18 @@ export const ChannelContextMenu = ({ channel, children, serverId }: ChannelConte
             <MoveVertical className="h-4 w-4 mr-2" />
             Move Channel
           </ContextMenuItem>
-          <ContextMenuSeparator />
-          <ContextMenuItem 
-            onClick={handleDeleteChannel}
-            className="text-destructive focus:text-destructive"
-          >
-            <Trash2 className="h-4 w-4 mr-2" />
-            Delete Channel
-          </ContextMenuItem>
+          {isAdmin && (
+            <>
+              <ContextMenuSeparator />
+              <ContextMenuItem 
+                onClick={() => setIsDeleteDialogOpen(true)}
+                className="text-destructive focus:text-destructive"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete Channel
+              </ContextMenuItem>
+            </>
+          )}
         </ContextMenuContent>
       </ContextMenu>
 
@@ -130,6 +155,26 @@ export const ChannelContextMenu = ({ channel, children, serverId }: ChannelConte
           </div>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Channel</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete #{channel.name}? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteChannel}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { ChannelCategory } from "./channel/ChannelCategory";
@@ -25,7 +24,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-export const ChannelList = ({ serverId, channels = [], selectedChannel, onSelectChannel }: ChannelListProps) => {
+export const ChannelList = ({ serverId, channels = [], selectedChannel, onSelectChannel, isAdmin }: ChannelListProps) => {
   const [expandedCategories, setExpandedCategories] = useState<CategoryState>({ general: true });
   const { currentUser } = useAuth();
 
@@ -137,6 +136,7 @@ export const ChannelList = ({ serverId, channels = [], selectedChannel, onSelect
                   isExpanded={expandedCategories[category]}
                   onToggle={() => toggleCategory(category)}
                   childChannels={channelMap}
+                  isAdmin={isAdmin}
                 />
               ))}
             </SortableContext>

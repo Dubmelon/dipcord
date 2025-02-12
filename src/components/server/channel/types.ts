@@ -6,13 +6,13 @@ export interface ChannelListProps {
   channels: Channel[] | undefined;
   selectedChannel: string | null;
   onSelectChannel: (channelId: string) => void;
+  isAdmin?: boolean;
 }
 
 export interface CategoryState {
   [key: string]: boolean;
 }
 
-// Changed from enum to string type since categories are now user-defined
 export type ChannelCategory = string;
 
 export interface CategoryProps {
@@ -23,6 +23,7 @@ export interface CategoryProps {
   isExpanded: boolean;
   onToggle: () => void;
   childChannels: Map<string, Channel[]>;
+  isAdmin?: boolean;
 }
 
 export interface UserControlsProps {
