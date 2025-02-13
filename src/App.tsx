@@ -16,6 +16,7 @@ import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import { useEffect, useState } from "react";
 import { supabase } from "./integrations/supabase/client";
+import { useAuth } from "./hooks/useAuth";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -29,7 +30,7 @@ const queryClient = new QueryClient({
 });
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const { currentUser } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -37,13 +38,11 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     
     supabase.auth.getSession().then(({ data: { session } }) => {
       console.log('[ProtectedRoute] Initial session check:', session?.user?.id);
-      setIsAuthenticated(!!session);
       setIsLoading(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log(`[ProtectedRoute] Auth state changed: ${event}`, session?.user?.id);
-      setIsAuthenticated(!!session);
       setIsLoading(false);
     });
 
@@ -60,7 +59,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
-  if (!isAuthenticated) {
+  if (!currentUser) {
     return <Navigate to="/" replace />;
   }
 
